@@ -32,11 +32,7 @@ jobs:
         with:
           node-version: "20"
 
-      # Lockfile was generated on macOS; npm ci can skip Linux optional native binaries (npm/cli#4828).
-      - name: Install dependencies
-        run: |
-          rm -rf node_modules
-          npm install --no-audit --no-fund
+      - run: npm ci
 
       - name: Build
         env:
