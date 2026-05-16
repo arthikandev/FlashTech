@@ -14,7 +14,7 @@ import { CloudMetricsPage } from "./demos/CloudMetricsPage";
 import { CoralPage } from "./demos/CoralPage";
 import { LoginPage } from "./auth/LoginPage";
 import { LandingPage } from "./landing/LandingPage";
-import { BusinessWizard } from "./onboarding/BusinessWizard";
+import { OnboardingRoute } from "./onboarding/OnboardingRoute";
 import { PitchDeck } from "./pitch/PitchDeck";
 import { PresentPage } from "./pages/PresentPage";
 
@@ -28,6 +28,7 @@ export default function App() {
           <Route path="slack" element={<SlackMock />} />
           <Route path="present" element={<PresentPage />} />
           <Route path="login" element={<LoginPage />} />
+          <Route path="onboard" element={<OnboardingRoute />} />
           <Route path="dashboard" element={<DashboardRoute />}>
             <Route index element={<OverviewPage />} />
             <Route path="sessions" element={<SessionsPage />} />
@@ -37,7 +38,6 @@ export default function App() {
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route element={<Layout />}>
-            <Route path="onboard" element={<BusinessWizard />} />
             <Route path="demos/seylan" element={<SeylanPage />} />
             <Route path="demos/cloudmetrics" element={<CloudMetricsPage />} />
             <Route path="demos/coral" element={<CoralPage />} />

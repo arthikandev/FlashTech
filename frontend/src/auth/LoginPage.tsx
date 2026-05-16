@@ -1,8 +1,11 @@
+import { SignIn } from "@clerk/clerk-react";
 import { type FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { goToBackendDashboard } from "@/lib/backendUrl";
+import { clerkEnabled } from "@/convex/api";
+import { isOnboardingComplete } from "@/onboarding/storage";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { Label } from "@/components/ui/label";
@@ -21,13 +24,23 @@ const inputClass = cn(
 );
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const onboardRedirect =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/onboard`
+      : "/onboard";
+
   function goAfterAuth() {
-    goToBackendDashboard();
+    if (isOnboardingComplete()) {
+      void goToBackendDashboard();
+    } else {
+      navigate("/onboard");
+    }
   }
 
   function handleSubmit(e: FormEvent) {
@@ -76,6 +89,18 @@ export function LoginPage() {
               Operator dashboard and live session intelligence.
             </p>
 
+            {clerkEnabled ? (
+              <motion.div className="mt-9 flex justify-center [&_.cl-card]:shadow-none [&_.cl-card]:bg-transparent">
+                <SignIn
+                  routing="hash"
+                  forceRedirectUrl={onboardRedirect}
+                  fallbackRedirectUrl={onboardRedirect}
+                  signUpForceRedirectUrl={onboardRedirect}
+                  signUpFallbackRedirectUrl={onboardRedirect}
+                />
+              </motion.div>
+            ) : (
+            <>
             <form onSubmit={handleSubmit} className="mt-9 space-y-5 w-full">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground/90">
@@ -168,6 +193,8 @@ export function LoginPage() {
                 Request access
               </button>
             </p>
+            </>
+            )}
           </div>
         </motion.div>
       </div>

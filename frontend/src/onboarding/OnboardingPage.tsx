@@ -1,9 +1,17 @@
+import { useMutation } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, Navigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { api, clerkEnabled } from "@/convex/api";
 import { StepProgress } from "./components/StepProgress";
-import { isOnboardingComplete } from "./storage";
+import {
+  clearOnboardResult,
+  loadOnboardResult,
+  saveOnboardResult,
+} from "./storage";
+import { submitOnboardingToApi } from "./submitOnboarding";
 import { useOnboarding } from "./useOnboarding";
 import { AiRulesStep } from "./steps/AiRulesStep";
 import { AvatarSetupStep } from "./steps/AvatarSetupStep";
@@ -38,9 +46,77 @@ export function OnboardingPage() {
     direction,
   } = useOnboarding();
 
-  if (isOnboardingComplete()) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  const linkCurrentUser = useMutation(api.businessMembers.linkCurrentUser);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [onboardResult, setOnboardResult] = useState(() => loadOnboardResult());
+
+  const persistTenant = useCallback(
+    async (options?: { force?: boolean }) => {
+      if (!options?.force) {
+        const existing = loadOnboardResult();
+        if (existing) {
+          setOnboardResult(existing);
+          return existing;
+        }
+      } else {
+        clearOnboardResult();
+        setOnboardResult(null);
+      }
+
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      try {
+        const result = await submitOnboardingToApi(data);
+        saveOnboardResult(result);
+        setOnboardResult(result);
+
+        if (clerkEnabled) {
+          try {
+            await linkCurrentUser({ businessId: result.businessId, role: "admin" });
+          } catch {
+            /* tenant created; link from backend dashboard if Convex auth lags */
+          }
+        }
+
+        return result;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Onboarding failed";
+        setSubmitError(msg);
+        throw err;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [data, linkCurrentUser]
+  );
+
+  const handleAiRulesContinue = useCallback(async () => {
+    try {
+      await persistTenant();
+      goNext();
+    } catch {
+      /* error surfaced via submitError */
+    }
+  }, [persistTenant, goNext]);
+
+  const handleInstallRetry = useCallback(async () => {
+    try {
+      await persistTenant({ force: true });
+    } catch {
+      /* error surfaced via submitError */
+    }
+  }, [persistTenant]);
+
+  useEffect(() => {
+    if (step.id !== "install" || onboardResult || isSubmitting || submitError) {
+      return;
+    }
+    void persistTenant().catch(() => {
+      /* error surfaced via submitError */
+    });
+  }, [step.id, onboardResult, isSubmitting, submitError, persistTenant]);
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col">
@@ -117,12 +193,21 @@ export function OnboardingPage() {
                   data={data}
                   update={update}
                   onBack={goBack}
-                  onContinue={goNext}
+                  onContinue={() => void handleAiRulesContinue()}
                   showBack={!isFirst}
+                  continueDisabled={isSubmitting}
+                  continueLabel={isSubmitting ? "Creating workspace…" : undefined}
                 />
               )}
               {step.id === "install" && (
-                <InstallScriptStep data={data} onBack={goBack} showBack={!isFirst} />
+                <InstallScriptStep
+                  result={onboardResult}
+                  error={submitError}
+                  isLoading={isSubmitting}
+                  onRetry={() => void handleInstallRetry()}
+                  onBack={goBack}
+                  showBack={!isFirst}
+                />
               )}
             </motion.div>
           </AnimatePresence>
@@ -131,3 +216,5 @@ export function OnboardingPage() {
     </div>
   );
 }
+
+

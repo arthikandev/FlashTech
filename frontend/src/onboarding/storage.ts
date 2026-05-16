@@ -1,7 +1,9 @@
 import { defaultOnboardingData, type OnboardingData } from "./types";
+import type { OnboardApiResult } from "./submitOnboarding";
 
 const COMPLETE_KEY = "piq_onboarding_complete";
 const DRAFT_KEY = "piq_onboarding_draft";
+const RESULT_KEY = "piq_onboarding_result";
 
 export function isOnboardingComplete(): boolean {
   try {
@@ -33,6 +35,7 @@ export function markOnboardingComplete(): void {
   try {
     localStorage.setItem(COMPLETE_KEY, "true");
     localStorage.removeItem(DRAFT_KEY);
+    clearOnboardResult();
   } catch {
     /* ignore */
   }
@@ -42,6 +45,33 @@ export function clearOnboardingComplete(): void {
   try {
     localStorage.removeItem(COMPLETE_KEY);
     localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(RESULT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function saveOnboardResult(result: OnboardApiResult): void {
+  try {
+    sessionStorage.setItem(RESULT_KEY, JSON.stringify(result));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadOnboardResult(): OnboardApiResult | null {
+  try {
+    const raw = sessionStorage.getItem(RESULT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as OnboardApiResult;
+  } catch {
+    return null;
+  }
+}
+
+export function clearOnboardResult(): void {
+  try {
+    sessionStorage.removeItem(RESULT_KEY);
   } catch {
     /* ignore */
   }

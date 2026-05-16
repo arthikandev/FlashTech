@@ -11,9 +11,19 @@ type Props = {
   onBack: () => void;
   onContinue: () => void;
   showBack: boolean;
+  continueDisabled?: boolean;
+  continueLabel?: string;
 };
 
-export function AiRulesStep({ data, update, onBack, onContinue, showBack }: Props) {
+export function AiRulesStep({
+  data,
+  update,
+  onBack,
+  onContinue,
+  showBack,
+  continueDisabled,
+  continueLabel,
+}: Props) {
   const toggleLanguage = (lang: string) => {
     const has = data.languages.includes(lang);
     if (has && data.languages.length <= 1) return;
@@ -30,7 +40,8 @@ export function AiRulesStep({ data, update, onBack, onContinue, showBack }: Prop
       description="Set greeting behaviour, escalation, and supported languages."
       onBack={onBack}
       onContinue={onContinue}
-      continueDisabled={data.languages.length === 0}
+      continueDisabled={continueDisabled ?? data.languages.length === 0}
+      continueLabel={continueLabel}
       showBack={showBack}
     >
       <div className="space-y-2">
