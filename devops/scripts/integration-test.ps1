@@ -21,7 +21,7 @@ Test-Step "3. POST /api/fingerprint" {
   $script:visitorId = $r.data.visitorId; $script:businessId = $r.data.businessId
 }
 Test-Step "4. POST /api/pipeline" {
-  $body = "{`"visitorId`":`"$visitorId`",`"businessId`":`"$businessId`",`"waitForCrmMs`":500}"
+  $body = "{`"visitorId`":`"$visitorId`",`"businessId`":`"$businessId`",`"waitForCrmMs`":200}"
   $r = Invoke-RestMethod -Uri "$BackendUrl/api/pipeline" -Method Post -Body $body -ContentType "application/json"
   if (-not $r.success) { throw "fail" }
 }

@@ -25,3 +25,4 @@ console.log(`Wrote ${outPath}`);
 console.log("\nHandoff to Person 2 — add to backend/.env.local:");
 console.log(`BP_WEBHOOK_SECRET=${bp}`);
 console.log(`N8N_WEBHOOK_SECRET=${n8n}`);
+console.log("\nRun: node devops/scripts/apply-secrets.mjs");

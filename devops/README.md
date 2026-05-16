@@ -2,6 +2,7 @@
 
 ## Quick links
 
+- **[Live URLs](LIVE_URLS.md)** — production backend + frontend
 - [Person 1 tracker (dev.md)](../dev.md)
 - [Vercel deploy](deploy/vercel.md)
 - [Convex deploy](deploy/convex.md) · [D1 checklist](deploy/D1-convex-checklist.md)
@@ -25,6 +26,15 @@ npm run status          # quick integration summary
 ```
 
 ## Integration checklist
+
+Production smoke test:
+
+```bash
+curl -s https://backend-blond-theta-13.vercel.app/api/health | jq .status
+PRESENCEIQ_BACKEND_URL=https://backend-blond-theta-13.vercel.app bash devops/scripts/test-n8n-flow.sh
+```
+
+Local:
 
 - [ ] `curl http://localhost:3001/api/embed/seylan-demo` returns JavaScript
 - [ ] POST `/api/fingerprint` with `embedKey: seylan-demo`, `fingerprint: demo-sarangan-fp` returns visitorId

@@ -18,12 +18,19 @@ export interface BeyondPresenceClientOptions {
   mockMode?: boolean;
 }
 
+export type BPSessionEndData = {
+  messages?: Array<{ role: string; content?: string; text?: string }>;
+  duration?: number;
+  outcome?: SessionEndPayload["outcome"];
+};
+
 export interface BeyondPresenceClient {
   init(): Promise<void>;
   updateAgentContext(update: AgentContextUpdate): Promise<void>;
   showAvatar(): void;
   hideAvatar(): void;
-  onSessionEnd(handler: () => SessionEndPayload): void;
+  onSessionEnd(handler: (session?: BPSessionEndData) => SessionEndPayload): void;
+  getLastSession(): BPSessionEndData | undefined;
 }
 
 /** Global injected by BeyondPresence embed script (when not in mock mode). */
@@ -32,7 +39,8 @@ type BPGlobal = {
   updateAgentContext?: (ctx: AgentContextUpdate) => Promise<void>;
   show?: () => void;
   hide?: () => void;
-  onSessionEnd?: (cb: () => void) => void;
+  onSessionEnd?: (cb: (session?: BPSessionEndData) => void) => void;
+  getMessages?: () => Array<{ role: string; content?: string; text?: string }>;
 };
 
 function getBpGlobal(): BPGlobal | undefined {
@@ -40,7 +48,8 @@ function getBpGlobal(): BPGlobal | undefined {
 }
 
 class MockBeyondPresenceClient implements BeyondPresenceClient {
-  private sessionHandler?: () => SessionEndPayload;
+  private sessionHandler?: (session?: BPSessionEndData) => SessionEndPayload;
+  private lastSession?: BPSessionEndData;
   private containerId: string;
 
   constructor(
@@ -82,17 +91,21 @@ class MockBeyondPresenceClient implements BeyondPresenceClient {
     if (el) el.style.visibility = "hidden";
   }
 
-  onSessionEnd(handler: () => SessionEndPayload): void {
+  onSessionEnd(handler: (session?: BPSessionEndData) => SessionEndPayload): void {
     this.sessionHandler = handler;
     window.addEventListener("presenceiq:mock-session-end", () => {
       void this.flushSession();
     });
   }
 
+  getLastSession(): BPSessionEndData | undefined {
+    return this.lastSession;
+  }
+
   async flushSession(): Promise<void> {
     if (!this.sessionHandler || !this.opts.bpWebhookSecret) return;
     try {
-      const payload = this.sessionHandler();
+      const payload = this.sessionHandler(this.lastSession);
       await postSessionWebhook(
         this.opts.backendUrl,
         this.opts.bpWebhookSecret,
@@ -106,7 +119,8 @@ class MockBeyondPresenceClient implements BeyondPresenceClient {
 }
 
 class SdkBeyondPresenceClient implements BeyondPresenceClient {
-  private sessionHandler?: () => SessionEndPayload;
+  private sessionHandler?: (session?: BPSessionEndData) => SessionEndPayload;
+  private lastSession?: BPSessionEndData;
   private containerId: string;
 
   constructor(
@@ -149,17 +163,26 @@ class SdkBeyondPresenceClient implements BeyondPresenceClient {
     if (el) el.style.visibility = "hidden";
   }
 
-  onSessionEnd(handler: () => SessionEndPayload): void {
+  onSessionEnd(handler: (session?: BPSessionEndData) => SessionEndPayload): void {
     this.sessionHandler = handler;
     const bp = getBpGlobal();
     if (bp?.onSessionEnd) {
-      bp.onSessionEnd(() => void this.flushSession());
+      bp.onSessionEnd((session) => {
+        this.lastSession = session ?? {
+          messages: bp.getMessages?.() ?? [],
+        };
+        void this.flushSession();
+      });
     }
+  }
+
+  getLastSession(): BPSessionEndData | undefined {
+    return this.lastSession;
   }
 
   private async flushSession(): Promise<void> {
     if (!this.sessionHandler) return;
-    const payload = this.sessionHandler();
+    const payload = this.sessionHandler(this.lastSession);
     await postSessionWebhook(
       this.opts.backendUrl,
       this.opts.bpWebhookSecret,
@@ -173,8 +196,9 @@ export function applyPipelineToAgent(
   data: PipelineData
 ): Promise<void> {
   const voiceId = voiceIdForLanguage(data.visitor.language, data.business.industry);
+  const tone = data.business.personaTone ?? "professional";
   const systemPrompt = [
-    `You are a ${data.business.personaTone} assistant for ${data.business.name}.`,
+    `You are a ${tone} assistant for ${data.business.name}.`,
     `Visitor: ${data.visitor.name ?? "guest"} (${data.visitor.language}).`,
     `Intent: ${data.intelligence.intentScore}/100. Action: ${data.intelligence.recommendedAction}.`,
     `Open with exactly: "${data.intelligence.personalisedOpener}"`,

@@ -5,13 +5,20 @@ import {
   type PipelineData,
 } from "./pipeline";
 import {
-  applyPipelineToAgent,
   createBeyondPresenceClient,
   defaultSessionPayload,
+  type BPSessionEndData,
 } from "./beyondpresence/client";
+import { mapBpMessagesToTranscript } from "./sessionTranscript";
+import { warmAvatarWithRetry } from "./beyondpresence/startWithRetry";
 import { resolveAvatarContainer, type InitOptions } from "./types";
 
 const CONTAINER_ID = "presenceiq-avatar";
+let mountContainerId = CONTAINER_ID;
+const DEFAULT_OPENER = "Hello! How can I help you today?";
+const DEFAULT_SYSTEM =
+  "You are a helpful assistant. Greet the visitor warmly and ask how you can help.";
+
 let bootstrapAttached = false;
 let lastPipeline: PipelineData | null = null;
 let lastVisitorId: string | null = null;
@@ -19,14 +26,29 @@ let lastBusinessId: string | null = null;
 let client: ReturnType<typeof createBeyondPresenceClient> | null = null;
 
 function setAvatarLoading(loading: boolean): void {
-  const el = document.getElementById(CONTAINER_ID);
+  const el = document.getElementById(mountContainerId);
   if (!el) return;
-  el.style.visibility = "hidden";
   el.setAttribute("data-piq-loading", loading ? "true" : "false");
   if (loading) {
     el.setAttribute("aria-busy", "true");
   } else {
     el.removeAttribute("aria-busy");
+  }
+}
+
+function mark(name: string): void {
+  try {
+    performance.mark(name);
+  } catch {
+    /* ignore */
+  }
+}
+
+function measure(name: string, start: string, end: string): void {
+  try {
+    performance.measure(name, start, end);
+  } catch {
+    /* ignore */
   }
 }
 
@@ -57,51 +79,111 @@ async function onPresenceIQReady(event: Event): Promise<void> {
         bpWebhookSecret: config.bpWebhookSecret,
         mockMode: config.mockMode,
       },
-      CONTAINER_ID
+      mountContainerId
     );
     await client.init();
     client.hideAvatar();
 
-    client.onSessionEnd(() => {
-      const transcript = [
-        {
-          role: "user" as const,
-          text: "Demo session ended",
-          timestamp: Date.now(),
-        },
-        {
-          role: "assistant" as const,
-          text: lastPipeline?.intelligence.personalisedOpener ?? "Goodbye",
-          timestamp: Date.now(),
-        },
-      ];
-      return defaultSessionPayload(visitorId, businessId, transcript);
+    client.onSessionEnd((session?: BPSessionEndData) => {
+      const opener =
+        lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
+      const transcript = mapBpMessagesToTranscript(session, opener);
+      const payload = defaultSessionPayload(visitorId, businessId, transcript);
+      if (session?.duration != null && session.duration > 0) {
+        payload.duration = session.duration;
+      }
+      if (session?.outcome) {
+        payload.outcome = session.outcome;
+      }
+      return payload;
     });
   }
 
+  mark("piq:ready");
   setAvatarLoading(true);
+  mark("piq:pipeline-start");
+  window.dispatchEvent(new CustomEvent("presenceiq:pipeline-start"));
 
-  try {
-    const data = await fetchPipeline(config.backendUrl, visitorId, businessId);
+  const defaultContext = {
+    systemPrompt: DEFAULT_SYSTEM,
+    firstMessage: DEFAULT_OPENER,
+  };
+
+  const pipelinePromise = fetchPipeline(
+    config.backendUrl,
+    visitorId,
+    businessId,
+    config.waitForCrmMs ?? 200
+  );
+
+  const avatarWarmPromise = warmAvatarWithRetry(client, defaultContext);
+
+  const [pipelineSettled, avatarSettled] = await Promise.allSettled([
+    pipelinePromise,
+    avatarWarmPromise,
+  ]);
+
+  let data: PipelineData | null = null;
+
+  if (pipelineSettled.status === "fulfilled") {
+    data = pipelineSettled.value;
     lastPipeline = data;
+    mark("piq:pipeline-done");
     console.log("[PresenceIQ] pipeline", {
       pipelineMs: data.pipelineMs,
       opener: data.intelligence.personalisedOpener,
       systemPrompt: buildSystemPrompt(data),
     });
 
-    await applyPipelineToAgent(client, data);
-    client.showAvatar();
-  } catch (err) {
-    console.error("[PresenceIQ] pipeline error", err);
-    await client.updateAgentContext({
-      systemPrompt: "You are a helpful banking assistant for Seylan Bank.",
-      firstMessage: "Hello! How can I help you today?",
-    });
-    client.showAvatar();
-  } finally {
-    setAvatarLoading(false);
+    const serverSynced =
+      data.syncStatus === "complete" || data.beyondPresence?.synced === true;
+    if (!serverSynced) {
+      console.warn(
+        "[PresenceIQ] Server BP sync not complete — avatar displays with warmed default context"
+      );
+    } else {
+      console.log("[PresenceIQ] Server authoritative BP agent sync complete");
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("presenceiq:pipeline-complete", { detail: data })
+    );
+  } else {
+    const reason = String(pipelineSettled.reason);
+    console.error("[PresenceIQ] pipeline error", pipelineSettled.reason);
+    try {
+      await client.updateAgentContext(defaultContext);
+    } catch {
+      /* ignore */
+    }
+    window.dispatchEvent(
+      new CustomEvent("presenceiq:pipeline-error", {
+        detail: { error: reason },
+      })
+    );
+    window.dispatchEvent(
+      new CustomEvent("presenceiq:avatar-fallback", {
+        detail: { reason },
+      })
+    );
   }
+
+  if (avatarSettled.status === "rejected") {
+    console.error("[PresenceIQ] avatar warm failed", avatarSettled.reason);
+    window.dispatchEvent(
+      new CustomEvent("presenceiq:avatar-fallback", {
+        detail: { reason: String(avatarSettled.reason) },
+      })
+    );
+  } else {
+    mark("piq:avatar-visible");
+    client.showAvatar();
+  }
+
+  measure("time-to-pipeline", "piq:pipeline-start", "piq:pipeline-done");
+  measure("time-to-avatar", "piq:ready", "piq:avatar-visible");
+
+  setAvatarLoading(false);
 }
 
 function bootstrap(): void {
@@ -114,6 +196,21 @@ function bootstrap(): void {
 }
 
 /** Demo sites call this with `avatarContainer` (see frontend/sites/shared/boot.ts). */
+function replayReadyIfMissed(): void {
+  const last = window.__piq_last;
+  if (last?.visitorId && last?.businessId) {
+    void onPresenceIQReady(
+      new CustomEvent("presenceiq:ready", {
+        detail: {
+          visitorId: last.visitorId,
+          businessId: last.businessId,
+          sessionId: last.sessionId,
+        },
+      })
+    );
+  }
+}
+
 export function initPresenceIQAvatar(options: InitOptions): void {
   const el = resolveAvatarContainer(options);
   if (!el) {
@@ -123,18 +220,32 @@ export function initPresenceIQAvatar(options: InitOptions): void {
     return;
   }
   if (!el.id) el.id = CONTAINER_ID;
+  mountContainerId = el.id;
 
   window.__PRESENCEIQ_CONFIG__ = {
     ...window.__PRESENCEIQ_CONFIG__,
-    ...(options.backendUrl ? { backendUrl: options.backendUrl.replace(/\/$/, "") } : {}),
+    ...(options.backendUrl
+      ? { backendUrl: options.backendUrl.replace(/\/$/, "") }
+      : {}),
     ...(options.webhookSecret
       ? { bpWebhookSecret: options.webhookSecret }
+      : {}),
+    ...(options.waitForCrmMs !== undefined
+      ? { waitForCrmMs: options.waitForCrmMs }
       : {}),
   };
 
   bootstrap();
+  replayReadyIfMissed();
 }
 
 bootstrap();
 
-export { bootstrap, onPresenceIQReady, initPresenceIQAvatar };
+if (typeof window !== "undefined") {
+  window.PresenceIQAvatar = {
+    init: initPresenceIQAvatar,
+    initPresenceIQAvatar,
+  };
+}
+
+export { bootstrap, onPresenceIQReady };

@@ -2,22 +2,69 @@ import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { ConvexProvider } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
-const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
-const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
+const convexUrlRaw = import.meta.env.VITE_CONVEX_URL as string | undefined;
+const clerkKeyRaw = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
 
-const convex = new ConvexReactClient(convexUrl);
+function MissingConvexEnv() {
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-neutral-950 px-6 py-16 text-center text-neutral-100">
+      <h1 className="text-xl font-semibold tracking-tight">Frontend env not configured</h1>
+      <p className="max-w-lg text-sm leading-relaxed text-neutral-400">
+        Vite embeds variables at{" "}
+        <strong className="text-neutral-200">build time</strong>. This bundle was built without{" "}
+        <code className="rounded bg-neutral-800 px-1.5 py-0.5 text-neutral-200">VITE_CONVEX_URL</code>.
+        Add it Vercel → Project → Environment Variables → Production (and Preview), then redeploy. It must match{" "}
+        <code className="rounded bg-neutral-800 px-1.5 py-0.5 text-neutral-200">NEXT_PUBLIC_CONVEX_URL</code>{" "}
+        on the backend.
+      </p>
+      <p className="max-w-lg text-xs text-neutral-500">
+        Or run <code className="text-neutral-400">bash devops/scripts/vercel-sync-env.sh frontend</code> from the
+        repo, then redeploy (see docs/ENV.md).
+      </p>
+    </div>
+  );
+}
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  if (!clerkKey?.trim()) {
-    return <ConvexProvider client={convex}>{children}</ConvexProvider>;
+  const clerkKey = clerkKeyRaw?.trim() ?? "";
+  const convexClient = useMemo(() => {
+    const url = convexUrlRaw?.trim() ?? "";
+    if (!url) return null;
+    return new ConvexReactClient(url);
+  }, [convexUrlRaw]);
+
+  if (!convexClient) {
+    return <MissingConvexEnv />;
+  }
+
+  const content = (
+    <>
+      {children}
+      <Toaster
+        theme="dark"
+        position="top-right"
+        richColors
+        closeButton
+        toastOptions={{
+          classNames: {
+            toast: "border border-[#212121] bg-[#101010] text-[#E1E0CC]",
+          },
+        }}
+      />
+    </>
+  );
+
+  if (!clerkKey) {
+    return <ConvexProvider client={convexClient}>{content}</ConvexProvider>;
   }
 
   return (
     <ClerkProvider publishableKey={clerkKey}>
-      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        {children}
+      <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
+        {content}
       </ConvexProviderWithClerk>
     </ClerkProvider>
   );

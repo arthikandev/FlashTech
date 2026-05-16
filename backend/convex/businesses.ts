@@ -42,11 +42,13 @@ export const createBusiness = mutation({
     personaTone: v.optional(v.string()),
     defaultLanguage: v.optional(v.string()),
     embedKey: v.optional(v.string()),
+    bpAgentId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const baseKey = args.embedKey?.trim() || slugify(args.name);
     const embedKey = await uniqueEmbedKey(ctx, baseKey || "business");
 
+    const bpAgentId = args.bpAgentId?.trim();
     const businessId = await ctx.db.insert("businesses", {
       name: args.name,
       industry: args.industry,
@@ -54,6 +56,7 @@ export const createBusiness = mutation({
       avatarConfig: {
         personaTone: args.personaTone ?? "professional",
         defaultLanguage: args.defaultLanguage ?? "en",
+        ...(bpAgentId ? { bpAgentId } : {}),
       },
       knowledgeChunks: [],
       webhookUrls: {},

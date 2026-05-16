@@ -3,6 +3,7 @@ export interface PresenceIQConfig {
   bpWebhookSecret: string;
   beyondPresenceApiKey?: string;
   bpAgentId?: string;
+  waitForCrmMs?: number;
   /** When true, skip real BP SDK and log pipeline results only */
   mockMode?: boolean;
 }
@@ -24,6 +25,7 @@ export function getConfig(): PresenceIQConfig {
       "",
     beyondPresenceApiKey: c.beyondPresenceApiKey,
     bpAgentId: c.bpAgentId,
+    waitForCrmMs: c.waitForCrmMs ?? 200,
     mockMode: c.mockMode ?? !c.beyondPresenceApiKey,
   };
 }

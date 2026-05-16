@@ -5,11 +5,17 @@
   "type": "module",
   "scripts": {
     "setup": "node ../scripts/setup-local-env.mjs",
-    "dev": "node ../scripts/setup-local-env.mjs && vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "convex:sync": "cd ../backend && npx convex dev --once",
+    "dev": "vite --mode development",
+    "dev:deployed": "vite --mode production",
+    "build:avatar": "bash scripts/avatar-bundle-or-skip.sh",
+    "build:app": "tsc --noEmit && vite build --mode production",
+    "build": "npm run build:avatar && npm run build:app",
+    "preview": "vite preview",
+    "deploy": "npm run build && vercel deploy --prod --yes --scope sarangans-projects-55d6b0e1"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.0.0",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
@@ -24,6 +30,8 @@
     "react-countup": "^6.5.3",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.0",
+    "recharts": "^2.15.4",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {

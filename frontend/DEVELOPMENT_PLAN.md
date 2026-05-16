@@ -29,7 +29,7 @@ frontend/sites/       — Static HTML demos + boot.ts (legacy)
 - [x] Onboarding wizard — `/onboard`
 - [x] 5-slide pitch deck — `/deck`
 - [x] Slack mock — `/slack`
-- [ ] Deploy frontend to Vercel
+- [x] Deploy frontend to Vercel — https://frontend-nu-neon-44.vercel.app
 - [ ] 10 rehearsals with P1 + P2
 
 ## Depends on Person 2
@@ -41,11 +41,24 @@ frontend/sites/       — Static HTML demos + boot.ts (legacy)
 ## Local dev
 
 ```bash
+# Terminal 1 — backend
+cd backend && npm run dev:3001
+
+# Terminal 2 — frontend (uses localhost:3001 via .env.development)
 cd frontend
-cp .env.example .env.local
+cp .env.example .env.local   # add VITE_CLERK_PUBLISHABLE_KEY from backend
 npm install
+npm run build:avatar         # once — copies SDK to public/
 npm run dev
 ```
 
+| Command | Backend target |
+|---------|----------------|
+| `npm run dev` | Local `http://localhost:3001` |
+| `npm run dev:deployed` | Production Vercel API (UI dev only) |
+| `npm run deploy` | Build + push to Vercel |
+
 Routes: `/demos/seylan` (React) · `/sites/seylan/index.html#/pricing` (static)  
 Dashboard: http://localhost:5173/dashboard
+
+**Production:** https://frontend-nu-neon-44.vercel.app

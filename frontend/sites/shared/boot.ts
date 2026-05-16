@@ -1,14 +1,51 @@
-import { initPresenceIQAvatar } from "@presenceiq/avatar";
-
 const backendUrl = (
   import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3001"
 ).replace(/\/$/, "");
 
-export function bootDemoSite(embedKey: string): void {
-  const script = document.createElement("script");
-  script.src = `${backendUrl}/api/embed/${embedKey}`;
-  script.async = true;
-  document.head.appendChild(script);
+type InitOptions = {
+  backendUrl?: string;
+  avatarContainer?: HTMLElement;
+  container?: HTMLElement;
+  webhookSecret?: string;
+  waitForCrmMs?: number;
+};
+
+declare global {
+  interface Window {
+    PresenceIQAvatar?: {
+      initPresenceIQAvatar: (options: InitOptions) => void;
+    };
+  }
+}
+
+function loadAvatarSdk(): Promise<void> {
+  if (window.PresenceIQAvatar?.initPresenceIQAvatar) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-presenceiq-avatar-sdk="1"]'
+    );
+    if (existing) {
+      existing.addEventListener("load", () => resolve());
+      existing.addEventListener("error", () => reject(new Error("Avatar SDK failed")));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "/presenceiq-avatar.js";
+    script.async = true;
+    script.dataset.presenceiqAvatarSdk = "1";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Avatar SDK failed to load"));
+    document.head.appendChild(script);
+  });
+}
+
+export async function bootDemoSite(embedKey: string): Promise<void> {
+  const embed = document.createElement("script");
+  embed.src = `${backendUrl}/api/embed/${embedKey}`;
+  embed.async = true;
+  document.head.appendChild(embed);
 
   const container = document.getElementById("avatar-slot");
   if (!container) {
@@ -18,12 +55,6 @@ export function bootDemoSite(embedKey: string): void {
 
   const spinner = document.getElementById("avatar-spinner");
 
-  initPresenceIQAvatar({
-    backendUrl,
-    avatarContainer: container,
-    waitForCrmMs: 500,
-  });
-
   window.addEventListener("presenceiq:pipeline-start", () => {
     spinner?.classList.remove("hidden");
   });
@@ -31,6 +62,17 @@ export function bootDemoSite(embedKey: string): void {
   window.addEventListener("presenceiq:pipeline-complete", () => {
     spinner?.classList.add("hidden");
   });
+
+  try {
+    await loadAvatarSdk();
+    window.PresenceIQAvatar?.initPresenceIQAvatar({
+      backendUrl,
+      avatarContainer: container,
+      waitForCrmMs: 200,
+    });
+  } catch (err) {
+    console.error("[PresenceIQ] Avatar SDK:", err);
+  }
 }
 
 export function setupHashRouter(): void {

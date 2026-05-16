@@ -88,7 +88,7 @@ Score visitor intent (GPT-4o). Requires `OPENAI_API_KEY` or returns demo fallbac
 {
   "visitorId": "...",
   "businessId": "...",
-  "waitForCrmMs": 500
+  "waitForCrmMs": 200
 }
 ```
 

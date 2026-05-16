@@ -15,12 +15,13 @@ const bodySchema = z.object({
   personaTone: z.string().optional(),
   defaultLanguage: z.string().optional(),
   embedKey: z.string().regex(/^[a-z0-9-]+$/).optional(),
+  bpAgentId: z.string().max(200).optional(),
 });
 
 function appBaseUrl(): string {
   return (
     process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "") ||
-    "http://localhost:3000"
+    "http://localhost:3001"
   );
 }
 
@@ -41,8 +42,21 @@ export async function POST(request: Request) {
         personaTone: body.personaTone,
         defaultLanguage: body.defaultLanguage,
         embedKey: body.embedKey,
+        bpAgentId: body.bpAgentId?.trim() || undefined,
       }
     );
+
+    const slackWebhook = process.env.N8N_WEBHOOK_SLACK?.trim();
+    if (slackWebhook) {
+      try {
+        await convex.mutation(api.triggers.seedTriggers, {
+          businessId,
+          slackWebhookUrl: slackWebhook,
+        });
+      } catch (seedErr) {
+        console.warn("[onboard] seedTriggers skipped:", seedErr);
+      }
+    }
 
     const base = appBaseUrl();
     const embedSnippet = `<script src="${base}/api/embed/${embedKey}" async></script>`;

@@ -15,7 +15,12 @@ export interface PipelineVisitor {
 export interface PipelineBusiness {
   name: string;
   industry: string;
-  personaTone: string;
+  personaTone?: string;
+}
+
+export interface PipelineBeyondPresence {
+  synced: boolean;
+  reason?: string;
 }
 
 export interface PipelineData {
@@ -23,16 +28,18 @@ export interface PipelineData {
   visitor: PipelineVisitor;
   business: PipelineBusiness;
   pipelineMs: number;
+  beyondPresence?: PipelineBeyondPresence;
+  syncStatus?: "complete" | "pending" | "failed";
 }
 
 export async function fetchPipeline(
   backendUrl: string,
   visitorId: string,
   businessId: string,
-  waitForCrmMs = 500
+  waitForCrmMs = 200
 ): Promise<PipelineData> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
   try {
     const res = await fetch(`${backendUrl}/api/pipeline`, {
@@ -44,7 +51,10 @@ export async function fetchPipeline(
 
     const json = (await res.json()) as {
       success?: boolean;
-      data?: PipelineData;
+      data?: PipelineData & {
+        beyondPresence?: PipelineBeyondPresence;
+        syncStatus?: "complete" | "pending" | "failed";
+      };
       error?: string;
     };
 
@@ -71,8 +81,9 @@ export function buildSystemPrompt(data: PipelineData): string {
       ? `Signals: ${intelligence.signals.join(", ")}.`
       : "";
 
+  const tone = business.personaTone ?? "professional";
   return [
-    `You are a ${business.personaTone} assistant for ${business.name} (${business.industry}).`,
+    `You are a ${tone} assistant for ${business.name} (${business.industry}).`,
     `Visitor: ${visitor.name ?? "guest"} (language: ${visitor.language}).`,
     `Intent score: ${intelligence.intentScore}/100.`,
     `Recommended action: ${intelligence.recommendedAction}.`,

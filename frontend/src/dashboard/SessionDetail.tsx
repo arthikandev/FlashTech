@@ -1,163 +1,171 @@
-import type { ReactNode } from "react";
-import { useQuery } from "convex/react";
-import {
-  Brain,
-  ChevronRight,
-  Loader2,
-  MessageSquare,
-  Sparkles,
-  UserRound,
-  ListChecks,
-} from "lucide-react";
-import { api } from "../convex/api";
-import type { Id } from "../../../backend/convex/_generated/dataModel";
-import type { SessionDetailResult } from "../convex/types";
-import { cn } from "@/lib/utils";
+import type { Id } from "@/convex/ids";
+import type { SessionDetailResult } from "@/convex/types";
+import { IntentBadge } from "./IntentBadge";
+import { SentimentArcChart } from "./SentimentArcChart";
+import { SlackAlertCard } from "./SlackAlertCard";
 
 type Props = {
   visitorId: Id<"visitors"> | null;
+  detail: SessionDetailResult | null | undefined;
+  variant?: "default" | "panel";
 };
 
-function DetailBlock({
-  icon: Icon,
-  title,
-  children,
-  className,
-}: {
-  icon: typeof UserRound;
-  title: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={cn("border border-border bg-background/50 p-4", className)}>
-      <h3 className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-primary mb-3 font-medium">
-        <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-function EmptyDetail({ message }: { message: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center text-center py-12 px-4">
-      <div className="flex h-12 w-12 items-center justify-center border border-border bg-card-elevated text-muted-foreground mb-4">
-        <Sparkles className="h-6 w-6" strokeWidth={1.5} />
-      </div>
-      <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{message}</p>
-    </div>
-  );
-}
-
-export function SessionDetail({ visitorId }: Props) {
-  const detail = useQuery(
-    api.intelligence.getSessionDetail,
-    visitorId ? { visitorId } : "skip"
-  ) as SessionDetailResult | null | undefined;
+export function SessionDetail({ visitorId, detail, variant = "default" }: Props) {
+  const cardClass =
+    variant === "panel"
+      ? "rounded-md border border-dash-border bg-dash-bg p-4"
+      : "rounded-md border border-dash-border bg-dash-surface p-4";
 
   if (!visitorId) {
     return (
-      <EmptyDetail message="Select a session from the list to view visitor intelligence and transcript." />
+      <p className="text-dash-muted text-sm py-8 text-center">
+        Select a session to view intelligence, transcript, and CRM.
+      </p>
     );
   }
 
   if (detail === undefined) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground text-sm">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading detail…
-      </div>
-    );
+    return <p className="text-dash-muted text-sm">Loading detail…</p>;
   }
 
   if (detail === null) {
-    return <EmptyDetail message="Visitor not found." />;
+    return <p className="text-dash-muted text-sm">Visitor not found.</p>;
   }
 
   const intel = detail.intelligence;
   const conv = detail.conversation;
-  const hot = (intel?.intentScore ?? 0) > 80;
+  const crm = detail.visitor.crmData;
+  const name = crm?.name ?? detail.visitor.fingerprint;
 
   return (
     <div className="space-y-4 text-sm">
-      <DetailBlock icon={UserRound} title="Visitor">
-        <p className="text-foreground font-medium text-base">
-          {detail.visitor.crmData?.name ?? detail.visitor.fingerprint}
-        </p>
-        <p className="text-muted-foreground text-xs mt-2 flex items-center gap-1">
-          <ChevronRight className="h-3 w-3" />
-          {detail.visitor.returnCount} return visits
-        </p>
-      </DetailBlock>
+      <section className={cardClass}>
+        <IntelHeader name={name} intel={intel} />
+      </section>
 
-      {intel && (
-        <DetailBlock icon={Brain} title="Intelligence">
-          {intel.intentScore != null && (
-            <div className="flex items-end gap-2">
-              <span
-                className={cn(
-                  "text-3xl font-semibold tabular-nums",
-                  hot ? "text-primary" : "text-foreground"
-                )}
+      {(intel?.intentScore ?? 0) >= 80 && <SlackAlertCard detail={detail} />}
+
+      {conv?.sentimentArc && conv.sentimentArc.length > 0 && (
+        <section className={cardClass}>
+          <h3 className="dash-label mb-3">Intent arc</h3>
+          <SentimentArcChart arc={conv.sentimentArc} />
+        </section>
+      )}
+
+      {conv?.transcript && conv.transcript.length > 0 && (
+        <section className={cardClass}>
+          <h3 className="dash-label mb-3">Transcript</h3>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {conv.transcript.map((t, i) => (
+              <div
+                key={i}
+                className={`rounded-md px-3 py-2 text-xs ${
+                  t.role === "user"
+                    ? "bg-dash-hover text-dash-ink ml-2"
+                    : "bg-dash-accent/10 text-dash-muted mr-2"
+                }`}
               >
-                {intel.intentScore}
-              </span>
-              <span className="text-xs text-muted-foreground pb-1">intent score</span>
-            </div>
-          )}
-          {intel.personalisedOpener && (
-            <p className="text-foreground/90 mt-3 leading-relaxed border-l-2 border-primary/40 pl-3">
-              {intel.personalisedOpener}
+                <span className="text-[10px] uppercase text-dash-muted block mb-0.5">
+                  {t.role}
+                </span>
+                {t.text}
+              </div>
+            ))}
+          </div>
+          {conv.duration != null && (
+            <p className="text-[10px] text-dash-muted mt-2">
+              Duration {Math.round(conv.duration / 1000)}s · Outcome: {conv.outcome ?? "—"}
             </p>
           )}
-          {intel.recommendedAction && (
-            <p className="text-muted-foreground mt-3 text-xs flex items-start gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
-              {intel.recommendedAction}
-            </p>
-          )}
-        </DetailBlock>
+        </section>
       )}
 
-      {conv && (
-        <DetailBlock icon={MessageSquare} title="Conversation">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">
-            Outcome · {conv.outcome ?? "—"}
-          </p>
-          {conv.actionItems && conv.actionItems.length > 0 && (
-            <ul className="mt-3 space-y-2">
-              {conv.actionItems.map((item: string, i: number) => (
-                <li
-                  key={i}
-                  className="flex items-start gap-2 text-foreground/85 text-xs"
-                >
-                  <ListChecks className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          )}
-          {conv.transcript && conv.transcript.length > 0 && (
-            <div className="mt-4 space-y-2 max-h-48 overflow-y-auto border border-border p-3 bg-card/50">
-              {conv.transcript.map((t: { role: string; text: string }, i: number) => (
-                <p key={i} className="text-xs leading-relaxed">
-                  <span
-                    className={cn(
-                      "font-medium uppercase tracking-wider text-[10px]",
-                      t.role === "user" ? "text-primary" : "text-muted-foreground"
-                    )}
-                  >
-                    {t.role}
-                  </span>
-                  <span className="text-foreground/80 ml-2">{t.text}</span>
-                </p>
-              ))}
-            </div>
-          )}
-        </DetailBlock>
+      {conv?.actionItems && conv.actionItems.length > 0 && (
+        <section className={cardClass}>
+          <h3 className="dash-label mb-2">Action items</h3>
+          <ul className="list-disc list-inside text-dash-muted space-y-1 text-xs">
+            {conv.actionItems.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
       )}
+
+      <section className={cardClass}>
+        <h3 className="dash-label mb-2">CRM record</h3>
+        {crm ? (
+          <dl className="grid grid-cols-2 gap-2 text-xs">
+            {crm.accountType && (
+              <>
+                <dt className="text-dash-muted">Account</dt>
+                <dd className="text-dash-ink">{crm.accountType}</dd>
+              </>
+            )}
+            {crm.churnRisk && (
+              <>
+                <dt className="text-dash-muted">Churn risk</dt>
+                <dd className={crm.churnRisk === "high" ? "text-rose-400" : "text-dash-ink"}>
+                  {crm.churnRisk}
+                </dd>
+              </>
+            )}
+            {crm.email && (
+              <>
+                <dt className="text-dash-muted">Email</dt>
+                <dd className="text-dash-ink truncate">{crm.email}</dd>
+              </>
+            )}
+            {detail.visitor.crmId && (
+              <>
+                <dt className="text-dash-muted">CRM ID</dt>
+                <dd className="text-dash-ink">{detail.visitor.crmId}</dd>
+              </>
+            )}
+          </dl>
+        ) : (
+          <p className="text-dash-muted text-xs">No CRM enrichment yet.</p>
+        )}
+      </section>
     </div>
+  );
+}
+
+function IntelHeader({
+  name,
+  intel,
+}: {
+  name: string;
+  intel: SessionDetailResult["intelligence"];
+}) {
+  return (
+    <>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="dash-label">Intelligence</h3>
+          <p className="text-base font-medium text-dash-ink mt-1">{name}</p>
+        </div>
+        <IntentBadge score={intel?.intentScore} />
+      </div>
+      {intel?.personalisedOpener && (
+        <p className="mt-3 text-dash-ink leading-relaxed border-l-2 border-dash-accent pl-3 text-sm">
+          {intel.personalisedOpener}
+        </p>
+      )}
+      {intel?.recommendedAction && (
+        <p className="mt-2 text-xs text-dash-muted">→ {intel.recommendedAction}</p>
+      )}
+      {intel?.signals && intel.signals.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {intel.signals.map((sig) => (
+            <span
+              key={sig}
+              className="rounded-full bg-dash-hover px-2 py-0.5 text-[10px] text-dash-muted"
+            >
+              {sig}
+            </span>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

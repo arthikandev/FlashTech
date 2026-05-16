@@ -1,56 +1,125 @@
-import { Link, Outlet } from "react-router-dom";
+import { useState } from "react";
 import {
-  Building2,
-  Home,
-  LayoutDashboard,
-  LogIn,
-  Palmtree,
-  TrendingUp,
-} from "lucide-react";
-import { AppMobileNav, type AppNavItem } from "@/components/AppMobileNav";
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/clerk-react";
+import { Link, Outlet } from "react-router-dom";
+import { Menu } from "lucide-react";
+import { clerkEnabled } from "@/convex/api";
+import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
 
-const nav: AppNavItem[] = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/login", label: "Log in", icon: LogIn },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/demos/seylan", label: "Seylan", icon: Building2 },
-  { to: "/demos/cloudmetrics", label: "CloudMetrics", icon: TrendingUp },
-  { to: "/demos/coral", label: "Coral", icon: Palmtree },
+const nav = [
+  { to: "/", label: "Home" },
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/demos/seylan", label: "Seylan" },
+  { to: "/demos/cloudmetrics", label: "CloudMetrics" },
+  { to: "/demos/coral", label: "Coral" },
+  { to: "/onboard", label: "Onboard" },
+  { to: "/deck", label: "Deck" },
+  { to: "/present", label: "Present" },
+  { to: "/slack", label: "Slack" },
 ];
 
 export function Layout() {
-  return (
-    <div className="relative min-h-[100dvh] flex flex-col bg-background text-foreground transition-colors">
-      <div className="noise-overlay pointer-events-none fixed inset-0 opacity-[0.2] mix-blend-overlay z-0" />
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-      <header className="sticky top-0 z-20 px-3 sm:px-4 pt-3 sm:pt-4 md:pt-6 pb-2 bg-background/90 backdrop-blur-md border-b border-border/60 [padding-top:max(0.75rem,env(safe-area-inset-top))]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+  return (
+    <div className="min-h-screen flex flex-col bg-black">
+      <header className="border-b border-[#212121] bg-[#101010]/80 backdrop-blur-xl sticky top-0 z-10">
+        <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <Link
             to="/"
-            className="font-serif text-lg sm:text-xl md:text-2xl tracking-tight text-foreground hover:text-primary transition-colors shrink-0"
+            className="font-semibold text-primary tracking-tight font-serif text-lg shrink-0"
           >
             PresenceIQ
           </Link>
-          <AppMobileNav items={nav} />
+
+          <nav className="hidden lg:flex flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-500 items-center justify-end">
+            {nav.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="nav-link hover:text-[#E1E0CC] transition-colors whitespace-nowrap"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {clerkEnabled ? (
+              <>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button
+                      type="button"
+                      className="nav-link text-[#E1E0CC]/80 hover:text-[#E1E0CC] whitespace-nowrap"
+                    >
+                      Sign in
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button
+                      type="button"
+                      className="shimmer-btn rounded-full bg-primary px-3 py-1 text-black text-xs font-medium hover:bg-primary/90 whitespace-nowrap"
+                    >
+                      Get started
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </>
+            ) : (
+              <Link
+                to="/onboard"
+                className="shimmer-btn rounded-full bg-primary px-3 py-1 text-black text-xs font-medium"
+              >
+                Get started
+              </Link>
+            )}
+          </nav>
+
+          <Button
+            variant="ghost"
+            className="lg:hidden min-h-[44px] min-w-[44px] p-2"
+            aria-label="Open menu"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-10 sm:pb-12 pt-4 sm:pt-6 md:pt-8">
+      <Sheet open={mobileOpen} onClose={() => setMobileOpen(false)} title="Menu">
+        <nav className="flex flex-col gap-1 py-2">
+          {nav.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-3 py-3 text-sm text-gray-400 hover:bg-white/5 hover:text-[#E1E0CC] min-h-[44px] flex items-center"
+            >
+              {item.label}
+            </Link>
+          ))}
+          {!clerkEnabled && (
+            <Link
+              to="/onboard"
+              onClick={() => setMobileOpen(false)}
+              className="mt-2 rounded-lg bg-primary px-3 py-3 text-center text-sm font-medium text-black min-h-[44px] flex items-center justify-center"
+            >
+              Get started
+            </Link>
+          )}
+        </nav>
+      </Sheet>
+
+      <main className="flex-1 w-full mx-auto px-4 py-8 max-w-[1400px]">
         <Outlet />
       </main>
-
-      <footer className="relative z-10 border-t border-border px-3 sm:px-4 py-5 sm:py-6 mt-auto bg-background/80 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest text-center sm:text-left">
-          <span>PresenceIQ · Operator & demo views</span>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 hover:text-primary transition-colors normal-case tracking-normal"
-          >
-            <Home className="h-3 w-3" />
-            Back to landing
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }

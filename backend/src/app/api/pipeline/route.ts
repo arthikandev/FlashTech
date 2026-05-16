@@ -1,9 +1,8 @@
 import { z } from "zod";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { runPipelineAutomation } from "@/lib/automation";
-import { syncAgentFromIntelligence } from "@/lib/beyondPresenceApi";
+import { syncAgentFromIntelligence, type SyncAgentContextResult } from "@/lib/beyondPresenceApi";
 import { pickKnowledgeContext } from "@/lib/knowledge";
-import { api, getConvexClient } from "@/lib/convex";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { runIntentPipeline, waitForCrmData } from "@/lib/pipeline";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
@@ -11,8 +10,10 @@ import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
 const bodySchema = z.object({
   visitorId: z.string(),
   businessId: z.string(),
-  waitForCrmMs: z.number().optional().default(500),
+  waitForCrmMs: z.number().optional().default(200),
 });
+
+const PIPELINE_CEILING_MS = 1500;
 
 export async function OPTIONS() {
   return corsOptions();
@@ -30,22 +31,27 @@ export async function POST(request: Request) {
     const visitorId = body.visitorId as Id<"visitors">;
     const businessId = body.businessId as Id<"businesses">;
 
+    const t0 = Date.now();
     await waitForCrmData(visitorId, body.waitForCrmMs);
+    const crmWaitMs = Date.now() - t0;
 
-    const intelligence = await runIntentPipeline(visitorId, businessId);
-    const convex = getConvexClient();
-    const visitor = await convex.query(api.visitors.getById, { visitorId });
-    const business = await convex.query(api.businesses.getById, { businessId });
+    const t1 = Date.now();
+    const { intelligence, visitor, business } = await runIntentPipeline(
+      visitorId,
+      businessId
+    );
+    const intentMs = Date.now() - t1;
 
-    if (!visitor || !business) {
-      return jsonError("Visitor or business not found", 404);
-    }
+    const cacheHit = intelligence.signals.includes("cached");
+    const fallbackUsed = intelligence.signals.includes("heuristic_fallback");
 
+    const automationStart = Date.now();
     const automation = await runPipelineAutomation({
       visitor,
       business,
       intelligence,
     });
+    const automationMs = Date.now() - automationStart;
 
     const personaTone = business.avatarConfig.personaTone ?? "formal";
     const bpAgentId = business.avatarConfig.bpAgentId;
@@ -55,20 +61,119 @@ export async function POST(request: Request) {
       pageHistory: visitor.pageHistory,
     });
 
-    const beyondPresence = await syncAgentFromIntelligence({
-      bpAgentId,
-      businessName: business.name,
-      personaTone,
-      visitorName: visitor.crmData?.name,
-      language: visitor.language,
-      intentScore: intelligence.intentScore,
-      recommendedAction: intelligence.recommendedAction,
-      personalisedOpener: intelligence.personalisedOpener,
-      knowledgeContext,
-    });
+    let beyondPresence: SyncAgentContextResult = {
+      synced: false,
+      reason: "bpAgentId not set on business",
+    };
+    let bpPatchMs = 0;
+
+    if (bpAgentId?.trim()) {
+      const bpStart = Date.now();
+      const bpPromise = syncAgentFromIntelligence({
+        bpAgentId,
+        businessName: business.name,
+        personaTone,
+        visitorName: visitor.crmData?.name,
+        language: visitor.language,
+        intentScore: intelligence.intentScore,
+        recommendedAction: intelligence.recommendedAction,
+        personalisedOpener: intelligence.personalisedOpener,
+        knowledgeContext,
+      });
+
+      const elapsed = Date.now() - started;
+      const remaining = PIPELINE_CEILING_MS - elapsed;
+
+      if (remaining > 0) {
+        beyondPresence = await Promise.race([
+          bpPromise,
+          new Promise<SyncAgentContextResult>((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  synced: false,
+                  reason: "Beyond Presence sync deferred (pipeline ceiling)",
+                }),
+              remaining
+            )
+          ),
+        ]);
+        bpPatchMs = Date.now() - bpStart;
+
+        if (
+          !beyondPresence.synced &&
+          beyondPresence.reason?.includes("deferred")
+        ) {
+          void bpPromise
+            .then((result) => {
+              console.info(
+                JSON.stringify({
+                  event: "bp_patch_async_complete",
+                  visitorId,
+                  synced: result.synced,
+                  reason: result.synced ? undefined : result.reason,
+                  bpPatchMs: Date.now() - bpStart,
+                })
+              );
+            })
+            .catch((err) => {
+              console.error(
+                JSON.stringify({
+                  event: "bp_patch_async_failed",
+                  visitorId,
+                  error: err instanceof Error ? err.message : String(err),
+                })
+              );
+            });
+        }
+      } else {
+        bpPatchMs = 0;
+        beyondPresence = {
+          synced: false,
+          reason: "Beyond Presence sync skipped (pipeline ceiling)",
+        };
+        void bpPromise.catch((err) => {
+          console.error(
+            JSON.stringify({
+              event: "bp_patch_async_failed",
+              visitorId,
+              error: err instanceof Error ? err.message : String(err),
+            })
+          );
+        });
+      }
+    }
+
+    const pipelineMs = Date.now() - started;
+
+    console.info(
+      JSON.stringify({
+        event: "pipeline_timing",
+        visitorId,
+        businessId,
+        crmWaitMs,
+        intentMs,
+        automationMs,
+        bpPatchMs,
+        pipelineMs,
+        model: "gpt-4o-mini",
+        cacheHit,
+        fallbackUsed,
+      })
+    );
+
+    const syncStatus: "complete" | "pending" | "failed" = beyondPresence.synced
+      ? "complete"
+      : !bpAgentId?.trim()
+        ? "pending"
+        : beyondPresence.reason?.includes("deferred") ||
+            beyondPresence.reason?.includes("skipped")
+          ? "pending"
+          : "failed";
 
     return jsonSuccess({
       intelligence,
+      syncStatus,
       visitor: {
         name: visitor.crmData?.name,
         language: visitor.language,
@@ -83,7 +188,13 @@ export async function POST(request: Request) {
       },
       bpAgentId: bpAgentId ?? null,
       beyondPresence,
-      pipelineMs: Date.now() - started,
+      pipelineMs,
+      timing: {
+        crmWaitMs,
+        intentMs,
+        automationMs,
+        bpPatchMs,
+      },
       automation,
     });
   } catch (err) {

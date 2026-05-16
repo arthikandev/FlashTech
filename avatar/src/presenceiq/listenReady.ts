@@ -35,6 +35,44 @@ export type PipelineResponse = {
   pipelineMs?: number;
 };
 
+const DEFAULT_OPENER = "Hello! How can I help you today?";
+
+function mark(name: string): void {
+  try {
+    performance.mark(name);
+  } catch {
+    /* ignore */
+  }
+}
+
+async function fetchPipeline(
+  backendUrl: string,
+  visitorId: string,
+  businessId: string,
+  waitForCrmMs: number
+): Promise<PipelineResponse> {
+  const res = await fetch(`${backendUrl.replace(/\/$/, "")}/api/pipeline`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ visitorId, businessId, waitForCrmMs }),
+  });
+
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.message ?? "Pipeline failed");
+  }
+
+  return json.data as PipelineResponse;
+}
+
+function mountIframe(
+  container: HTMLElement,
+  bpAgentId?: string | null
+): void {
+  showAgentContainer(container);
+  embedAgent({ container, bpAgentId });
+}
+
 export function attachPresenceIQReadyListener(
   config: PresenceIQReadyConfig
 ): () => void {
@@ -44,35 +82,30 @@ export function attachPresenceIQReadyListener(
 
     hideAgentContainer(config.avatarContainer);
     config.onPipelineStart?.();
+    mark("piq:ready");
+    mark("piq:pipeline-start");
     window.dispatchEvent(new CustomEvent("presenceiq:pipeline-start"));
 
-    const started = performance.now();
+    const waitForCrmMs = config.waitForCrmMs ?? 200;
+    const pipelinePromise = fetchPipeline(
+      config.backendUrl,
+      visitorId,
+      businessId,
+      waitForCrmMs
+    );
 
-    try {
-      const res = await fetch(
-        `${config.backendUrl.replace(/\/$/, "")}/api/pipeline`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            visitorId,
-            businessId,
-            waitForCrmMs: config.waitForCrmMs ?? 500,
-          }),
-        }
-      );
+    const iframePromise = Promise.resolve().then(() => {
+      mountIframe(config.avatarContainer, null);
+    });
 
-      const json = await res.json();
-      if (!json.success) {
-        throw new Error(json.message ?? "Pipeline failed");
-      }
+    const [pipelineSettled] = await Promise.allSettled([
+      pipelinePromise,
+      iframePromise,
+    ]);
 
-      const data = json.data as PipelineResponse;
-      const elapsed = Math.round(performance.now() - started);
-      console.info("[PresenceIQ] Pipeline complete", {
-        pipelineMs: data.pipelineMs ?? elapsed,
-        opener: data.intelligence.personalisedOpener,
-      });
+    if (pipelineSettled.status === "fulfilled") {
+      const data = pipelineSettled.value;
+      mark("piq:pipeline-done");
 
       const systemPrompt = buildSystemPrompt(
         data.intelligence,
@@ -83,23 +116,33 @@ export function attachPresenceIQReadyListener(
         data.business.industry,
         data.visitor.language ?? "en"
       );
-      console.info("[PresenceIQ] Agent context", { systemPrompt, voiceId });
-
-      showAgentContainer(config.avatarContainer);
-      embedAgent({
-        container: config.avatarContainer,
-        bpAgentId: data.bpAgentId,
+      console.info("[PresenceIQ] Pipeline complete", {
+        pipelineMs: data.pipelineMs,
+        opener: data.intelligence.personalisedOpener,
+        systemPrompt,
+        voiceId,
       });
 
+      mountIframe(config.avatarContainer, data.bpAgentId);
       config.onPipelineComplete?.(data);
       window.dispatchEvent(
         new CustomEvent("presenceiq:pipeline-complete", { detail: data })
       );
-    } catch (err) {
-      console.error("[PresenceIQ] Pipeline error", err);
-      showAgentContainer(config.avatarContainer);
-      config.onError?.(err);
+    } else {
+      console.error("[PresenceIQ] Pipeline error", pipelineSettled.reason);
+      mountIframe(config.avatarContainer, null);
+      config.onError?.(pipelineSettled.reason);
+      window.dispatchEvent(
+        new CustomEvent("presenceiq:avatar-fallback", {
+          detail: {
+            reason: String(pipelineSettled.reason),
+            fallbackOpener: DEFAULT_OPENER,
+          },
+        })
+      );
     }
+
+    mark("piq:avatar-visible");
   };
 
   window.addEventListener("presenceiq:ready", handler);

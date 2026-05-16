@@ -20,9 +20,11 @@ const cardEase = [0.22, 1, 0.36, 1] as const;
 function FeatureCard({
   children,
   index,
+  className = "",
 }: {
   children: ReactNode;
   index: number;
+  className?: string;
 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -30,10 +32,10 @@ function FeatureCard({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.6, delay: index * 0.15, ease: cardEase }}
-      className="relative rounded-xl overflow-hidden bg-card-elevated border border-border min-h-[280px] lg:min-h-0 lg:h-full flex flex-col"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: cardEase }}
+      className={`hover-lift relative rounded-2xl overflow-hidden bg-[#212121] border border-[#212121] flex flex-col min-h-[240px] ${className}`}
     >
       {children}
     </motion.div>
@@ -47,6 +49,7 @@ function ChecklistCard({
   icon,
   items,
   linkTo,
+  className = "",
 }: {
   index: number;
   number: string;
@@ -54,16 +57,17 @@ function ChecklistCard({
   icon: string;
   items: string[];
   linkTo: string;
+  className?: string;
 }) {
   return (
-    <FeatureCard index={index}>
-      <div className="p-4 sm:p-5 flex flex-col h-full">
+    <FeatureCard index={index} className={className}>
+      <div className="p-5 sm:p-6 flex flex-col h-full bg-[#101010]">
         <img
           src={icon}
           alt=""
           className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover mb-4"
         />
-        <p className="text-foreground text-sm sm:text-base font-medium mb-4">
+        <p className="text-[#E1E0CC] text-sm sm:text-base font-medium mb-4">
           <span className="text-gray-500 mr-2">{number}</span>
           {title}
         </p>
@@ -89,10 +93,10 @@ function ChecklistCard({
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="relative min-h-0 md:min-h-screen bg-background px-3 sm:px-4 py-16 sm:py-20 md:py-28 transition-colors">
+    <section id="features" className="section-pad relative bg-black px-4">
       <div className="bg-noise absolute inset-0 opacity-[0.15] pointer-events-none" />
-      <div className="relative max-w-7xl mx-auto">
-        <div className="text-center mb-12 md:mb-16">
+      <div className="relative max-w-6xl mx-auto">
+        <div className="text-center mb-12 md:mb-16 max-w-4xl mx-auto">
           <WordsPullUpMultiStyle
             className="flex flex-col gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-normal"
             segments={[
@@ -108,8 +112,8 @@ export function FeaturesSection() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-2 md:gap-1 lg:h-[480px]">
-          <FeatureCard index={0}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 auto-rows-fr">
+          <FeatureCard index={0} className="lg:col-span-7 lg:row-span-2 min-h-[320px] lg:min-h-[480px]">
             <video
               className="absolute inset-0 h-full w-full object-cover"
               src={FEATURE_VIDEO}
@@ -118,8 +122,8 @@ export function FeaturesSection() {
               muted
               playsInline
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <p className="absolute bottom-4 left-4 right-4 text-foreground text-sm sm:text-base font-medium z-10">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <p className="absolute bottom-5 left-5 right-5 text-[#E1E0CC] text-base sm:text-lg font-medium z-10">
               Your visitor&apos;s story starts here.
             </p>
           </FeatureCard>
@@ -130,6 +134,7 @@ export function FeaturesSection() {
             title="Embed SDK"
             icon={ICON_EMBED}
             linkTo="/demos/seylan"
+            className="lg:col-span-5"
             items={[
               "Fingerprint visitors on page load",
               "presenceiq:ready with visitor & session IDs",
@@ -143,7 +148,8 @@ export function FeaturesSection() {
             number="02"
             title="Live dashboard"
             icon={ICON_DASHBOARD}
-            linkTo="/login"
+            linkTo="/dashboard"
+            className="lg:col-span-5"
             items={[
               "Real-time sessions via Convex",
               "Intent scores and personalised openers",
@@ -157,6 +163,7 @@ export function FeaturesSection() {
             title="Demo sites"
             icon={ICON_DEMOS}
             linkTo="/demos/seylan"
+            className="lg:col-span-12"
             items={[
               "Three branded enterprise demos",
               "Reload shows return visitors instantly",

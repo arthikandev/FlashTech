@@ -55,7 +55,7 @@ test_pipeline() {
   local resp opener ms
   resp=$(curl -sf -X POST "$BACKEND_URL/api/pipeline" \
     -H "Content-Type: application/json" \
-    -d "{\"visitorId\":\"$VISITOR_ID\",\"businessId\":\"$BUSINESS_ID\",\"waitForCrmMs\":500}")
+    -d "{\"visitorId\":\"$VISITOR_ID\",\"businessId\":\"$BUSINESS_ID\",\"waitForCrmMs\":200}")
   echo "$resp" | grep -q Sarangan || echo "WARN: opener may not mention Sarangan"
   ms=$(echo "$resp" | sed -n 's/.*"pipelineMs":\([0-9]*\).*/\1/p')
   [[ -n "$ms" && "$ms" -lt 3000 ]]

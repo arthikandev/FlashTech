@@ -1,6 +1,13 @@
 import OpenAI from "openai";
 import { z } from "zod";
+import type { Id } from "../../convex/_generated/dataModel";
+import { api, getConvexClient } from "./convex";
 import type { IntelligenceResult, PostCallAnalysis, SessionOutcome } from "./types";
+
+const INTENT_MODEL = "gpt-4o-mini";
+const INTENT_MAX_TOKENS = 300;
+const OPENAI_TIMEOUT_MS = 1200;
+const SCORE_CACHE_TTL_MS = 60_000;
 
 const intentSchema = z.object({
   intentScore: z.number().min(0).max(100),
@@ -68,7 +75,57 @@ function summarizePages(
     .join(", ");
 }
 
-export async function scoreIntent(context: {
+export function heuristicIntentFallback(context: {
+  visitorName?: string;
+  returnCount: number;
+  industry?: string;
+}): IntelligenceResult {
+  const score = Math.min(70 + context.returnCount * 5, 95);
+  const formal = context.industry?.toLowerCase().includes("bank");
+  const opener = context.visitorName
+    ? formal
+      ? `Welcome back ${context.visitorName} — how may I assist you today?`
+      : `Welcome back ${context.visitorName} — how can I help you today?`
+    : formal
+      ? "Welcome — how may I assist you today?"
+      : "Welcome — how can I help you today?";
+
+  return {
+    intentScore: score,
+    personalisedOpener: opener,
+    recommendedAction: "Continue conversation",
+    signals: ["heuristic_fallback"],
+    computedAt: Date.now(),
+  };
+}
+
+function timeoutReject(ms: number, label: string): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(label)), ms);
+  });
+}
+
+export async function getCachedIntelligence(
+  visitorId: Id<"visitors">,
+  ttlMs = SCORE_CACHE_TTL_MS
+): Promise<IntelligenceResult | null> {
+  const convex = getConvexClient();
+  const row = await convex.query(api.intelligence.getLatestByVisitor, { visitorId });
+  if (!row) return null;
+
+  const age = Date.now() - row.computedAt;
+  if (age > ttlMs) return null;
+
+  return {
+    intentScore: row.intentScore,
+    personalisedOpener: row.personalisedOpener,
+    recommendedAction: row.recommendedAction,
+    signals: [...(row.signals ?? []), "cached"],
+    computedAt: row.computedAt,
+  };
+}
+
+async function callOpenAIIntent(context: {
   industry: string;
   businessName: string;
   visitorName?: string;
@@ -78,33 +135,21 @@ export async function scoreIntent(context: {
   pageHistory: Array<{ path: string; title?: string }>;
   crmNotes?: string;
   churnRisk?: string;
-  fingerprint?: string;
 }): Promise<IntelligenceResult> {
-  if (
-    context.fingerprint === "demo-sarangan-fp" ||
-    context.visitorName?.toLowerCase() === "sarangan"
-  ) {
-    return { ...DEMO_SARANGAN_INTELLIGENCE, computedAt: Date.now() };
-  }
-
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return {
-      intentScore: Math.min(70 + context.returnCount * 5, 95),
-      personalisedOpener: context.visitorName
-        ? `Welcome back ${context.visitorName} — how can I help you today?`
-        : "Welcome — how can I help you today?",
-      recommendedAction: "Continue conversation",
-      signals: ["no_openai_key_fallback"],
-      computedAt: Date.now(),
-    };
+    return heuristicIntentFallback({
+      visitorName: context.visitorName,
+      returnCount: context.returnCount,
+      industry: context.industry,
+    });
   }
 
   const openai = new OpenAI({ apiKey });
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: INTENT_MODEL,
     temperature: 0.3,
-    max_tokens: 400,
+    max_tokens: INTENT_MAX_TOKENS,
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
@@ -135,6 +180,47 @@ export async function scoreIntent(context: {
     ...parsed.data,
     computedAt: Date.now(),
   };
+}
+
+export async function scoreIntent(context: {
+  visitorId?: Id<"visitors">;
+  industry: string;
+  businessName: string;
+  visitorName?: string;
+  returnCount: number;
+  language: string;
+  timeOnSiteMs: number;
+  pageHistory: Array<{ path: string; title?: string }>;
+  crmNotes?: string;
+  churnRisk?: string;
+  fingerprint?: string;
+}): Promise<IntelligenceResult> {
+  if (
+    context.fingerprint === "demo-sarangan-fp" ||
+    context.visitorName?.toLowerCase() === "sarangan"
+  ) {
+    return { ...DEMO_SARANGAN_INTELLIGENCE, computedAt: Date.now() };
+  }
+
+  if (context.visitorId) {
+    const cached = await getCachedIntelligence(context.visitorId);
+    if (cached) return cached;
+  }
+
+  try {
+    const result = await Promise.race([
+      callOpenAIIntent(context),
+      timeoutReject(OPENAI_TIMEOUT_MS, "OPENAI_TIMEOUT"),
+    ]);
+    return result;
+  } catch (err) {
+    console.warn("[openai] scoreIntent fallback", err);
+    return heuristicIntentFallback({
+      visitorName: context.visitorName,
+      returnCount: context.returnCount,
+      industry: context.industry,
+    });
+  }
 }
 
 const postCallSchema = z.object({

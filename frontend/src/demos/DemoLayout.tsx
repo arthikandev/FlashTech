@@ -1,89 +1,66 @@
-import {
-  ArrowRight,
-  Building2,
-  Code2,
-  LayoutDashboard,
-  Palmtree,
-  TrendingUp,
-} from "lucide-react";
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { PageHeader } from "../components/PageHeader";
-import { EmbedScript } from "../components/EmbedScript";
-import { cn } from "@/lib/utils";
-
-const demoNav = [
-  { to: "/demos/seylan", label: "Seylan", icon: Building2 },
-  { to: "/demos/cloudmetrics", label: "CloudMetrics", icon: TrendingUp },
-  { to: "/demos/coral", label: "Coral", icon: Palmtree },
-] as const;
+import { Link } from "react-router-dom";
+import { AvatarBoot } from "@/components/AvatarBoot";
+import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
+import { DemoAvatarStatus } from "@/components/DemoAvatarStatus";
+import { EmbedScript } from "@/components/EmbedScript";
 
 type Props = {
+  /** Shown above the title (defaults to “Enterprise demo”). */
+  industryLabel?: string;
   title: string;
   subtitle: string;
   embedKey: string;
-  industryLabel: string;
   children: ReactNode;
 };
 
 export function DemoLayout({
+  industryLabel = "Enterprise demo",
   title,
   subtitle,
   embedKey,
-  industryLabel,
   children,
 }: Props) {
-  const { pathname } = useLocation();
-
   return (
-    <div className="space-y-8 md:space-y-10">
-      <PageHeader label={industryLabel} title={title} description={subtitle} />
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-border bg-card px-4 md:px-5 py-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center border border-border bg-card-elevated text-primary">
-            <Code2 className="h-4 w-4" strokeWidth={1.75} />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-primary">Embed active</p>
-            <code className="text-xs text-foreground/90 font-mono mt-0.5 block">{embedKey}</code>
-          </div>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-primary text-xs uppercase tracking-widest">{industryLabel}</p>
+          <h1 className="text-2xl sm:text-3xl font-serif text-[#E1E0CC] mt-1">{title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{subtitle}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {demoNav.map((d) => {
-            const Icon = d.icon;
-            return (
-              <Link
-                key={d.to}
-                to={d.to}
-                className={cn(
-                  "inline-flex items-center gap-1.5 text-xs px-3 py-1.5 border transition-colors",
-                  pathname === d.to
-                    ? "border-primary/50 bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:text-foreground hover:bg-card-elevated/60"
-                )}
-              >
-                <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
-                {d.label}
-              </Link>
-            );
-          })}
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs font-medium bg-primary text-[var(--primary-foreground)] pl-4 pr-1 py-1 hover:gap-2 transition-all"
-          >
-            <LayoutDashboard className="h-3.5 w-3.5" />
-            Dashboard
-            <span className="flex items-center justify-center bg-foreground w-7 h-7 ml-0.5">
-              <ArrowRight className="w-3.5 h-3.5 text-background" />
-            </span>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <Link to="/dashboard" className="text-primary hover:underline">
+            Dashboard →
+          </Link>
+          <Link to="/present" className="text-gray-500 hover:text-[#E1E0CC]">
+            Presenter view
           </Link>
         </div>
       </div>
 
-      <div className="border border-border bg-card p-6 md:p-8 overflow-hidden">
-        <EmbedScript embedKey={embedKey} />
-        {children}
+      <EmbedScript embedKey={embedKey} />
+
+      <div className="grid lg:grid-cols-12 gap-8 items-start">
+        <div className="lg:col-span-7 space-y-6">{children}</div>
+
+        <aside className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
+          <div className="rounded-xl border border-[#212121] bg-[#101010] p-4">
+            <p className="text-xs uppercase tracking-wide text-primary mb-1">
+              Beyond Presence · Live
+            </p>
+            <p className="text-sm text-gray-500 mb-3">
+              Talk to your AI advisor — intent-scored and personalised for this visitor.
+            </p>
+            <DemoAvatarStatus />
+            <BeyondPresenceFrame height={520} className="mt-3" />
+          </div>
+        </aside>
+      </div>
+
+      {/* Pipeline SDK runs in background; visible avatar is BeyondPresenceFrame above */}
+      <div className="sr-only" aria-hidden>
+        <AvatarBoot embedKey={embedKey} />
       </div>
     </div>
   );

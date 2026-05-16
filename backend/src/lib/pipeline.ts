@@ -1,12 +1,45 @@
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { api, getConvexClient } from "./convex";
 import { scoreIntent } from "./openai";
 import type { IntelligenceResult } from "./types";
 
+export type PipelineContext = {
+  intelligence: IntelligenceResult;
+  visitor: Doc<"visitors">;
+  business: Doc<"businesses">;
+};
+
+export function saveIntelligenceAsync(
+  visitorId: Id<"visitors">,
+  businessId: Id<"businesses">,
+  intelligence: IntelligenceResult
+): void {
+  const convex = getConvexClient();
+  void convex
+    .mutation(api.intelligence.saveIntelligence, {
+      visitorId,
+      businessId,
+      intentScore: intelligence.intentScore,
+      personalisedOpener: intelligence.personalisedOpener,
+      recommendedAction: intelligence.recommendedAction,
+      signals: intelligence.signals,
+    })
+    .catch((err) => {
+      console.error(
+        JSON.stringify({
+          event: "save_intelligence_failed",
+          visitorId,
+          businessId,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      );
+    });
+}
+
 export async function runIntentPipeline(
   visitorId: Id<"visitors">,
   businessId: Id<"businesses">
-): Promise<IntelligenceResult> {
+): Promise<PipelineContext> {
   const convex = getConvexClient();
 
   const visitor = await convex.query(api.visitors.getById, { visitorId });
@@ -17,6 +50,7 @@ export async function runIntentPipeline(
   }
 
   const intelligence = await scoreIntent({
+    visitorId,
     industry: business.industry,
     businessName: business.name,
     visitorName: visitor.crmData?.name,
@@ -29,16 +63,9 @@ export async function runIntentPipeline(
     fingerprint: visitor.fingerprint,
   });
 
-  await convex.mutation(api.intelligence.saveIntelligence, {
-    visitorId,
-    businessId,
-    intentScore: intelligence.intentScore,
-    personalisedOpener: intelligence.personalisedOpener,
-    recommendedAction: intelligence.recommendedAction,
-    signals: intelligence.signals,
-  });
+  saveIntelligenceAsync(visitorId, businessId, intelligence);
 
-  return intelligence;
+  return { intelligence, visitor, business };
 }
 
 export async function waitForCrmData(
@@ -47,11 +74,12 @@ export async function waitForCrmData(
 ): Promise<void> {
   const convex = getConvexClient();
   const deadline = Date.now() + waitMs;
+  const pollMs = 50;
 
   while (Date.now() < deadline) {
     const visitor = await convex.query(api.visitors.getById, { visitorId });
     if (visitor?.crmData?.name) return;
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, pollMs));
   }
 }
 

@@ -125,10 +125,10 @@ Return shapes are implemented in [`backend/convex/intelligence.ts`](../backend/c
 
 Generated Convex code lives in **`backend/convex/_generated/`** (owned by Person 2). Do **not** import `api.js` from there in the Vite app — it pulls in `convex/server` and breaks the client build.
 
-Use the frontend shim at [`src/convex/api.ts`](./src/convex/api.ts) (query path strings must match backend). For document IDs, import types only:
+Use the frontend shim at [`src/convex/api.ts`](./src/convex/api.ts) (query path strings must match backend). For document IDs, use [`src/convex/ids.ts`](./src/convex/ids.ts) (do not add `backend/convex/_generated` to `tsconfig.json` — it type-checks server Convex files and breaks CI):
 
 ```ts
-import type { Id } from "../../backend/convex/_generated/dataModel";
+import type { Id } from "@/convex/ids";
 import { api } from "@/convex/api";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
