@@ -1,3 +1,5 @@
+import { loadRuntimeConfigFile } from "./runtimeConfig";
+
 /** Default matches friend's local backend on setup-clerk (port 3001). */
 const DEFAULT_BACKEND_URL = "http://localhost:3001";
 
@@ -47,19 +49,11 @@ export function initBackendUrl(): Promise<string> {
       return resolvedBase;
     }
 
-    try {
-      const base = import.meta.env.BASE_URL ?? "/";
-      const res = await fetch(`${base}runtime-config.json`, { cache: "no-store" });
-      if (res.ok) {
-        const data = (await res.json()) as { backendUrl?: string };
-        const url = data.backendUrl?.trim();
-        if (url) {
-          resolvedBase = url.replace(/\/$/, "");
-          return resolvedBase;
-        }
-      }
-    } catch {
-      /* use default */
+    const data = await loadRuntimeConfigFile();
+    const url = data.backendUrl?.trim();
+    if (url) {
+      resolvedBase = url.replace(/\/$/, "");
+      return resolvedBase;
     }
 
     resolvedBase = DEFAULT_BACKEND_URL;
@@ -67,6 +61,11 @@ export function initBackendUrl(): Promise<string> {
   })();
 
   return initPromise;
+}
+
+/** Load shared runtime-config (backend + convex URLs). */
+export function initRuntimeConfig(): Promise<void> {
+  return initBackendUrl().then(() => undefined);
 }
 
 export async function goToBackendDashboard(): Promise<void> {

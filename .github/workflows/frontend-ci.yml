@@ -38,4 +38,5 @@ jobs:
       - name: Build
         env:
           VITE_BACKEND_URL: ${{ secrets.PRESENCEIQ_BACKEND_URL }}
+          VITE_CONVEX_URL: ${{ secrets.PRESENCEIQ_CONVEX_URL }}
         run: npm run build

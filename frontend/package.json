@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "setup": "node ../scripts/setup-local-env.mjs",
+    "dev": "node ../scripts/setup-local-env.mjs && vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },

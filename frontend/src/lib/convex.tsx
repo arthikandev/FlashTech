@@ -1,10 +1,9 @@
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { useMemo, type ReactNode } from "react";
+import { resolveConvexUrl } from "./runtimeConfig";
 
 export function getConvexUrl(): string | undefined {
-  const url = import.meta.env.VITE_CONVEX_URL?.trim();
-  if (!url || !url.includes(".convex.cloud")) return undefined;
-  return url;
+  return resolveConvexUrl();
 }
 
 export function ConvexAppProvider({ children }: { children: ReactNode }) {
@@ -24,10 +23,10 @@ export function ConvexAppProvider({ children }: { children: ReactNode }) {
           <p className="text-sm text-gray-400 leading-relaxed">
             Copy <code className="text-primary">frontend/.env.example</code> to{" "}
             <code className="text-primary">.env.local</code> and set{" "}
-            <code className="text-primary">VITE_CONVEX_URL</code> to match backend{" "}
-            <code className="text-primary">NEXT_PUBLIC_CONVEX_URL</code>. Ensure Person
-            2 runs <code className="text-primary">npx convex dev</code> from{" "}
-            <code className="text-primary">backend/</code>.
+            <code className="text-primary">VITE_CONVEX_URL</code>, or add{" "}
+            <code className="text-primary">convexUrl</code> to{" "}
+            <code className="text-primary">public/runtime-config.json</code>. Run{" "}
+            <code className="text-primary">npm run setup</code> from the repo root.
           </p>
         </div>
       </div>
