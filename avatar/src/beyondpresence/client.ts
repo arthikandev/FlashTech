@@ -50,6 +50,7 @@ function getBpGlobal(): BPGlobal | undefined {
 class MockBeyondPresenceClient implements BeyondPresenceClient {
   private sessionHandler?: (session?: BPSessionEndData) => SessionEndPayload;
   private lastSession?: BPSessionEndData;
+  private sessionEndListenerAttached = false;
   private containerId: string;
 
   constructor(
@@ -93,6 +94,8 @@ class MockBeyondPresenceClient implements BeyondPresenceClient {
 
   onSessionEnd(handler: (session?: BPSessionEndData) => SessionEndPayload): void {
     this.sessionHandler = handler;
+    if (this.sessionEndListenerAttached) return;
+    this.sessionEndListenerAttached = true;
     window.addEventListener("presenceiq:mock-session-end", () => {
       void this.flushSession();
     });
@@ -102,7 +105,7 @@ class MockBeyondPresenceClient implements BeyondPresenceClient {
     return this.lastSession;
   }
 
-  async flushSession(): Promise<void> {
+  private async flushSession(): Promise<void> {
     if (!this.sessionHandler || !this.opts.bpWebhookSecret) return;
     try {
       const payload = this.sessionHandler(this.lastSession);
@@ -121,6 +124,7 @@ class MockBeyondPresenceClient implements BeyondPresenceClient {
 class SdkBeyondPresenceClient implements BeyondPresenceClient {
   private sessionHandler?: (session?: BPSessionEndData) => SessionEndPayload;
   private lastSession?: BPSessionEndData;
+  private sessionEndListenerAttached = false;
   private containerId: string;
 
   constructor(
@@ -165,8 +169,10 @@ class SdkBeyondPresenceClient implements BeyondPresenceClient {
 
   onSessionEnd(handler: (session?: BPSessionEndData) => SessionEndPayload): void {
     this.sessionHandler = handler;
+    if (this.sessionEndListenerAttached) return;
     const bp = getBpGlobal();
     if (bp?.onSessionEnd) {
+      this.sessionEndListenerAttached = true;
       bp.onSessionEnd((session) => {
         this.lastSession = session ?? {
           messages: bp.getMessages?.() ?? [],

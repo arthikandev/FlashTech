@@ -104,6 +104,7 @@ var PresenceIQAvatar = (() => {
   var MockBeyondPresenceClient = class {
     constructor(opts, containerId) {
       this.opts = opts;
+      this.sessionEndListenerAttached = false;
       this.containerId = containerId;
     }
     async init() {
@@ -133,6 +134,8 @@ var PresenceIQAvatar = (() => {
     }
     onSessionEnd(handler) {
       this.sessionHandler = handler;
+      if (this.sessionEndListenerAttached) return;
+      this.sessionEndListenerAttached = true;
       window.addEventListener("presenceiq:mock-session-end", () => {
         void this.flushSession();
       });
@@ -158,6 +161,7 @@ var PresenceIQAvatar = (() => {
   var SdkBeyondPresenceClient = class {
     constructor(opts, containerId) {
       this.opts = opts;
+      this.sessionEndListenerAttached = false;
       this.containerId = containerId;
     }
     async init() {
@@ -191,8 +195,10 @@ var PresenceIQAvatar = (() => {
     }
     onSessionEnd(handler) {
       this.sessionHandler = handler;
+      if (this.sessionEndListenerAttached) return;
       const bp = getBpGlobal();
       if (bp?.onSessionEnd) {
+        this.sessionEndListenerAttached = true;
         bp.onSessionEnd((session) => {
           this.lastSession = session ?? {
             messages: bp.getMessages?.() ?? []
