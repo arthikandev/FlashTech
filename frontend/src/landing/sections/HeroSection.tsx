@@ -14,7 +14,7 @@ const navItems: NavLink[] = [
   { label: "Our story", href: "#about" },
   { label: "Product", href: "#features" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Demos", href: "#demos" },
+  { label: "Get started", to: "/login" },
   { label: "Stories", href: "#testimonials" },
   { label: "Dashboard", to: "/dashboard" },
 ];

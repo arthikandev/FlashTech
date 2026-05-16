@@ -1,7 +1,8 @@
 import { type FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { isOnboardingComplete } from "@/onboarding/storage";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { Label } from "@/components/ui/label";
@@ -20,19 +21,27 @@ const inputClass = cn(
 );
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  function goAfterAuth() {
+    navigate(isOnboardingComplete() ? "/dashboard" : "/onboarding", { replace: true });
+  }
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
-    window.setTimeout(() => setIsSubmitting(false), 600);
+    window.setTimeout(() => {
+      setIsSubmitting(false);
+      goAfterAuth();
+    }, 600);
   }
 
   function handleGoogleSignIn() {
-    // Wire your Google / cloud auth provider here.
+    goAfterAuth();
   }
 
   return (
