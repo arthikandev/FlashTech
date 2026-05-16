@@ -47,15 +47,58 @@ const STYLES = `
 .animate-footer-heartbeat { animation: footer-heartbeat 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
 
 .footer-marquee-band {
+  position: relative;
+  isolation: isolate;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.footer-marquee-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: color-mix(in oklch, var(--secondary) 42%, var(--background));
-  box-shadow:
-    0 12px 40px -12px color-mix(in oklch, var(--foreground) 12%, transparent),
-    inset 0 1px 0 color-mix(in oklch, var(--foreground) 6%, transparent);
+  border: none;
+  box-shadow: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 22%,
+    black 78%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 22%,
+    black 78%,
+    transparent 100%
+  );
 }
 
 .footer-marquee-track {
-  mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.footer-marquee-inner {
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.footer-marquee-clip {
+  overflow: hidden;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .footer-marquee-track:hover .footer-marquee-inner {
@@ -270,15 +313,17 @@ export function CinematicFooter() {
             PRESENCEIQ
           </div>
 
-          <div
-            className="absolute top-10 left-0 w-full z-10 origin-center -rotate-[1.75deg] scale-[1.06]"
-            style={{ perspective: "1200px" }}
-          >
-            <div className="footer-marquee-band py-4 md:py-5">
-              <div className="footer-marquee-track overflow-hidden">
-                <div className="footer-marquee-inner flex w-max animate-footer-scroll-marquee text-[11px] sm:text-xs md:text-sm font-bold tracking-[0.22em] text-foreground/90 uppercase">
-                  <MarqueeItem />
-                  <MarqueeItem />
+          <div className="footer-marquee-clip absolute top-10 left-0 w-full z-10">
+            <div
+              className="origin-center -rotate-[1.75deg] scale-[1.06] border-0 shadow-none ring-0 outline-none"
+              style={{ perspective: "1200px" }}
+            >
+              <div className="footer-marquee-band py-4 md:py-5">
+                <div className="footer-marquee-track overflow-hidden">
+                  <div className="footer-marquee-inner flex w-max animate-footer-scroll-marquee text-[11px] sm:text-xs md:text-sm font-bold tracking-[0.22em] text-foreground/90 uppercase">
+                    <MarqueeItem />
+                    <MarqueeItem />
+                  </div>
                 </div>
               </div>
             </div>

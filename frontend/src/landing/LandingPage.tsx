@@ -10,7 +10,7 @@ import { TestimonialsSection } from "./sections/TestimonialsSection";
 export function LandingPage() {
   return (
     <div className="relative w-full bg-background min-h-screen overflow-x-hidden transition-colors">
-      <main className="relative z-10 w-full bg-background shadow-[0_24px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.8)] rounded-b-3xl border-b border-border transition-colors">
+      <main className="relative z-10 w-full bg-background shadow-[0_24px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.8)] rounded-b-3xl transition-colors">
         <HeroSection />
         <AboutSection />
         <DemoSelectSection />
