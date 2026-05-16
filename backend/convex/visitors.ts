@@ -49,6 +49,7 @@ export const upsertFingerprint = mutation({
         pageHistory,
         returnCount: existing.returnCount + 1,
         language: args.language,
+        ...(args.referrer !== undefined ? { referrer: args.referrer } : {}),
         lastSeenAt: now,
       });
       return {
@@ -68,6 +69,7 @@ export const upsertFingerprint = mutation({
       timeOnSite: 0,
       returnCount: 1,
       language: args.language,
+      referrer: args.referrer,
       lastSeenAt: now,
       createdAt: now,
     });
