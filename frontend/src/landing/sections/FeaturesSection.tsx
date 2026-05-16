@@ -143,7 +143,7 @@ export function FeaturesSection() {
             number="02"
             title="Live dashboard"
             icon={ICON_DASHBOARD}
-            linkTo="/dashboard"
+            linkTo="/login"
             items={[
               "Real-time sessions via Convex",
               "Intent scores and personalised openers",

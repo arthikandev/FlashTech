@@ -13,7 +13,7 @@ const plans: PricingPlan[] = [
       "Community support",
     ],
     cta: "Get started",
-    ctaTo: "/dashboard",
+    ctaTo: "/login",
   },
   {
     id: "pro",
@@ -30,7 +30,7 @@ const plans: PricingPlan[] = [
       "Priority support",
     ],
     cta: "Upgrade to Pro",
-    ctaTo: "/dashboard",
+    ctaTo: "/login",
     highlighted: true,
   },
   {
@@ -47,7 +47,7 @@ const plans: PricingPlan[] = [
       "Bulk tenant provisioning",
     ],
     cta: "Contact sales",
-    ctaTo: "/dashboard",
+    ctaTo: "/login",
   },
 ];
 

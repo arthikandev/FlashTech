@@ -46,15 +46,18 @@ export function AppMobileNav({ items, logoTo = "/" }: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        className="md:hidden flex h-10 w-10 shrink-0 items-center justify-center border border-border bg-card text-foreground"
-        aria-label={menuOpen ? "Close menu" : "Open menu"}
-        aria-expanded={menuOpen}
-        onClick={() => setMenuOpen((o) => !o)}
-      >
-        {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      <div className="flex items-center gap-2 md:hidden">
+        <AnimatedThemeToggler variant="circle" duration={450} />
+        <button
+          type="button"
+          className="flex h-10 w-10 shrink-0 items-center justify-center border border-border bg-card text-foreground"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
 
       <nav className="hidden md:flex flex-wrap items-center justify-center gap-0.5 sm:gap-1 bg-card border border-border px-1.5 py-1.5">
         {items.map((item) => {
@@ -149,12 +152,6 @@ export function AppMobileNav({ items, logoTo = "/" }: Props) {
                   );
                 })}
               </ul>
-              <div className="pt-6 border-t border-border flex items-center justify-between mt-auto">
-                <span className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Theme
-                </span>
-                <AnimatedThemeToggler variant="circle" duration={450} />
-              </div>
             </motion.nav>
           </motion.div>
         )}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { goToBackendDashboard } from "@/lib/backendUrl";
 import { buildEmbedSnippet, slugifyEmbedKey } from "../constants";
 import { markOnboardingComplete } from "../storage";
 import { OnboardingShell } from "../components/OnboardingShell";
@@ -14,7 +13,6 @@ type Props = {
 };
 
 export function InstallScriptStep({ data, onBack, showBack }: Props) {
-  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const embedKey = slugifyEmbedKey(data.companyName);
   const snippet = buildEmbedSnippet(embedKey);
@@ -31,7 +29,7 @@ export function InstallScriptStep({ data, onBack, showBack }: Props) {
 
   function handleFinish() {
     markOnboardingComplete();
-    navigate("/dashboard", { replace: true });
+    goToBackendDashboard();
   }
 
   return (
@@ -39,20 +37,9 @@ export function InstallScriptStep({ data, onBack, showBack }: Props) {
       title="Install script"
       description="Paste this snippet before the closing </body> tag on your site."
       onBack={onBack}
+      onContinue={handleFinish}
+      continueLabel="Finish setup"
       showBack={showBack}
-      footerExtra={
-        <ShimmerButton
-          type="button"
-          onClick={handleFinish}
-          className="h-12 w-full sm:flex-1 text-sm font-semibold text-[var(--primary-foreground)]"
-          background="var(--primary)"
-          shimmerColor="var(--primary-foreground)"
-          borderRadius="0"
-          shimmerDuration="2.5s"
-        >
-          Finish setup
-        </ShimmerButton>
-      }
     >
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">

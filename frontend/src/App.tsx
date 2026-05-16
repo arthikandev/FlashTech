@@ -1,12 +1,11 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { DashboardRoute } from "./dashboard/DashboardRoute";
+import { BackendRedirect } from "./components/BackendRedirect";
 import { SeylanPage } from "./demos/SeylanPage";
 import { CloudMetricsPage } from "./demos/CloudMetricsPage";
 import { CoralPage } from "./demos/CoralPage";
 import { LoginPage } from "./auth/LoginPage";
 import { LandingPage } from "./landing/LandingPage";
-import { OnboardingPage } from "./onboarding/OnboardingPage";
 
 export default function App() {
   return (
@@ -14,9 +13,9 @@ export default function App() {
       <Routes>
         <Route index element={<LandingPage />} />
         <Route path="login" element={<LoginPage />} />
-        <Route path="onboarding" element={<OnboardingPage />} />
+        <Route path="onboarding" element={<BackendRedirect />} />
         <Route element={<Layout />}>
-          <Route path="dashboard" element={<DashboardRoute />} />
+          <Route path="dashboard" element={<BackendRedirect />} />
           <Route path="demos/seylan" element={<SeylanPage />} />
           <Route path="demos/cloudmetrics" element={<CloudMetricsPage />} />
           <Route path="demos/coral" element={<CoralPage />} />

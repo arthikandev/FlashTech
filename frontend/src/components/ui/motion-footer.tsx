@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { getDashboardHref } from "@/lib/dashboardLink";
 import { cn } from "@/lib/utils";
 
 if (typeof window !== "undefined") {
@@ -346,8 +347,8 @@ export function CinematicFooter() {
                   See live demo
                 </MagneticButton>
                 <MagneticButton
-                  as={Link}
-                  to="/dashboard"
+                  as="a"
+                  href={getDashboardHref()}
                   className="footer-glass-pill w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-full text-foreground font-bold text-sm md:text-base text-center"
                 >
                   Open dashboard

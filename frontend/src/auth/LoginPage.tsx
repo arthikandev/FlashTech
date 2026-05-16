@@ -1,8 +1,8 @@
 import { type FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { isOnboardingComplete } from "@/onboarding/storage";
+import { Link } from "react-router-dom";
+import { goToBackendDashboard } from "@/lib/backendUrl";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { Label } from "@/components/ui/label";
@@ -21,14 +21,13 @@ const inputClass = cn(
 );
 
 export function LoginPage() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function goAfterAuth() {
-    navigate(isOnboardingComplete() ? "/dashboard" : "/onboarding", { replace: true });
+    goToBackendDashboard();
   }
 
   function handleSubmit(e: FormEvent) {

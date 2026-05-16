@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { getDashboardHref } from "@/lib/dashboardLink";
 import { WordsPullUp } from "../components/WordsPullUp";
 
 const HERO_VIDEO =
@@ -16,7 +17,7 @@ const navItems: NavLink[] = [
   { label: "Pricing", href: "#pricing" },
   { label: "Get started", to: "/login" },
   { label: "Stories", href: "#testimonials" },
-  { label: "Dashboard", to: "/dashboard" },
+  { label: "Dashboard", href: getDashboardHref() },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;
