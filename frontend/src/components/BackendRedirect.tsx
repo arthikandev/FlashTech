@@ -4,7 +4,7 @@ import { goToBackendDashboard } from "@/lib/backendUrl";
 /** Sends users to the backend app (friend's dashboard UI). */
 export function BackendRedirect() {
   useEffect(() => {
-    goToBackendDashboard();
+    void goToBackendDashboard();
   }, []);
 
   return (

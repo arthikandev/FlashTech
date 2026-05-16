@@ -1,3 +1,4 @@
+import { getBackendBaseUrl } from "@/lib/backendUrl";
 import type { Industry } from "./types";
 
 export const INDUSTRIES: { value: Industry; label: string }[] = [
@@ -52,9 +53,6 @@ export function slugifyEmbedKey(companyName: string): string {
 }
 
 export function buildEmbedSnippet(embedKey: string): string {
-  const baseUrl = (import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    ""
-  );
+  const baseUrl = getBackendBaseUrl();
   return `<script src="${baseUrl}/api/embed/${embedKey}" async></script>`;
 }

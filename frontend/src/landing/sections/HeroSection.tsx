@@ -11,19 +11,22 @@ const HERO_VIDEO =
 
 type NavLink = { label: string; href: string; to?: never } | { label: string; to: string; href?: never };
 
-const navItems: NavLink[] = [
+const ease = [0.16, 1, 0.3, 1] as const;
+
+const staticNavItems: NavLink[] = [
   { label: "Our story", href: "#about" },
   { label: "Product", href: "#features" },
   { label: "Pricing", href: "#pricing" },
   { label: "Get started", to: "/login" },
   { label: "Stories", href: "#testimonials" },
-  { label: "Dashboard", href: getDashboardHref() },
 ];
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 export function HeroSection() {
   const navigate = useNavigate();
+  const navItems: NavLink[] = [
+    ...staticNavItems,
+    { label: "Dashboard", href: getDashboardHref() },
+  ];
 
   return (
     <section className="h-screen p-4 md:p-6">

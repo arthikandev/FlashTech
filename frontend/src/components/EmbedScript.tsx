@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { getBackendBaseUrl } from "@/lib/backendUrl";
 
 type ReadyDetail = {
   visitorId: string;
@@ -14,10 +15,7 @@ type Props = {
 };
 
 export function EmbedScript({ embedKey, onReady }: Props) {
-  const baseUrl = (import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    ""
-  );
+  const baseUrl = getBackendBaseUrl();
   const src = `${baseUrl}/api/embed/${embedKey}`;
 
   useEffect(() => {
