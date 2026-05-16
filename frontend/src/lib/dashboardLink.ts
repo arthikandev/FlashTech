@@ -1,11 +1,9 @@
-import { getBackendDashboardUrl } from "./backendUrl";
-
 /** In-app route for marketing CTAs (sign in on your login page first). */
 export function getDashboardEntryPath(): string {
   return "/login";
 }
 
-/** Full URL to friend's dashboard (footer, hero Dashboard link). */
+/** In-app dashboard path after sign-in (category-specific UI). */
 export function getDashboardHref(): string {
-  return getBackendDashboardUrl();
+  return "/dashboard";
 }

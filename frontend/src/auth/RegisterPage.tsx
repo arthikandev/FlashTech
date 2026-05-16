@@ -1,15 +1,14 @@
-import { SignedIn, SignUp } from "@clerk/clerk-react";
+import { SignUp } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { PostAuthRedirect } from "@/components/PostAuthRedirect";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
 import { authClerkAppearance } from "./clerkAppearance";
 
 const ease = [0.16, 1, 0.3, 1] as const;
-
-const AFTER_SIGN_UP = "/onboard";
 
 export function RegisterPage() {
   const location = useLocation();
@@ -61,18 +60,16 @@ export function RegisterPage() {
                   </p>
                 ) : (
                   <>
-                    <SignedIn>
-                      {!isSsoCallback && <Navigate to={AFTER_SIGN_UP} replace />}
-                    </SignedIn>
+                    {!isSsoCallback && <PostAuthRedirect />}
                     {isSsoCallback && (
-                      <motion.div
+                      <div
                         className="flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
                         role="status"
                         aria-live="polite"
                       >
                         <Loader2 className="size-4 animate-spin text-primary" aria-hidden />
                         Completing sign-up…
-                      </motion.div>
+                      </div>
                     )}
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
@@ -84,8 +81,8 @@ export function RegisterPage() {
                         routing="path"
                         path="/register"
                         signInUrl="/login"
-                        forceRedirectUrl={AFTER_SIGN_UP}
-                        fallbackRedirectUrl={AFTER_SIGN_UP}
+                      forceRedirectUrl="/auth/callback"
+                      fallbackRedirectUrl="/auth/callback"
                         appearance={authClerkAppearance}
                       />
                     </motion.div>

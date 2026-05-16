@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { goToBackendDashboard } from "@/lib/backendUrl";
 import { markOnboardingComplete } from "../storage";
 import type { OnboardApiResult } from "../submitOnboarding";
 import { OnboardingShell } from "../components/OnboardingShell";
@@ -41,7 +40,7 @@ export function InstallScriptStep({
   function handleFinish() {
     if (!result) return;
     markOnboardingComplete();
-    void goToBackendDashboard();
+    window.location.assign("/dashboard");
   }
 
   if (isLoading) {

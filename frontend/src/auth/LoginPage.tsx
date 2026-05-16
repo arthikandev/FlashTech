@@ -1,7 +1,8 @@
-import { SignedIn, SignIn } from "@clerk/clerk-react";
+import { SignIn } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { PostAuthRedirect } from "@/components/PostAuthRedirect";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
@@ -12,7 +13,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 export function LoginPage() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/onboard";
+  const redirectParam = searchParams.get("redirect");
   const isSsoCallback = location.pathname.includes("sso-callback");
 
   return (
@@ -61,9 +62,7 @@ export function LoginPage() {
                   </p>
                 ) : (
                   <>
-                    <SignedIn>
-                      {!isSsoCallback && <Navigate to={redirect} replace />}
-                    </SignedIn>
+                    {!isSsoCallback && redirectParam == null && <PostAuthRedirect />}
                     {isSsoCallback && (
                       <div
                         className="flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
@@ -84,10 +83,10 @@ export function LoginPage() {
                         routing="path"
                         path="/login"
                         signUpUrl="/register"
-                        forceRedirectUrl={redirect}
-                        fallbackRedirectUrl={redirect}
-                        signUpForceRedirectUrl={redirect}
-                        signUpFallbackRedirectUrl={redirect}
+                      forceRedirectUrl={redirectParam ?? "/auth/callback"}
+                      fallbackRedirectUrl={redirectParam ?? "/auth/callback"}
+                      signUpForceRedirectUrl={redirectParam ?? "/auth/callback"}
+                      signUpFallbackRedirectUrl={redirectParam ?? "/auth/callback"}
                         appearance={authClerkAppearance}
                       />
                     </motion.div>

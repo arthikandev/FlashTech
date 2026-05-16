@@ -1,13 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { PostAuthRedirect } from "./components/PostAuthRedirect";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
-import { DashboardRoute } from "./dashboard/DashboardRoute";
-import { OverviewPage } from "./dashboard/pages/OverviewPage";
-import { SessionsPage } from "./dashboard/pages/SessionsPage";
-import { AnalyticsPage } from "./dashboard/pages/AnalyticsPage";
-import { WorkflowPage } from "./dashboard/pages/WorkflowPage";
-import { AvatarPage } from "./dashboard/pages/AvatarPage";
-import { SettingsPage } from "./dashboard/pages/SettingsPage";
+import { ClientDashboardRoute } from "./dashboard/ClientDashboardRoute";
 import { SlackMock } from "./dashboard/SlackMock";
 import { SeylanPage } from "./demos/SeylanPage";
 import { CloudMetricsPage } from "./demos/CloudMetricsPage";
@@ -18,6 +13,8 @@ import { LandingPage } from "./landing/LandingPage";
 import { OnboardingRoute } from "./onboarding/OnboardingRoute";
 import { PitchDeck } from "./pitch/PitchDeck";
 import { PresentPage } from "./pages/PresentPage";
+import { ClientSignupRoute } from "./client/ClientSignupRoute";
+import { PendingVerificationPage } from "./client/PendingVerificationPage";
 
 export default function App() {
   return (
@@ -30,15 +27,11 @@ export default function App() {
           <Route path="present" element={<PresentPage />} />
           <Route path="login/*" element={<LoginPage />} />
           <Route path="register/*" element={<RegisterPage />} />
+          <Route path="auth/callback" element={<PostAuthRedirect />} />
+          <Route path="client/signup" element={<ClientSignupRoute />} />
+          <Route path="client/pending" element={<PendingVerificationPage />} />
           <Route path="onboard" element={<OnboardingRoute />} />
-          <Route path="dashboard" element={<DashboardRoute />}>
-            <Route index element={<OverviewPage />} />
-            <Route path="sessions" element={<SessionsPage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="workflow" element={<WorkflowPage />} />
-            <Route path="avatar" element={<AvatarPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
+          <Route path="dashboard/*" element={<ClientDashboardRoute />} />
           <Route element={<Layout />}>
             <Route path="demos/seylan" element={<SeylanPage />} />
             <Route path="demos/cloudmetrics" element={<CloudMetricsPage />} />

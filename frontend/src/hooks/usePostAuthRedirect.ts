@@ -3,7 +3,7 @@ import { useConvexAuth, useQuery } from "convex/react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, clerkEnabled } from "@/convex/api";
-import { resolveDashboardPath, type MembershipRow } from "@/lib/postAuth";
+import { resolvePostAuthPath, type MembershipRow } from "@/lib/postAuth";
 
 export function usePostAuthRedirect(enabled = true) {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export function usePostAuthRedirect(enabled = true) {
     if (!enabled || !authReady || !signedIn || memberships === undefined) return;
     if (didRun.current) return;
     didRun.current = true;
-    navigate(resolveDashboardPath(memberships), { replace: true });
+    navigate(resolvePostAuthPath(memberships), { replace: true });
   }, [enabled, authReady, signedIn, memberships, navigate]);
 
   return { authReady, signedIn, memberships, pending: signedIn && memberships === undefined };
