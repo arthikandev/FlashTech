@@ -333,6 +333,26 @@ var PresenceIQAvatar = (() => {
     } catch {
     }
   }
+  function buildSessionEndPayload(session) {
+    const visitorId = lastVisitorId;
+    const businessId = lastBusinessId;
+    if (!visitorId || !businessId) {
+      throw new Error("[PresenceIQ] session end without active visitor/business context");
+    }
+    const opener = lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
+    const transcript = mapBpMessagesToTranscript(session, opener);
+    const payload = defaultSessionPayload(visitorId, businessId, transcript);
+    if (session?.duration != null && session.duration > 0) {
+      payload.duration = session.duration;
+    }
+    if (session?.outcome) {
+      payload.outcome = session.outcome;
+    }
+    return payload;
+  }
+  function attachSessionEndHandler(bpClient) {
+    bpClient.onSessionEnd((session) => buildSessionEndPayload(session));
+  }
   async function onPresenceIQReady(event) {
     const detail = event.detail;
     const visitorId = detail.visitorId;
@@ -357,18 +377,7 @@ var PresenceIQAvatar = (() => {
       );
       await client.init();
       client.hideAvatar();
-      client.onSessionEnd((session) => {
-        const opener = lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
-        const transcript = mapBpMessagesToTranscript(session, opener);
-        const payload = defaultSessionPayload(visitorId, businessId, transcript);
-        if (session?.duration != null && session.duration > 0) {
-          payload.duration = session.duration;
-        }
-        if (session?.outcome) {
-          payload.outcome = session.outcome;
-        }
-        return payload;
-      });
+      attachSessionEndHandler(client);
     }
     mark("piq:ready");
     setAvatarLoading(true);

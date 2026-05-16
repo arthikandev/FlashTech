@@ -8,7 +8,9 @@ import {
   createBeyondPresenceClient,
   defaultSessionPayload,
   type BPSessionEndData,
+  type BeyondPresenceClient,
 } from "./beyondpresence/client";
+import type { SessionEndPayload } from "./webhook";
 import { mapBpMessagesToTranscript } from "./sessionTranscript";
 import { warmAvatarWithRetry } from "./beyondpresence/startWithRetry";
 import { resolveAvatarContainer, type InitOptions } from "./types";
@@ -52,6 +54,30 @@ function measure(name: string, start: string, end: string): void {
   }
 }
 
+/** Uses module-level lastVisitorId / lastBusinessId so post-call webhooks match the active session. */
+function buildSessionEndPayload(session?: BPSessionEndData): SessionEndPayload {
+  const visitorId = lastVisitorId;
+  const businessId = lastBusinessId;
+  if (!visitorId || !businessId) {
+    throw new Error("[PresenceIQ] session end without active visitor/business context");
+  }
+  const opener =
+    lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
+  const transcript = mapBpMessagesToTranscript(session, opener);
+  const payload = defaultSessionPayload(visitorId, businessId, transcript);
+  if (session?.duration != null && session.duration > 0) {
+    payload.duration = session.duration;
+  }
+  if (session?.outcome) {
+    payload.outcome = session.outcome;
+  }
+  return payload;
+}
+
+function attachSessionEndHandler(bpClient: BeyondPresenceClient): void {
+  bpClient.onSessionEnd((session) => buildSessionEndPayload(session));
+}
+
 async function onPresenceIQReady(event: Event): Promise<void> {
   const detail = (event as CustomEvent).detail as {
     visitorId?: string;
@@ -83,20 +109,7 @@ async function onPresenceIQReady(event: Event): Promise<void> {
     );
     await client.init();
     client.hideAvatar();
-
-    client.onSessionEnd((session?: BPSessionEndData) => {
-      const opener =
-        lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
-      const transcript = mapBpMessagesToTranscript(session, opener);
-      const payload = defaultSessionPayload(visitorId, businessId, transcript);
-      if (session?.duration != null && session.duration > 0) {
-        payload.duration = session.duration;
-      }
-      if (session?.outcome) {
-        payload.outcome = session.outcome;
-      }
-      return payload;
-    });
+    attachSessionEndHandler(client);
   }
 
   mark("piq:ready");
