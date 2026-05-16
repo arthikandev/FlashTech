@@ -8,12 +8,30 @@
 
 ## Required env vars
 
-- `NEXT_PUBLIC_CONVEX_URL`
-- `CONVEX_DEPLOYMENT` (from Convex dashboard)
-- `OPENAI_API_KEY`
-- `NEXT_PUBLIC_APP_URL` (your Vercel URL)
-- `N8N_WEBHOOK_SECRET`, `BP_WEBHOOK_SECRET`
-- `N8N_WEBHOOK_CRM_FETCH`, `N8N_WEBHOOK_SLACK`, `N8N_WEBHOOK_CRM_PUSH` (optional)
+Use `backend/.env.example` as source of truth. Sync to Vercel:
+
+```bash
+bash devops/scripts/vercel-sync-env.sh backend
+```
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_CONVEX_URL` | Convex HTTP client |
+| `OPENAI_API_KEY` | Intent scoring |
+| `NEXT_PUBLIC_APP_URL` | Production URL (e.g. `https://backend-blond-theta-13.vercel.app`) |
+| `BEYONDPRESENCE_API_KEY` | BP agent sync |
+| `BP_WEBHOOK_SECRET`, `N8N_WEBHOOK_SECRET` | Webhook auth |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | Dashboard |
+| `N8N_WEBHOOK_CRM_FETCH`, `N8N_WEBHOOK_SLACK`, `N8N_WEBHOOK_CRM_PUSH` | n8n automation |
+| `SEYLAN_API_BASE_URL`, `SEYLAN_API_KEY` | Sandbox CRM (optional) |
+
+**CI only:** `CONVEX_DEPLOY_KEY` (not needed on Vercel runtime)
+
+## One-command deploy
+
+```bash
+bash devops/scripts/vercel-deploy-all.sh
+```
 
 ## Post-deploy
 

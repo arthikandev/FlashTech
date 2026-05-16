@@ -1,10 +1,10 @@
-import { ConvexAppProvider } from "../lib/convex";
+import { ProtectedRoute } from "../components/ProtectedRoute";
 import { DashboardPage } from "./DashboardPage";
 
 export function DashboardRoute() {
   return (
-    <ConvexAppProvider>
+    <ProtectedRoute>
       <DashboardPage />
-    </ConvexAppProvider>
+    </ProtectedRoute>
   );
 }

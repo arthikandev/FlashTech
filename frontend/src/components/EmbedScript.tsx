@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function EmbedScript({ embedKey, onReady }: Props) {
-  const baseUrl = (import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3000").replace(
+  const baseUrl = (import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3001").replace(
     /\/$/,
     ""
   );

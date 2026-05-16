@@ -54,7 +54,28 @@ export const getIntelligenceForAvatar = query({
   },
 });
 
-const DEMO_EMBED_KEYS = ["seylan-demo", "cloudmetrics-demo", "coral-demo"];
+/** Resolve business for unsigned dashboard preview (any tenant with this embed key). */
+async function businessForPreviewEmbed(ctx: QueryCtx, embedKey: string) {
+  const business = await ctx.db
+    .query("businesses")
+    .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
+    .unique();
+  if (!business) {
+    throw new Error("Unknown embedKey");
+  }
+  return business;
+}
+
+function formatPageTrail(
+  pageHistory: Array<{ path: string; title?: string }>,
+  max = 4
+): string {
+  const slice = pageHistory.slice(-max);
+  if (slice.length === 0) return "—";
+  return slice
+    .map((p) => p.title?.trim() || p.path.split("/").filter(Boolean).pop() || p.path)
+    .join(" → ");
+}
 
 async function listSessionsForBusiness(ctx: QueryCtx, businessId: Id<"businesses">) {
   const visitors = await ctx.db
@@ -70,16 +91,29 @@ async function listSessionsForBusiness(ctx: QueryCtx, businessId: Id<"businesses
         .withIndex("by_visitor", (q) => q.eq("visitorId", visitor._id))
         .order("desc")
         .take(1);
+      const conversation = await ctx.db
+        .query("conversations")
+        .withIndex("by_visitor", (q) => q.eq("visitorId", visitor._id))
+        .order("desc")
+        .take(1);
+      const crm = visitor.crmData;
       return {
         visitorId: visitor._id,
         fingerprint: visitor.fingerprint,
-        name: visitor.crmData?.name,
+        name: crm?.name,
         intentScore: intel[0]?.intentScore,
         personalisedOpener: intel[0]?.personalisedOpener,
         recommendedAction: intel[0]?.recommendedAction,
+        signals: intel[0]?.signals,
         returnCount: visitor.returnCount,
         lastSeenAt: visitor.lastSeenAt,
         language: visitor.language,
+        pageTrail: formatPageTrail(visitor.pageHistory),
+        crmAccountType: crm?.accountType,
+        crmChurnRisk: crm?.churnRisk,
+        hasConversation: conversation.length > 0,
+        conversationOutcome: conversation[0]?.outcome,
+        conversationDuration: conversation[0]?.duration,
       };
     })
   );
@@ -90,14 +124,7 @@ async function listSessionsForBusiness(ctx: QueryCtx, businessId: Id<"businesses
 export const listLiveSessionsDemo = query({
   args: { embedKey: v.string() },
   handler: async (ctx, { embedKey }) => {
-    if (!DEMO_EMBED_KEYS.includes(embedKey)) {
-      throw new Error("Invalid demo embedKey");
-    }
-    const business = await ctx.db
-      .query("businesses")
-      .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
-      .unique();
-    if (!business) return [];
+    const business = await businessForPreviewEmbed(ctx, embedKey);
     return listSessionsForBusiness(ctx, business._id);
   },
 });
@@ -113,14 +140,7 @@ export const listLiveSessions = query({
 export const getSessionDetailDemo = query({
   args: { embedKey: v.string(), visitorId: v.id("visitors") },
   handler: async (ctx, { embedKey, visitorId }) => {
-    if (!DEMO_EMBED_KEYS.includes(embedKey)) {
-      throw new Error("Invalid demo embedKey");
-    }
-    const business = await ctx.db
-      .query("businesses")
-      .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
-      .unique();
-    if (!business) return null;
+    const business = await businessForPreviewEmbed(ctx, embedKey);
 
     const visitor = await ctx.db.get(visitorId);
     if (!visitor || visitor.businessId !== business._id) return null;

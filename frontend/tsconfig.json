@@ -20,5 +20,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "../backend/convex/_generated"]
+  "include": ["src"],
+  "exclude": ["src/**/*.example.tsx"]
 }

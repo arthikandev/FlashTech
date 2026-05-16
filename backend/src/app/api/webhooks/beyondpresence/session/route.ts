@@ -28,6 +28,73 @@ const bodySchema = z.object({
   duration: z.number(),
 });
 
+type PresenceIQSessionBody = z.infer<typeof bodySchema>;
+
+/** Accept native Beyond Presence platform webhooks and map to PresenceIQ shape. */
+function adaptWebhookBody(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const o = raw as Record<string, unknown>;
+
+  if (o.visitorId && o.businessId && o.transcript) {
+    return raw;
+  }
+
+  const event = String(o.event ?? o.type ?? "");
+  if (event !== "call_ended" && event !== "session.ended") {
+    return raw;
+  }
+
+  const meta = (o.metadata ?? o.meta ?? {}) as Record<string, unknown>;
+  const visitorId = String(meta.visitorId ?? o.visitor_id ?? "");
+  const businessId = String(meta.businessId ?? o.business_id ?? "");
+  if (!visitorId || !businessId) return raw;
+
+  const messages = (o.messages ?? o.transcript ?? []) as Array<{
+    role?: string;
+    content?: string;
+    text?: string;
+  }>;
+
+  const transcript = messages
+    .map((m, i) => {
+      const text = (m.text ?? m.content ?? "").trim();
+      if (!text) return null;
+      const role = m.role === "user" || m.role === "human" ? "user" : "assistant";
+      return {
+        role: role as "user" | "assistant",
+        text,
+        timestamp: Date.now() - (messages.length - i) * 1000,
+      };
+    })
+    .filter((t): t is NonNullable<typeof t> => t != null);
+
+  const duration =
+    typeof o.duration_seconds === "number"
+      ? o.duration_seconds
+      : typeof o.duration === "number"
+        ? o.duration
+        : 60;
+
+  return {
+    visitorId,
+    businessId,
+    transcript:
+      transcript.length > 0
+        ? transcript
+        : [
+            {
+              role: "assistant" as const,
+              text: "Session ended (BP platform webhook)",
+              timestamp: Date.now(),
+            },
+          ],
+    outcome: "informational" as const,
+    sentimentArc: [{ turn: 1, score: 0.7 }],
+    actionItems: ["Review Beyond Presence session"],
+    duration,
+  };
+}
+
 export async function OPTIONS() {
   return corsOptions();
 }
@@ -44,7 +111,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = bodySchema.parse(await request.json());
+    const raw = await request.json();
+    const body = bodySchema.parse(adaptWebhookBody(raw)) as PresenceIQSessionBody;
     const visitorId = body.visitorId as Id<"visitors">;
     const businessId = body.businessId as Id<"businesses">;
     const convex = getConvexClient();

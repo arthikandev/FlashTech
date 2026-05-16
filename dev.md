@@ -54,12 +54,12 @@ Deploy Convex + Vercel backend, configure n8n (CRM fetch, hot-lead Slack), align
 
 | Service | URL | Status |
 |---------|-----|--------|
-| Backend (Vercel) | _fill after D2_ | [ ] |
-| Convex dashboard | _fill after D1_ | [ ] |
-| Frontend dashboard | _fill after D4_ | [ ] |
-| n8n instance | _fill after D3_ | [ ] |
+| Backend (Vercel) | https://backend-blond-theta-13.vercel.app | [x] |
+| Convex dashboard | https://adamant-puffin-769.convex.cloud | [x] |
+| Frontend dashboard | https://frontend-nu-neon-44.vercel.app/dashboard | [x] |
+| n8n instance | Import workflows — [devops/n8n/PRODUCTION.md](devops/n8n/PRODUCTION.md) | [ ] |
 | Avatar test page | `avatar/demo/test-page.html` (local) | [x] |
-| Seylan demo site | _Person 3_ | [ ] |
+| Seylan demo site | https://frontend-nu-neon-44.vercel.app/sites/seylan/index.html#/pricing | [x] |
 
 Also update [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md) and root [`README.md`](README.md).
 

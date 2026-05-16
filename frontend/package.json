@@ -4,17 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "dev": "vite --mode development",
+    "dev:deployed": "vite --mode production",
+    "build:avatar": "bash scripts/avatar-bundle-or-skip.sh",
+    "build:app": "tsc --noEmit && vite build --mode production",
+    "build": "npm run build:avatar && npm run build:app",
+    "preview": "vite preview",
+    "deploy": "npm run build && vercel deploy --prod --yes --scope sarangans-projects-55d6b0e1"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.0.0",
     "convex": "^1.21.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.0"
+    "react-router-dom": "^7.1.0",
+    "recharts": "^2.15.4",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

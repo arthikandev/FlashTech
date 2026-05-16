@@ -1,9 +1,43 @@
-import type { Id } from "../../../backend/convex/_generated/dataModel";
+import type { Id } from "./ids";
+
+export type CrmData = {
+  name?: string;
+  email?: string;
+  accountType?: string;
+  churnRisk?: string;
+  lastPurchase?: string;
+  notes?: string;
+};
 
 export type Business = {
   _id: Id<"businesses">;
   name: string;
   embedKey: string;
+  industry?: string;
+  avatarConfig?: {
+    bpAgentId?: string;
+    personaTone?: string;
+    defaultLanguage?: string;
+  };
+};
+
+export type LiveSession = {
+  visitorId: Id<"visitors">;
+  fingerprint: string;
+  name?: string;
+  intentScore?: number;
+  personalisedOpener?: string;
+  recommendedAction?: string;
+  signals?: string[];
+  returnCount: number;
+  lastSeenAt: number;
+  language?: string;
+  pageTrail?: string;
+  crmAccountType?: string;
+  crmChurnRisk?: string;
+  hasConversation?: boolean;
+  conversationOutcome?: string;
+  conversationDuration?: number;
 };
 
 export type SessionDetailResult = {
@@ -11,16 +45,25 @@ export type SessionDetailResult = {
     _id: Id<"visitors">;
     fingerprint: string;
     returnCount: number;
-    crmData?: { name?: string };
+    crmId?: string;
+    crmData?: CrmData;
+    language?: string;
+    timeOnSite?: number;
   };
+  business?: Business | null;
   intelligence: {
     intentScore?: number;
     personalisedOpener?: string;
     recommendedAction?: string;
+    signals?: string[];
+    computedAt?: number;
   } | null;
   conversation: {
     outcome?: string;
     actionItems?: string[];
-    transcript?: Array<{ role: string; text: string }>;
+    duration?: number;
+    endedAt?: number;
+    sentimentArc?: Array<{ turn: number; score: number }>;
+    transcript?: Array<{ role: string; text: string; timestamp?: number }>;
   } | null;
 };

@@ -60,7 +60,7 @@ sequenceDiagram
 |------|-----|--------|
 | 1 | Embed | `POST /api/fingerprint` — register visitor |
 | 2 | Embed | Fire `presenceiq:ready` with `visitorId`, `businessId` |
-| 3 | Avatar | `POST /api/pipeline` — CRM wait + GPT-4o intent |
+| 3 | Avatar | `POST /api/pipeline` — CRM wait (200ms) + GPT-4o-mini intent (parallel avatar warm) |
 | 4 | Backend | `PATCH /v1/agents/{bpAgentId}` — `system_prompt` + `greeting` |
 | 5 | Avatar | Embed BP agent (iframe or SDK) using `bpAgentId` from response |
 | 6 | BP / Avatar | `POST /api/webhooks/beyondpresence/session` — transcript + automation |
@@ -121,7 +121,7 @@ After seeding a visitor (`npx convex run seed:seedDemo`), call pipeline with rea
 ```bash
 curl -X POST http://localhost:3000/api/pipeline \
   -H "Content-Type: application/json" \
-  -d '{"visitorId":"<visitorId>","businessId":"<businessId>","waitForCrmMs":500}'
+  -d '{"visitorId":"<visitorId>","businessId":"<businessId>","waitForCrmMs":200}'
 ```
 
 Response should include:
@@ -156,7 +156,7 @@ BP native `call_ended` payloads differ from PresenceIQ’s session body. Person 
 | `GET` | `/api/beyondpresence/status` | Key configured + verified; lists agents |
 | `POST` | `/api/pipeline` | Intent + auto-sync agent context |
 | `POST` | `/api/webhooks/beyondpresence/session` | Post-call transcript + automation |
-| `GET` | `/api/health` | Includes `checks.beyondPresence` |
+| `GET` | `/api/health` | Includes `checks.beyondPresence`; add `?probes=1` for latency probes |
 
 Implementation: [`backend/src/lib/beyondPresenceApi.ts`](../backend/src/lib/beyondPresenceApi.ts)
 
@@ -170,6 +170,30 @@ Implementation: [`backend/src/lib/beyondPresenceApi.ts`](../backend/src/lib/beyo
 4. On session end, POST to `/api/webhooks/beyondpresence/session` with the PresenceIQ payload shape.
 
 Example: [`avatar/src/beyondpresence/integration.example.ts`](../avatar/src/beyondpresence/integration.example.ts)
+
+---
+
+## Audio quality and agent context (dashboard)
+
+PresenceIQ embeds Beyond Presence via iframe/SDK — **microphone processing is configured in the BP agent**, not in this repo (no LiveKit `createLocalAudioTrack` here).
+
+### Agent dashboard checklist
+
+1. **System prompt** — Use a detailed business-specific prompt (products, FAQs, escalation rules). The backend also PATCHes `system_prompt` and `greeting` on each pipeline run via [`buildAgentSystemPrompt`](../backend/src/lib/beyondPresenceApi.ts).
+2. **Knowledge base** — Upload product catalogues, pricing, and policy docs in [app.bey.chat](https://app.bey.chat) so answers are grounded in your data.
+3. **STT provider** — For accented English (e.g. Sri Lankan), test Deepgram Nova or ElevenLabs Multilingual in agent settings; run 10–15 test calls before committing.
+4. **Echo / noise** — In BP agent or embed settings, enable echo cancellation, noise suppression, and auto gain control when available. Without echo cancellation, speaker playback can feed back into STT and confuse the agent.
+5. **Mic check** — If users report “avatar can’t hear me”, verify browser mic permission and hardware levels before changing models.
+
+### Performance targets (May 2026)
+
+| Metric | Target |
+|--------|--------|
+| `POST /api/pipeline` (`pipelineMs`) | &lt; 800ms typical |
+| Time to first speech (page load → avatar speaks) | &lt; 2.5s |
+| CRM wait | 200ms default (`waitForCrmMs`) |
+
+Backend logs structured `pipeline_timing` events; the avatar SDK sets `performance.mark` (`piq:ready`, `piq:pipeline-done`, `piq:avatar-visible`).
 
 ---
 

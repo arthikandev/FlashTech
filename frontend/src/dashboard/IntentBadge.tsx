@@ -1,7 +1,7 @@
 export function IntentBadge({ score }: { score?: number }) {
   if (score == null) {
     return (
-      <span className="rounded-full bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
+      <span className="rounded-full bg-[#212121] px-2 py-0.5 text-xs text-gray-500">
         —
       </span>
     );

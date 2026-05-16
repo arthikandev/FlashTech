@@ -78,4 +78,7 @@ Dashboard Convex queries require a signed-in Clerk user linked to a business via
 
 ## Production (Vercel / Netlify)
 
-Set the same variable names in each platform’s dashboard for the matching root directory (`backend/`, `frontend/`). See [devops/deploy/vercel.md](../devops/deploy/vercel.md).
+Set the same variable names in each platform's dashboard for the matching root directory (`backend/`, `frontend/`).
+
+- **Frontend SPA:** [devops/deploy/frontend-vercel.md](../devops/deploy/frontend-vercel.md) — Root Directory **`frontend/`**, **`npm run build`** (includes **presenceiq-avatar.js** bundle), env: **`VITE_CONVEX_URL`**, **`VITE_BACKEND_URL`**, optional **`VITE_CLERK_PUBLISHABLE_KEY`**. Assign to **Production** and **Preview**; redeploy after changes.
+- **Backend:** [devops/deploy/vercel.md](../devops/deploy/vercel.md).

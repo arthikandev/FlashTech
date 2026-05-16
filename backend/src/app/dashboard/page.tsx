@@ -191,8 +191,12 @@ export default function DashboardPage() {
 
       {signedIn && sessions && <SessionsTable sessions={sessions} />}
 
-      <p style={{ marginTop: 24 }}>
-        <Link href="/">← API home</Link>
+      <p style={{ marginTop: 24, fontSize: 14 }}>
+        <a href={process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:5173"}>
+          ← Open full product dashboard (frontend)
+        </a>
+        {" · "}
+        <Link href="/?api=1">API home</Link>
       </p>
     </main>
   );

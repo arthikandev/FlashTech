@@ -20,21 +20,27 @@ Shared: [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md) · [`devops/DEVEL
 
 See **[docs/ENV.md](docs/ENV.md)** — one `.env.example` per track (`backend/`, `avatar/`, `frontend/`). No root `.env` file.
 
-## Quick start (backend)
+## Deploy frontend SPA (single Vercel site)
 
-See **[backend/SETUP.md](backend/SETUP.md)** for full API key setup.
+See **[devops/deploy/frontend-vercel.md](devops/deploy/frontend-vercel.md)** — Root Directory **`frontend/`**, **`npm run build`** (includes **presenceiq-avatar.js**).
+
+## Quick start (full stack)
+
+The **product UI** (landing, dashboard, demos) is the **frontend** Vite app. The **backend** is the API only — visiting `localhost:3000` (or `:3001` / `:3002`) alone shows a minimal API index, not the dashboard.
 
 ```bash
-cd backend                   # required — Convex/npm commands need backend/package.json
-cp .env.example .env.local   # add OPENAI_API_KEY — see SETUP.md
-npm install
-npm run check:env
-npm run verify:all           # env + build + Convex
-npm run verify:full          # + n8n webhooks (after pasting URLs in .env.local)
-npx convex dev               # terminal 1 — deploy schema
-npm run dev                  # terminal 2 — http://localhost:3000
-npx convex run seed:seedDemo # run from backend/ only
+# Terminal 1 — Convex
+cd backend && npx convex dev
+
+# Terminal 2 — API (default http://localhost:3000, or npm run dev:3001)
+cd backend && cp .env.example .env.local && npm install && npm run dev
+
+# Terminal 3 — Product UI ← open this in the browser
+cd frontend && npm install && npm run dev
+# → http://localhost:5173  (dashboard: /dashboard, Seylan demo: /demos/seylan)
 ```
+
+See **[backend/SETUP.md](backend/SETUP.md)** for API keys. Root `/` on the API server redirects to the frontend in the browser; use `/?api=1` to stay on the API index.
 
 ## Embed (demo sites)
 
@@ -54,8 +60,9 @@ Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 
 ## Live URLs
 
-_Fill after deploy — see [devops/DEVELOPMENT_PLAN.md](devops/DEVELOPMENT_PLAN.md)_
-
-- Backend (Vercel): _
-- Convex: _
-- Frontend dashboard: _
+- Backend (Vercel): https://backend-blond-theta-13.vercel.app
+- Convex: https://adamant-puffin-769.convex.cloud
+- Frontend (Vercel): https://frontend-nu-neon-44.vercel.app
+- Seylan demo: https://frontend-nu-neon-44.vercel.app/sites/seylan/index.html#/pricing
+- Avatar SDK: https://frontend-nu-neon-44.vercel.app/presenceiq-avatar.js
+- n8n setup: [devops/n8n/PRODUCTION.md](devops/n8n/PRODUCTION.md) (paste workflow webhook URLs into backend Vercel env)

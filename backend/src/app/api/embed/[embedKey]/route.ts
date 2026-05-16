@@ -64,6 +64,13 @@ export async function GET(
   postFingerprint().then(function(res){
     if(res&&res.success&&res.data){
       window.__piq_last=res.data;
+      try{performance.mark("piq:fingerprint-complete");}catch(e){}
+      window.dispatchEvent(new CustomEvent("presenceiq:fingerprint-complete",{
+        detail:{
+          visitorId:res.data.visitorId,
+          businessId:res.data.businessId
+        }
+      }));
       window.dispatchEvent(new CustomEvent("presenceiq:ready",{
         detail:{
           visitorId:res.data.visitorId,

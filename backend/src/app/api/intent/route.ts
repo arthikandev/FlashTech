@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   try {
     const body = bodySchema.parse(await request.json());
-    const intelligence = await runIntentPipeline(
+    const { intelligence } = await runIntentPipeline(
       body.visitorId as Id<"visitors">,
       body.businessId as Id<"businesses">
     );
