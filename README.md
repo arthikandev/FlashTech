@@ -1,52 +1,54 @@
-# StudyMate AI
+# PresenceIQ
 
-AI-powered study assistant: take notes, generate flashcards and quizzes, track progress.
+**The AI avatar that knows WHO you are before you speak.**
+
+Pre-conversation customer intelligence · Personalised in real time · For enterprise
+
+Cursor Colombo 24H Buildathon 2026 · BeyondPresence Track
 
 ## Team
-| Member | Role | Branch |
-|--------|------|--------|
-| Member A | Frontend Lead | `feature/frontend-member-a` |
-| Member B | Backend Lead | `feature/backend-member-b` |
-| Member C | DB & DevOps Lead | `feature/devops-member-c` |
 
-## Stack
-- **Frontend**: Vite + React + Tailwind + React Router + Axios + Recharts
-- **Backend**: Express + Prisma + PostgreSQL (Neon) + OpenAI + JWT
-- **Hosting**: Netlify (frontend) + Render (backend) + Neon (database)
+| Person | Role | Folder | Development plan |
+|--------|------|--------|-------------------|
+| Person 1 | Avatar & AI Engineer | [`avatar/`](avatar/) | [avatar/DEVELOPMENT_PLAN.md](avatar/DEVELOPMENT_PLAN.md) |
+| Person 2 | Backend & Automation | [`backend/`](backend/) | [backend/DEVELOPMENT_PLAN.md](backend/DEVELOPMENT_PLAN.md) |
+| Person 3 | Frontend & Demo Lead | [`frontend/`](frontend/) | [frontend/DEVELOPMENT_PLAN.md](frontend/DEVELOPMENT_PLAN.md) |
 
-## Local development
+Shared: [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md) · [`devops/DEVELOPMENT_PLAN.md`](devops/DEVELOPMENT_PLAN.md)
 
-### Backend
+## Environment variables
+
+See **[docs/ENV.md](docs/ENV.md)** — one `.env.example` per track (`backend/`, `avatar/`, `frontend/`). No root `.env` file.
+
+## Quick start (backend)
+
 ```bash
 cd backend
-cp .env.example .env       # fill in DATABASE_URL, DIRECT_URL, OPENAI_API_KEY, JWT_SECRET
+cp .env.example .env.local   # Convex, OpenAI, webhooks — see docs/ENV.md
 npm install
-npx prisma generate
-npx prisma migrate dev --name init
-npm run seed               # optional: creates a test user + sample data
-npm run dev                # http://localhost:3000
+npx convex dev               # terminal 1 — deploy schema + seed
+npm run dev                  # terminal 2 — http://localhost:3000
+npx convex run seed:seedDemo # seed Seylan Bank + Sarangan demo data
 ```
 
-### Frontend
-```bash
-cd frontend
-cp .env.example .env       # set VITE_API_URL=http://localhost:3000
-npm install
-npm run dev                # http://localhost:5173
+## Embed (demo sites)
+
+```html
+<script src="http://localhost:3000/api/embed/seylan-demo" async></script>
 ```
 
-## Workflow
-1. Pull `dev`.
-2. Checkout your `feature/*` branch.
-3. Pick an Issue from the [project board](../../issues) assigned to you.
-4. Commit, push, open PR → `dev`.
-5. After review, merge to `dev`. End of day: `dev` → `main`.
+Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 
-## Deploy
-- **Backend → Render**: root `/backend`, build `npm install && npx prisma generate && npx prisma migrate deploy`, start `node src/server.js`.
-- **Frontend → Netlify**: base `/frontend`, build `npm run build`, publish `dist`. Set `VITE_API_URL` to the Render URL.
-- **Database → Neon**: copy `DATABASE_URL` and `DIRECT_URL` into Render env.
+## API docs
+
+- [docs/API_CONTRACT.md](docs/API_CONTRACT.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/BACKEND_CONTRIBUTION.md](docs/BACKEND_CONTRIBUTION.md)
 
 ## Live URLs
-- Frontend: _add after Netlify deploy_
-- Backend: _add after Render deploy_
+
+_Fill after deploy — see [devops/DEVELOPMENT_PLAN.md](devops/DEVELOPMENT_PLAN.md)_
+
+- Backend (Vercel): _
+- Convex: _
+- Frontend dashboard: _

@@ -1,0 +1,31 @@
+{
+  "name": "PresenceIQ Churn Email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "presenceiq-churn-email",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "subject": "We'd love to keep you",
+        "message": "Personalised retention offer based on churn risk signal."
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]]
+    }
+  }
+}

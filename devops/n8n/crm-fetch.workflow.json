@@ -1,0 +1,55 @@
+{
+  "name": "PresenceIQ CRM Fetch",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "presenceiq-crm-fetch",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\nconst crmDb = {\n  \"CRM-001\": {\n    name: \"Sarangan\",\n    email: \"sarangan@example.com\",\n    accountType: \"prospect\",\n    churnRisk: \"low\",\n    notes: \"Compared Gold and Platinum plans 3 times this week\"\n  }\n};\nconst crmId = input.crmId || \"CRM-001\";\nconst crmData = crmDb[crmId] || crmDb[\"CRM-001\"];\nreturn [{ json: { visitorId: input.visitorId, crmId, crmData } }];"
+      },
+      "name": "Lookup CRM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PRESENCEIQ_BACKEND_URL }}/api/webhooks/n8n/crm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "POST to PresenceIQ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Lookup CRM", "type": "main", "index": 0 }]]
+    },
+    "Lookup CRM": {
+      "main": [[{ "node": "POST to PresenceIQ", "type": "main", "index": 0 }]]
+    }
+  }
+}

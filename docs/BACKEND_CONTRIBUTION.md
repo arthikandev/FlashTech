@@ -1,86 +1,80 @@
 # Member B — Backend Lead Contribution
 
-**StudyMate AI** | Express REST API, JWT auth, OpenAI integration, Prisma ORM
+**PresenceIQ** | Next.js API, Convex, OpenAI GPT-4o, n8n webhooks
 
 ## Owned modules
 
 | Area | Files / responsibility |
 |------|------------------------|
-| Authentication | `auth.service.js`, `auth.controller.js`, `auth.middleware.js`, `auth.validator.js` |
-| Notes CRUD | `notes.controller.js`, `notes.routes.js` |
-| AI features | `ai.service.js`, `ai.controller.js`, `ai.routes.js`, `ai.validator.js` |
-| Progress tracking | `progress.controller.js`, `progress.routes.js` |
-| Cross-cutting | `apiResponse.js`, `asyncHandler.js`, `errorHandler.js`, `rateLimiter.js`, `validate.js` |
-| Database | `prisma/schema.prisma`, `prisma/seed.js`, `prisma/migrations/` |
+| Convex schema | `convex/schema.ts` — 5 tables |
+| Visitors | `convex/visitors.ts` — fingerprint upsert, CRM patch |
+| Intelligence | `convex/intelligence.ts` — scoring storage, dashboard queries |
+| Conversations | `convex/conversations.ts` — post-call transcripts |
+| Triggers | `convex/triggers.ts` — hot-lead evaluation |
+| Seed | `convex/seed.ts` — Seylan Bank demo data |
+| Embed SDK | `src/app/api/embed/[embedKey]/route.ts` |
+| Intent API | `src/app/api/intent/route.ts`, `src/lib/openai.ts` |
+| Pipeline | `src/app/api/pipeline/route.ts`, `src/lib/pipeline.ts` |
+| Webhooks | `src/app/api/webhooks/n8n/crm`, `beyondpresence/session` |
+| n8n exports | `devops/n8n/*.workflow.json` |
 
 ## Architecture
 
 ```
-Client (React + Axios)
-    → Express routes (/api/auth, /api/notes, /api/ai, /api/progress)
-    → Middleware (CORS, JSON body, JWT protect, Zod validate, rate limit)
-    → Controllers (thin request/response)
-    → Services (business logic, Prisma, OpenAI)
-    → Neon PostgreSQL
+Demo site embed
+    → GET /api/embed/:embedKey (JS SDK)
+    → POST /api/fingerprint
+    → Convex visitors table
+    → n8n CRM fetch → POST /api/webhooks/n8n/crm
+Person 1: presenceiq:ready → POST /api/pipeline
+    → OpenAI GPT-4o intent score
+    → Convex intelligence table
+    → BeyondPresence personalised opener
+Post-call: POST /api/webhooks/beyondpresence/session
+    → Convex conversations + Slack trigger
 ```
-
-## Security
-
-- **Passwords**: bcrypt (10 rounds) before storage; never returned in API responses.
-- **Sessions**: Stateless JWT in `Authorization: Bearer` header; `protect` middleware on all private routes.
-- **CORS**: Restricted to `FRONTEND_URL` from environment.
-- **Payload limits**: JSON body capped at 10kb.
-- **AI rate limiting**: 5 requests per 15 minutes per IP on `/api/ai/*`.
-- **Validation**: Zod schemas on auth, notes, and AI request bodies.
-- **Errors**: Standard envelope with `success`, `message`, and `error` (alias for frontend compatibility).
 
 ## API summary
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/api/auth/register` | — | Register; returns JWT |
-| POST | `/api/auth/login` | — | Login; returns JWT |
-| GET | `/api/auth/me` | ✓ | Current user profile |
-| GET | `/api/notes` | ✓ | List user's notes |
-| POST | `/api/notes` | ✓ | Create note |
-| GET | `/api/notes/:id` | ✓ | Get single note |
-| PUT | `/api/notes/:id` | ✓ | Update note |
-| DELETE | `/api/notes/:id` | ✓ | Delete note (cascades flashcards) |
-| POST | `/api/ai/summarize` | ✓ + RL | Body `{ noteId }` → AI summary saved on note |
-| POST | `/api/ai/flashcards` | ✓ + RL | Body `{ noteId }` → 8 flashcards persisted |
-| POST | `/api/ai/quiz` | ✓ + RL | Body `{ noteId }` → 5 multiple-choice questions |
-| POST | `/api/progress/save` | ✓ | Body `{ noteId, score, total }` |
-| GET | `/api/progress` | ✓ | `{ attempts, avgScore }` |
-| GET | `/health` | — | Health check for Render |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/embed/:embedKey` | Fingerprint embed SDK |
+| POST | `/api/fingerprint` | Upsert visitor |
+| POST | `/api/intent` | Score intent (GPT-4o) |
+| POST | `/api/pipeline` | Full pre-conversation pipeline |
+| POST | `/api/webhooks/n8n/crm` | CRM enrichment from n8n |
+| POST | `/api/webhooks/beyondpresence/session` | Post-call transcript |
 
-RL = rate limited.
+## Security
+
+- Webhook secrets: `X-Webhook-Secret`, `X-BP-Webhook-Secret`
+- Rate limit: 30 req/min on intent + pipeline
+- Zod validation on all POST bodies
+- OpenAI calls server-side only
 
 ## How to run locally
 
 ```bash
 cd backend
-cp .env.example .env
-# Set DATABASE_URL, DIRECT_URL, JWT_SECRET, OPENAI_API_KEY
+cp .env.example .env.local   # see docs/ENV.md — env lives only in backend/
 npm install
-npx prisma generate
-npx prisma migrate deploy   # or migrate dev for local dev
-npm run seed
-npm run dev
+npx convex dev          # terminal 1
+npm run dev             # terminal 2 — http://localhost:3000
+npx convex run seed:seedDemo
 ```
 
-Server: `http://localhost:3000`
-
-## Demo credentials (seed)
+## Demo credentials
 
 | Field | Value |
 |-------|-------|
-| Email | `test@studymate.ai` |
-| Password | `password123` |
+| embedKey | `seylan-demo` |
+| demo fingerprint | `demo-sarangan-fp` (set in localStorage `piq_fp`) |
+| CRM ID | `CRM-001` |
+| Expected opener | Welcome back Sarangan — Gold and Platinum plans |
 
-Seed also creates sample notes, flashcards, and quiz attempts for the Progress dashboard.
+## Convex queries for teammates
 
-## Git workflow
-
-- Feature branch: `feature/backend-member-b`
-- Merged to `dev` via PR #1
-- Commits include: Express app structure, Prisma schema, OpenAI service, JWT auth, rate limiting, API contract alignment
+- `intelligence.listLiveSessions({ businessId })`
+- `intelligence.getSessionDetail({ visitorId })`
+- `intelligence.getIntelligenceForAvatar({ visitorId })`

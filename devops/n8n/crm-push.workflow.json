@@ -1,0 +1,30 @@
+{
+  "name": "PresenceIQ CRM Push",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "presenceiq-crm-push",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json.body || $input.first().json;\nreturn [{ json: { logged: true, outcome: payload.outcome, intentScore: payload.intentScore, at: new Date().toISOString() } }];"
+      },
+      "name": "Log CRM Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Log CRM Update", "type": "main", "index": 0 }]]
+    }
+  }
+}

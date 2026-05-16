@@ -1,0 +1,37 @@
+{
+  "name": "PresenceIQ Hot Lead Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "presenceiq-hot-lead",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#sales-alerts"
+        },
+        "text": "=🔥 Hot lead — {{ $json.body.name || $json.name }} — Intent {{ $json.body.intentScore || $json.intentScore }}/100\nAction: {{ $json.body.recommendedAction || $json.recommendedAction }}"
+      },
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Slack", "type": "main", "index": 0 }]]
+    }
+  }
+}

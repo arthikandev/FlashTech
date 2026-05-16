@@ -1,35 +1,46 @@
-# DevOps — Member C
+# PresenceIQ DevOps
 
-Owner of database, deployments, GitHub hygiene, env management.
+## Quick links
 
-## Folder map
+- [Vercel deploy](deploy/vercel.md)
+- [Convex deploy](deploy/convex.md)
+- [n8n workflows](n8n/)
+
+## Environment setup
+
+See [docs/ENV.md](../docs/ENV.md). Backend: `cd backend && cp .env.example .env.local`
+
+## Integration test checklist (hour 20)
+
+Run with backend on `http://localhost:3000` and `npx convex dev` + seed:
+
+```bash
+cd backend
+npx convex run seed:seedDemo
 ```
-devops/
-├── README.md                     this file
-├── deploy/
-│   ├── neon.md                   Postgres on Neon — create project, get URLs
-│   ├── render.md                 Backend on Render — env, build, start
-│   ├── netlify.md                Frontend on Netlify — base, build, publish
-│   └── env-vars.md               full list of env vars per environment
-├── scripts/
-│   ├── setup-labels.sh           create GitHub labels for issue tagging
-│   ├── branch-protection.sh      protect main: require 1 review + status checks
-│   └── share-secrets.md          how to share secrets safely with the team
-```
 
-## Daily checklist
-- [ ] Neon project provisioned, `DATABASE_URL` + `DIRECT_URL` shared with Member B (private channel only)
-- [ ] OpenAI API key shared with Member B
-- [ ] Prisma schema migrated on Neon — confirm 4 tables exist
-- [ ] Seed data applied — login `test@studymate.ai / password123` works
-- [ ] Render web service deployed, env vars set, healthcheck `/health` returns 200
-- [ ] Netlify deployed, `VITE_API_URL` points to Render URL
-- [ ] End-to-end smoke: register → create note → AI summary → quiz → progress chart
-- [ ] Branch protection enabled on `main`
-- [ ] All members have access to repo + dashboards
+- [ ] `curl http://localhost:3000/api/health` returns `"status":"ok"`
+- [ ] `curl http://localhost:3000/api/embed/seylan-demo` returns JavaScript
+- [ ] POST `/api/fingerprint` with `embedKey: seylan-demo`, `fingerprint: demo-sarangan-fp` returns visitorId
+- [ ] POST `/api/pipeline` with visitorId + businessId returns Sarangan opener, `pipelineMs` < 2000
+- [ ] POST `/api/webhooks/n8n/crm` with `X-Webhook-Secret` patches CRM name
+- [ ] POST `/api/webhooks/beyondpresence/session` saves conversation
+- [ ] Convex dashboard shows visitors + intelligence rows
 
-## What lives where (not in this folder)
-- Prisma schema + migrations: `backend/prisma/` (you own this content even though it sits there for Prisma to find it)
-- Netlify SPA redirects: `frontend/public/_redirects`
-- PR + Issue templates: `.github/`
-- `.env.example` files: in each app folder
+## n8n setup
+
+1. Import JSON files from `n8n/` into your n8n instance.
+2. Set environment variables:
+   - `PRESENCEIQ_BACKEND_URL` — e.g. `http://localhost:3000`
+   - `N8N_WEBHOOK_SECRET` — must match backend `.env.local`
+3. Copy webhook URLs into backend env:
+   - `N8N_WEBHOOK_CRM_FETCH`
+   - `N8N_WEBHOOK_SLACK`
+   - `N8N_WEBHOOK_CRM_PUSH`
+
+## Production checklist
+
+- [ ] `npx convex deploy` from `backend/`
+- [ ] Vercel deploy with root directory `backend`
+- [ ] All env vars set (see `docs/ENV.md` and `backend/.env.example`)
+- [ ] URLs posted in root `README.md` and `docs/DEVELOPMENT_PLAN.md`

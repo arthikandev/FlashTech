@@ -1,6 +1,7 @@
 node_modules/
 dist/
 build/
+.next/
 .env
 .env.local
 .env.*.local
@@ -11,4 +12,3 @@ build/
 coverage/
 .netlify/
 .vercel/
-backend/prisma/migrations/dev.db*
