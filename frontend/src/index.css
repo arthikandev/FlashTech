@@ -562,6 +562,22 @@ body {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Clerk auth — hide footer watermark and dev-mode badge */
+.auth-clerk-shell .cl-footer,
+.auth-clerk-shell .cl-footerAction,
+.auth-clerk-shell .cl-footerActionLink,
+.auth-clerk-shell .cl-footerPages,
+.auth-clerk-shell .cl-internal-b3fm6y,
+.auth-clerk-shell [class*="cl-internal"][class*="development"],
+.auth-clerk-shell [data-localization-key="footerAction__signIn"],
+.auth-clerk-shell [data-localization-key="footerAction__signUp"] {
+  display: none !important;
+}
+
+.auth-clerk-shell .cl-card {
+  box-shadow: none;
+}
+
 /* Dark UI surfaces (login, etc.) — keep brand cream, not dashboard cyan */
 .dark {
   --background: var(--color-dash-bg);

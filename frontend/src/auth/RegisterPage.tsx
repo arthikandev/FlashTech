@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
+import { authClerkAppearance } from "./clerkAppearance";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -52,12 +53,20 @@ export function RegisterPage() {
                     <code className="text-foreground">frontend/.env.local</code> to enable sign up.
                   </p>
                 ) : (
-                  <SignUp
-                    routing="path"
-                    path="/register"
-                    signInUrl="/login"
-                    fallbackRedirectUrl="/onboard"
-                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, ease, delay: 0.1 }}
+                    className="auth-clerk-shell"
+                  >
+                    <SignUp
+                      routing="path"
+                      path="/register"
+                      signInUrl="/login"
+                      fallbackRedirectUrl="/onboard"
+                      appearance={authClerkAppearance}
+                    />
+                  </motion.div>
                 )}
                 <p className="text-center text-sm text-muted-foreground">
                   Already have an account?{" "}
