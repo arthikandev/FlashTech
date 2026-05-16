@@ -12,6 +12,7 @@ import { SlackMock } from "./dashboard/SlackMock";
 import { SeylanPage } from "./demos/SeylanPage";
 import { CloudMetricsPage } from "./demos/CloudMetricsPage";
 import { CoralPage } from "./demos/CoralPage";
+import { LoginPage } from "./auth/LoginPage";
 import { LandingPage } from "./landing/LandingPage";
 import { BusinessWizard } from "./onboarding/BusinessWizard";
 import { PitchDeck } from "./pitch/PitchDeck";
@@ -22,24 +23,25 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-        <Route index element={<LandingPage />} />
-        <Route path="deck" element={<PitchDeck />} />
-        <Route path="slack" element={<SlackMock />} />
-        <Route path="present" element={<PresentPage />} />
-        <Route path="dashboard" element={<DashboardRoute />}>
-          <Route index element={<OverviewPage />} />
-          <Route path="sessions" element={<SessionsPage />} />
-          <Route path="analytics" element={<AnalyticsPage />} />
-          <Route path="workflow" element={<WorkflowPage />} />
-          <Route path="avatar" element={<AvatarPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
-        <Route element={<Layout />}>
-          <Route path="onboard" element={<BusinessWizard />} />
-          <Route path="demos/seylan" element={<SeylanPage />} />
-          <Route path="demos/cloudmetrics" element={<CloudMetricsPage />} />
-          <Route path="demos/coral" element={<CoralPage />} />
-        </Route>
+          <Route index element={<LandingPage />} />
+          <Route path="deck" element={<PitchDeck />} />
+          <Route path="slack" element={<SlackMock />} />
+          <Route path="present" element={<PresentPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="dashboard" element={<DashboardRoute />}>
+            <Route index element={<OverviewPage />} />
+            <Route path="sessions" element={<SessionsPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="workflow" element={<WorkflowPage />} />
+            <Route path="avatar" element={<AvatarPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+          <Route element={<Layout />}>
+            <Route path="onboard" element={<BusinessWizard />} />
+            <Route path="demos/seylan" element={<SeylanPage />} />
+            <Route path="demos/cloudmetrics" element={<CloudMetricsPage />} />
+            <Route path="demos/coral" element={<CoralPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>

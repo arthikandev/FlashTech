@@ -33,6 +33,18 @@ npm run dev
 
 Open http://localhost:5173 — cinematic landing at `/`; dashboard and demos on their routes. Convex connects **only** on `/dashboard` (copy `.env.local` first).
 
+## Frontend pages (5 routes)
+
+| Route | Page |
+|-------|------|
+| `/` | Marketing landing — Hero, About, demo selector, Features, infinite-scroll testimonials, cinematic footer |
+| `/dashboard` | Live Convex sessions dashboard |
+| `/demos/seylan` | Seylan Bank embed demo |
+| `/demos/cloudmetrics` | CloudMetrics SaaS embed demo |
+| `/demos/coral` | Coral Resort embed demo |
+
+UI components live in `src/components/ui/` (shadcn-style: `motion-footer`, `testimonials-columns-1`).
+
 ## Live URLs (fill when deployed)
 
 | Service | URL |
