@@ -4,14 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:3001": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
-    "seed": "convex run seed:seedDemo"
+    "seed": "convex run seed:seedDemo",
+    "check:env": "node scripts/check-env.mjs",
+    "clean": "rm -rf .next"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.3.5",
     "convex": "^1.21.0",
     "next": "^15.1.0",
     "openai": "^4.77.0",

@@ -1,7 +1,11 @@
 import { z } from "zod";
+import type { Id } from "../../../../convex/_generated/dataModel";
 import { api, getConvexClient } from "@/lib/convex";
+import { applyDemoCrmIfNeeded } from "@/lib/demoCrm";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
+import { isN8nCrmConfigured, isSeylanApiConfigured } from "@/lib/env";
 import { triggerN8nCrmFetch } from "@/lib/pipeline";
+import { applySeylanCrmIfNeeded } from "@/lib/seylanCrm";
 
 const bodySchema = z.object({
   embedKey: z.string(),
@@ -24,13 +28,29 @@ export async function POST(request: Request) {
     const result = await convex.mutation(api.visitors.upsertFingerprint, body);
 
     if (result.returnCount > 1 || result.crmId) {
-      void triggerN8nCrmFetch({
-        visitorId: result.visitorId,
-        businessId: result.businessId,
-        fingerprint: body.fingerprint,
-        crmId: result.crmId,
-        returnCount: result.returnCount,
-      });
+      if (isN8nCrmConfigured()) {
+        void triggerN8nCrmFetch({
+          visitorId: result.visitorId,
+          businessId: result.businessId,
+          fingerprint: body.fingerprint,
+          crmId: result.crmId,
+          returnCount: result.returnCount,
+        });
+      } else if (isSeylanApiConfigured()) {
+        await applySeylanCrmIfNeeded({
+          visitorId: result.visitorId as Id<"visitors">,
+          crmId: result.crmId,
+          fingerprint: body.fingerprint,
+          returnCount: result.returnCount,
+        });
+      } else {
+        await applyDemoCrmIfNeeded({
+          visitorId: result.visitorId as Id<"visitors">,
+          crmId: result.crmId,
+          fingerprint: body.fingerprint,
+          returnCount: result.returnCount,
+        });
+      }
     }
 
     return jsonSuccess(result);
