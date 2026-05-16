@@ -16,7 +16,7 @@ export function AnimatedLetter({ text, className = "" }: Props) {
   const chars = text.split("");
 
   return (
-    <p ref={ref} className={className} style={{ color: "#DEDBC8" }}>
+    <p ref={ref} className={`text-primary ${className}`}>
       {chars.map((char, index) => (
         <AnimatedChar
           key={`${char}-${index}`}

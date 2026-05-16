@@ -4,6 +4,7 @@ import { DashboardRoute } from "./dashboard/DashboardRoute";
 import { SeylanPage } from "./demos/SeylanPage";
 import { CloudMetricsPage } from "./demos/CloudMetricsPage";
 import { CoralPage } from "./demos/CoralPage";
+import { LoginPage } from "./auth/LoginPage";
 import { LandingPage } from "./landing/LandingPage";
 
 export default function App() {
@@ -11,6 +12,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route index element={<LandingPage />} />
+        <Route path="login" element={<LoginPage />} />
         <Route element={<Layout />}>
           <Route path="dashboard" element={<DashboardRoute />} />
           <Route path="demos/seylan" element={<SeylanPage />} />

@@ -33,7 +33,7 @@ function FeatureCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.6, delay: index * 0.15, ease: cardEase }}
-      className="relative rounded-xl overflow-hidden bg-[#212121] min-h-[280px] lg:min-h-0 lg:h-full flex flex-col"
+      className="relative rounded-xl overflow-hidden bg-card-elevated border border-border min-h-[280px] lg:min-h-0 lg:h-full flex flex-col"
     >
       {children}
     </motion.div>
@@ -63,7 +63,7 @@ function ChecklistCard({
           alt=""
           className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover mb-4"
         />
-        <p className="text-[#E1E0CC] text-sm sm:text-base font-medium mb-4">
+        <p className="text-foreground text-sm sm:text-base font-medium mb-4">
           <span className="text-gray-500 mr-2">{number}</span>
           {title}
         </p>
@@ -89,7 +89,7 @@ function ChecklistCard({
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="relative min-h-screen bg-black px-4 py-20 md:py-28">
+    <section id="features" className="relative min-h-screen bg-background px-4 py-20 md:py-28 transition-colors">
       <div className="bg-noise absolute inset-0 opacity-[0.15] pointer-events-none" />
       <div className="relative max-w-7xl mx-auto">
         <div className="text-center mb-12 md:mb-16">
@@ -119,7 +119,7 @@ export function FeaturesSection() {
               playsInline
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <p className="absolute bottom-4 left-4 right-4 text-[#E1E0CC] text-sm sm:text-base font-medium z-10">
+            <p className="absolute bottom-4 left-4 right-4 text-foreground text-sm sm:text-base font-medium z-10">
               Your visitor&apos;s story starts here.
             </p>
           </FeatureCard>

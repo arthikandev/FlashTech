@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { WordsPullUp } from "../components/WordsPullUp";
 
 const HERO_VIDEO =
@@ -11,14 +13,17 @@ type NavLink = { label: string; href: string; to?: never } | { label: string; to
 const navItems: NavLink[] = [
   { label: "Our story", href: "#about" },
   { label: "Product", href: "#features" },
-  { label: "Demos", to: "/demos/seylan" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Demos", href: "#demos" },
+  { label: "Stories", href: "#testimonials" },
   { label: "Dashboard", to: "/dashboard" },
-  { label: "Contact", href: "#features" },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function HeroSection() {
+  const navigate = useNavigate();
+
   return (
     <section className="h-screen p-4 md:p-6">
       <div className="relative h-full w-full overflow-hidden rounded-2xl md:rounded-[2rem]">
@@ -31,39 +36,49 @@ export function HeroSection() {
           playsInline
         />
         <div className="noise-overlay absolute inset-0 opacity-[0.7] mix-blend-overlay pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(to bottom, var(--hero-overlay-from), transparent, var(--hero-overlay-to))`,
+          }}
+        />
+
+        <ShimmerButton
+          type="button"
+          onClick={() => navigate("/login")}
+          className="absolute top-3 right-3 sm:top-4 sm:right-5 md:top-5 md:right-6 z-30 h-9 sm:h-10 px-4 sm:px-5 text-[10px] sm:text-xs md:text-sm font-semibold text-[var(--primary-foreground)] shadow-lg border-border/30"
+          background="var(--primary)"
+          shimmerColor="var(--primary-foreground)"
+          borderRadius="9999px"
+          shimmerDuration="2.5s"
+        >
+          Log in
+        </ShimmerButton>
 
         <nav className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
-          <ul className="flex items-center gap-3 sm:gap-6 md:gap-12 lg:gap-14 bg-black rounded-b-2xl md:rounded-b-3xl px-4 py-2 md:px-8">
+          <ul className="flex items-center gap-2 sm:gap-4 md:gap-6 lg:gap-8 bg-[var(--nav-pill)] border border-border rounded-b-2xl md:rounded-b-3xl px-3 py-2 md:px-5 shadow-lg backdrop-blur-md">
             {navItems.map((item) => (
               <li key={item.label}>
                 {item.to ? (
                   <Link
                     to={item.to}
-                    className="text-[10px] sm:text-xs md:text-sm transition-colors"
-                    style={{ color: "rgba(225, 224, 204, 0.8)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#E1E0CC")}
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "rgba(225, 224, 204, 0.8)")
-                    }
+                    className="text-[10px] sm:text-xs md:text-sm text-foreground/80 hover:text-foreground transition-colors"
                   >
                     {item.label}
                   </Link>
                 ) : (
                   <a
                     href={item.href!}
-                    className="text-[10px] sm:text-xs md:text-sm transition-colors"
-                    style={{ color: "rgba(225, 224, 204, 0.8)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#E1E0CC")}
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "rgba(225, 224, 204, 0.8)")
-                    }
+                    className="text-[10px] sm:text-xs md:text-sm text-foreground/80 hover:text-foreground transition-colors"
                   >
                     {item.label}
                   </a>
                 )}
               </li>
             ))}
+            <li className="pl-1 sm:pl-2 border-l border-border ml-0.5 sm:ml-1">
+              <AnimatedThemeToggler variant="circle" duration={450} />
+            </li>
           </ul>
         </nav>
 
@@ -73,13 +88,13 @@ export function HeroSection() {
               <WordsPullUp
                 text="PresenceIQ"
                 showAsterisk
-                className="font-medium leading-[0.85] tracking-[-0.07em] text-[26vw] sm:text-[24vw] md:text-[22vw] lg:text-[20vw] xl:text-[19vw] 2xl:text-[20vw]"
+                className="font-medium leading-[0.85] tracking-[-0.07em] text-[26vw] sm:text-[24vw] md:text-[22vw] lg:text-[20vw] xl:text-[19vw] 2xl:text-[20vw] text-foreground drop-shadow-lg"
               />
             </div>
             <div className="col-span-12 lg:col-span-4 flex flex-col gap-5">
               <motion.p
-                className="text-primary/70 text-xs sm:text-sm md:text-base"
-                style={{ lineHeight: 1.2, color: "rgba(222, 219, 200, 0.7)" }}
+                className="text-foreground/70 text-xs sm:text-sm md:text-base drop-shadow-md"
+                style={{ lineHeight: 1.2 }}
                 initial={{ y: 20, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
@@ -96,11 +111,11 @@ export function HeroSection() {
               >
                 <Link
                   to="/demos/seylan"
-                  className="group inline-flex items-center gap-2 bg-primary text-black font-medium text-sm sm:text-base rounded-full pl-5 pr-1.5 py-1.5 hover:gap-3 transition-all duration-300"
+                  className="group inline-flex items-center gap-2 bg-primary text-[var(--primary-foreground)] font-medium text-sm sm:text-base rounded-full pl-5 pr-1.5 py-1.5 hover:gap-3 transition-all duration-300"
                 >
                   See live demo
-                  <span className="flex items-center justify-center bg-black rounded-full w-9 h-9 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform">
-                    <ArrowRight className="w-4 h-4 text-primary" />
+                  <span className="flex items-center justify-center bg-foreground rounded-full w-9 h-9 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform">
+                    <ArrowRight className="w-4 h-4 text-background" />
                   </span>
                 </Link>
               </motion.div>

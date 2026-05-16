@@ -17,8 +17,8 @@ export function ConvexAppProvider({ children }: { children: ReactNode }) {
   if (!client) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-8">
-        <div className="max-w-md rounded-xl border border-[#212121] bg-[#101010] p-8 text-center">
-          <h2 className="text-lg font-medium text-[#E1E0CC] mb-2">
+        <div className="max-w-md rounded-xl border border-border bg-card p-8 text-center">
+          <h2 className="text-lg font-medium text-foreground mb-2">
             Convex not configured
           </h2>
           <p className="text-sm text-gray-400 leading-relaxed">
