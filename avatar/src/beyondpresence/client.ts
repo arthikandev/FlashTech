@@ -188,12 +188,16 @@ class SdkBeyondPresenceClient implements BeyondPresenceClient {
 
   private async flushSession(): Promise<void> {
     if (!this.sessionHandler) return;
-    const payload = this.sessionHandler(this.lastSession);
-    await postSessionWebhook(
-      this.opts.backendUrl,
-      this.opts.bpWebhookSecret,
-      payload
-    );
+    try {
+      const payload = this.sessionHandler(this.lastSession);
+      await postSessionWebhook(
+        this.opts.backendUrl,
+        this.opts.bpWebhookSecret,
+        payload
+      );
+    } catch (err) {
+      console.error("[PresenceIQ] post-call webhook failed", err);
+    }
   }
 }
 

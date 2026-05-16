@@ -25,7 +25,31 @@ let bootstrapAttached = false;
 let lastPipeline: PipelineData | null = null;
 let lastVisitorId: string | null = null;
 let lastBusinessId: string | null = null;
+/** Incremented on each presenceiq:ready so stale overlapping handlers do not clobber context. */
+let readyGeneration = 0;
+/** Visitor/business/pipeline frozen when the avatar is shown for the active BP call. */
+let activeCallContext: {
+  visitorId: string;
+  businessId: string;
+  pipeline: PipelineData | null;
+} | null = null;
 let client: ReturnType<typeof createBeyondPresenceClient> | null = null;
+
+function isLatestReady(gen: number): boolean {
+  return gen === readyGeneration;
+}
+
+function setLatestReadyContext(
+  gen: number,
+  visitorId: string,
+  businessId: string,
+  pipeline: PipelineData | null = null
+): void {
+  if (!isLatestReady(gen)) return;
+  lastVisitorId = visitorId;
+  lastBusinessId = businessId;
+  if (pipeline) lastPipeline = pipeline;
+}
 
 function setAvatarLoading(loading: boolean): void {
   const el = document.getElementById(mountContainerId);
@@ -54,15 +78,17 @@ function measure(name: string, start: string, end: string): void {
   }
 }
 
-/** Uses module-level lastVisitorId / lastBusinessId so post-call webhooks match the active session. */
+/** Prefer context frozen at avatar show time; fall back to latest ready ids. */
 function buildSessionEndPayload(session?: BPSessionEndData): SessionEndPayload {
-  const visitorId = lastVisitorId;
-  const businessId = lastBusinessId;
+  const visitorId = activeCallContext?.visitorId ?? lastVisitorId;
+  const businessId = activeCallContext?.businessId ?? lastBusinessId;
   if (!visitorId || !businessId) {
     throw new Error("[PresenceIQ] session end without active visitor/business context");
   }
   const opener =
-    lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
+    activeCallContext?.pipeline?.intelligence.personalisedOpener ??
+    lastPipeline?.intelligence.personalisedOpener ??
+    DEFAULT_OPENER;
   const transcript = mapBpMessagesToTranscript(session, opener);
   const payload = defaultSessionPayload(visitorId, businessId, transcript);
   if (session?.duration != null && session.duration > 0) {
@@ -92,8 +118,8 @@ async function onPresenceIQReady(event: Event): Promise<void> {
     return;
   }
 
-  lastVisitorId = visitorId;
-  lastBusinessId = businessId;
+  const gen = ++readyGeneration;
+  setLatestReadyContext(gen, visitorId, businessId);
 
   const config = getConfig();
   if (!client) {
@@ -140,7 +166,7 @@ async function onPresenceIQReady(event: Event): Promise<void> {
 
   if (pipelineSettled.status === "fulfilled") {
     data = pipelineSettled.value;
-    lastPipeline = data;
+    setLatestReadyContext(gen, visitorId, businessId, data);
     mark("piq:pipeline-done");
     console.log("[PresenceIQ] pipeline", {
       pipelineMs: data.pipelineMs,
@@ -188,15 +214,21 @@ async function onPresenceIQReady(event: Event): Promise<void> {
         detail: { reason: String(avatarSettled.reason) },
       })
     );
-  } else {
+  } else if (isLatestReady(gen)) {
     mark("piq:avatar-visible");
+    activeCallContext = {
+      visitorId,
+      businessId,
+      pipeline: data,
+    };
     client.showAvatar();
   }
 
-  measure("time-to-pipeline", "piq:pipeline-start", "piq:pipeline-done");
-  measure("time-to-avatar", "piq:ready", "piq:avatar-visible");
-
-  setAvatarLoading(false);
+  if (isLatestReady(gen)) {
+    measure("time-to-pipeline", "piq:pipeline-start", "piq:pipeline-done");
+    measure("time-to-avatar", "piq:ready", "piq:avatar-visible");
+    setAvatarLoading(false);
+  }
 }
 
 function bootstrap(): void {
