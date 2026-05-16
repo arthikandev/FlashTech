@@ -14,6 +14,32 @@ Personal execution tracker. Supplements [`avatar/DEVELOPMENT_PLAN.md`](avatar/DE
 
 **Branch:** `feature/avatar-person1`
 
+### Windows quick start (PowerShell script policy)
+
+If `npx` / `npm` fail with *running scripts is disabled*, use **Command Prompt** or `.cmd` shims:
+
+```bat
+cd backend
+copy .env.example .env.local
+npx.cmd convex dev
+```
+
+Second terminal:
+
+```bat
+cd backend
+npm.cmd run dev
+```
+
+Demo:
+
+```bat
+cd avatar\demo
+npx.cmd serve . -p 5174
+```
+
+Open http://localhost:5174/test-page.html
+
 ---
 
 ## 2. Part summary
