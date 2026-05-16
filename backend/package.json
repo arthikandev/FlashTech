@@ -12,6 +12,12 @@
     "convex:deploy": "convex deploy",
     "seed": "convex run seed:seedDemo",
     "check:env": "node scripts/check-env.mjs",
+    "check:env:full": "node scripts/check-env.mjs --full",
+    "verify:all": "node scripts/verify-all.mjs",
+    "verify:full": "node scripts/verify-all.mjs --full",
+    "validate:n8n": "node scripts/validate-n8n-webhooks.mjs",
+    "status": "node scripts/status.mjs",
+    "test:n8n": "bash ../devops/scripts/test-n8n-flow.sh",
     "clean": "rm -rf .next"
   },
   "dependencies": {

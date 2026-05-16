@@ -20,6 +20,7 @@ Never commit `.env.local`. Only put real secrets there.
 | `OPENAI_API_KEY` | Yes | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
 | `NEXT_PUBLIC_APP_URL` | Yes | `http://localhost:3000` for local dev |
 | `N8N_WEBHOOK_SECRET` | Recommended | Any random string (`openssl rand -hex 16`) |
+| `BEYONDPRESENCE_API_KEY` | Avatar sync | [app.bey.chat/settings](https://app.bey.chat/settings) — backend only, not avatar |
 | `BP_WEBHOOK_SECRET` | Recommended | Any random string (share with Person 1) |
 | `SEYLAN_API_BASE_URL` | Recommended | Hackathon sandbox: `http://34.21.206.87:3000` |
 | `SEYLAN_API_KEY` | Recommended | Team 8 key — header `x-api-key` on every request |
@@ -61,6 +62,16 @@ npm run check:env
 
 All required keys should show `✓ configured`.
 
+### Onboarding API (new business + embed snippet)
+
+```bash
+curl -s -X POST http://localhost:3001/api/businesses/onboard \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Demo Corp","industry":"saas","personaTone":"friendly"}' | jq
+```
+
+Returns `embedKey`, `embedSnippet`, and `embedUrl`. Use the frontend wizard at `http://localhost:5173/onboard` for the same flow.
+
 ## 4. Start Convex + seed database
 
 **Important:** All commands below must run from the `backend/` folder (where `package.json` lives), not the repo root `FlashTech/`.
@@ -89,7 +100,35 @@ Run **one command per line**. Do not put shell comments on the same line as `npm
 
 If port 3000 is busy: `npm run dev:3001`
 
-## 5. Seylan Bank sandbox (Team 8)
+## 5. Beyond Presence (live avatar)
+
+Full guide: [../docs/BEYOND_PRESENCE.md](../docs/BEYOND_PRESENCE.md)
+
+1. Add to `backend/.env.local` (never commit):
+
+```bash
+BEYONDPRESENCE_API_KEY=sk-your-key-from-bey-dashboard
+```
+
+2. Verify:
+
+```bash
+curl http://localhost:3000/api/beyondpresence/status
+```
+
+Expect `"verified": true` and a list of agents.
+
+3. Create an agent in [Beyond Presence dashboard](https://app.bey.chat), copy the agent ID, then link it to the Seylan demo business:
+
+```bash
+npx convex run seed:seedDemo '{"bpAgentId":"YOUR_AGENT_ID"}'
+```
+
+4. Each `POST /api/pipeline` call will `PATCH` that agent with intent score, system prompt, and personalised greeting.
+
+Person 1 embeds the agent using `bpAgentId` from the pipeline response — no API key in `avatar/.env.local`.
+
+## 6. Seylan Bank sandbox (Team 8)
 
 CRM enrichment priority: **n8n** → **Seylan sandbox** → **demo mock**.
 
@@ -117,11 +156,82 @@ curl -X POST http://localhost:3000/api/seylan/account-inquiry \
 
 If sandbox paths differ, set `SEYLAN_CUSTOMER_LOOKUP_PATH` from the **Seylan Web API Manual**. Fingerprint still works via demo mock when sandbox is down.
 
-## 6. Test endpoints
+## 7. n8n Cloud automation
+
+Full guide: [../devops/n8n/README.md](../devops/n8n/README.md)
+
+1. Import `devops/n8n/*.workflow.json` into [n8n Cloud](https://app.n8n.io)
+2. Set variables: `PRESENCEIQ_BACKEND_URL`, `N8N_WEBHOOK_SECRET`
+3. Activate workflows; copy Production Webhook URLs into `.env.local`:
+   - `N8N_WEBHOOK_CRM_FETCH`, `N8N_WEBHOOK_SLACK`, `N8N_WEBHOOK_CRM_PUSH`, `N8N_WEBHOOK_CHURN`
+4. Restart `npm run dev`
+
+Test:
+
+From `backend/` (do not run `cd backend` again if your prompt already shows `backend %`):
 
 ```bash
-# Health — should show openai + convex configured
+npm run test:n8n
+# or: bash ../devops/scripts/test-n8n-flow.sh
+```
+
+Requires `npm run dev` running in another terminal first.
+
+Automation fires on:
+- **Fingerprint** → n8n CRM fetch (when `N8N_WEBHOOK_CRM_FETCH` set)
+- **Pipeline** → hot-lead Slack when intent ≥ 80
+- **Post-call webhook** → CRM push + Convex triggers
+
+## 8. Verify all layers
+
+**Quick (CI / no n8n required):**
+
+```bash
+npm run verify:all
+npm run status
+```
+
+**Full stack (n8n webhooks required in `.env.local`):**
+
+1. Paste Production Webhook URLs from n8n Cloud into `.env.local` (see §7).
+2. Set n8n variables: `PRESENCEIQ_BACKEND_URL`, `N8N_WEBHOOK_SECRET` (use ngrok for local).
+3. Run:
+
+```bash
+npm run check:env:full
+npm run verify:full
+npm run validate:n8n
+```
+
+| Command | What it checks |
+|---------|----------------|
+| `npm run verify:all` | Env (required keys) + build + Convex |
+| `npm run verify:full` | Above + valid n8n URLs + webhook smoke POST |
+| `npm run check:env:full` | Env only, fails if `N8N_WEBHOOK_CRM_FETCH` / `SLACK` / `CRM_PUSH` missing |
+| `npm run validate:n8n` | POST ping to each n8n webhook URL |
+| `npm run status` | One-screen integration summary from `.env.local` |
+| `npm run test:n8n` | E2E API flow (dev server must be running) |
+
+| Layer | What it checks |
+|-------|----------------|
+| Env | `npm run check:env` — Convex, OpenAI, Beyond Presence, Clerk, Seylan, n8n URLs |
+| API build | `npm run build` — all routes compile |
+| Convex | `npx convex dev --once` — functions deploy |
+
+| Layer | Manual test |
+|-------|-------------|
+| API | `curl /api/health`, embed, fingerprint, pipeline |
+| Services | Pipeline returns Sarangan opener, `pipelineMs` < 2000 |
+| Convex | `/dashboard` or Convex dashboard → Data tab |
+| Webhooks | `POST /api/webhooks/n8n/crm`, BP session with secrets |
+| Automation | n8n Executions show CRM fetch + hot-lead when score ≥ 80 |
+
+## 9. Test endpoints
+
+```bash
+# Health — should show openai + convex + beyondPresence configured
 curl http://localhost:3000/api/health
+curl http://localhost:3000/api/beyondpresence/status
 
 # Embed SDK
 curl http://localhost:3000/api/embed/seylan-demo
@@ -140,9 +250,9 @@ curl -X POST http://localhost:3000/api/pipeline \
   -d '{"visitorId":"PASTE_VISITOR_ID","businessId":"PASTE_BUSINESS_ID","waitForCrmMs":500}'
 ```
 
-Expected opener mentions **Sarangan** and **Gold and Platinum plans**.
+Expected opener mentions **Sarangan** and **Gold and Platinum plans**. Response should include `beyondPresence.synced: true` when `BEYONDPRESENCE_API_KEY` and `bpAgentId` are set.
 
-## 7. View database
+## 10. View database
 
 Open [Convex dashboard](https://dashboard.convex.dev) → **adamant-puffin-769** → **Data**.
 
@@ -259,5 +369,7 @@ npx convex run seed:seedDemo '{"clerkUserId":"user_2abc..."}'
 ## More docs
 
 - [README.md](README.md) — quick reference
+- [../docs/BEYOND_PRESENCE.md](../docs/BEYOND_PRESENCE.md) — Beyond Presence setup
+- [../docs/API_PROVIDERS.md](../docs/API_PROVIDERS.md) — all external APIs
 - [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md) — all endpoints
 - [../docs/ENV.md](../docs/ENV.md) — env index for all teammates

@@ -6,7 +6,8 @@
 
 | Area | Files / responsibility |
 |------|------------------------|
-| Convex schema | `convex/schema.ts` — 5 tables |
+| Convex schema | `convex/schema.ts` — 6 tables (incl. `businessMembers`) |
+| Auth | `convex/auth.config.ts`, `convex/lib/auth.ts`, `convex/businessMembers.ts` |
 | Visitors | `convex/visitors.ts` — fingerprint upsert, CRM patch |
 | Intelligence | `convex/intelligence.ts` — scoring storage, dashboard queries |
 | Conversations | `convex/conversations.ts` — post-call transcripts |
@@ -48,10 +49,12 @@ Post-call: POST /api/webhooks/beyondpresence/session
 
 ## Security
 
+- **Dashboard auth:** Clerk JWT via Convex Auth; `listLiveSessions`, `getSessionDetail`, and `listByBusiness` require `businessMembers` access
 - Webhook secrets: `X-Webhook-Secret`, `X-BP-Webhook-Secret`
 - Rate limit: 30 req/min on intent + pipeline
 - Zod validation on all POST bodies
 - OpenAI calls server-side only
+- Embed / fingerprint / pipeline / avatar queries remain public for demo flows
 
 ## How to run locally
 
@@ -62,7 +65,11 @@ npm install
 npx convex dev          # terminal 1
 npm run dev             # terminal 2 — http://localhost:3000
 npx convex run seed:seedDemo
+# optional: link your Clerk user to seylan-demo
+npx convex run seed:seedDemo '{"clerkUserId":"user_..."}'
 ```
+
+Configure Clerk on Convex: `npx convex env set CLERK_JWT_ISSUER_DOMAIN https://your-app.clerk.accounts.dev` — see [ENV.md](../docs/ENV.md).
 
 ## Demo credentials
 
@@ -75,6 +82,8 @@ npx convex run seed:seedDemo
 
 ## Convex queries for teammates
 
-- `intelligence.listLiveSessions({ businessId })`
-- `intelligence.getSessionDetail({ visitorId })`
-- `intelligence.getIntelligenceForAvatar({ visitorId })`
+- `intelligence.listLiveSessions({ businessId })` — requires Clerk + membership
+- `intelligence.getSessionDetail({ visitorId })` — requires Clerk + membership
+- `intelligence.getIntelligenceForAvatar({ visitorId })` — public (Person 1)
+- `businessMembers.listForCurrentUser()` — list accessible businesses
+- `businessMembers.linkCurrentUser({ businessId })` — self-serve demo onboarding

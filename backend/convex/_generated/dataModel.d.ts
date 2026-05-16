@@ -1,97 +1,60 @@
 /* eslint-disable */
+/**
+ * Generated data model types.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import type {
+  DataModelFromSchemaDefinition,
+  DocumentByName,
+  TableNamesInDataModel,
+  SystemTableNames,
+} from "convex/server";
 import type { GenericId } from "convex/values";
+import schema from "../schema.js";
 
-export type TableNames =
-  | "businesses"
-  | "visitors"
-  | "intelligence"
-  | "conversations"
-  | "triggers";
+/**
+ * The names of all of your Convex tables.
+ */
+export type TableNames = TableNamesInDataModel<DataModel>;
 
-export type Id<TableName extends TableNames> = GenericId<TableName>;
+/**
+ * The type of a document stored in Convex.
+ *
+ * @typeParam TableName - A string literal type of the table name (like "users").
+ */
+export type Doc<TableName extends TableNames> = DocumentByName<
+  DataModel,
+  TableName
+>;
 
-export type DataModel = {
-  businesses: {
-    _id: Id<"businesses">;
-    _creationTime: number;
-    name: string;
-    industry: "bank" | "saas" | "hotel" | "hospital" | "ecommerce" | "hr";
-    embedKey: string;
-    avatarConfig: {
-      bpAgentId?: string;
-      personaTone?: string;
-      defaultLanguage?: string;
-    };
-    knowledgeChunks: Array<{ id: string; text: string; embeddingId?: string }>;
-    webhookUrls: {
-      n8nCrmFetch?: string;
-      n8nCrmPush?: string;
-      n8nSlack?: string;
-    };
-    createdAt: number;
-  };
-  visitors: {
-    _id: Id<"visitors">;
-    _creationTime: number;
-    fingerprint: string;
-    businessId: Id<"businesses">;
-    pageHistory: Array<{
-      path: string;
-      title?: string;
-      enteredAt: number;
-      durationMs?: number;
-    }>;
-    timeOnSite: number;
-    returnCount: number;
-    crmId?: string;
-    crmData?: {
-      name?: string;
-      email?: string;
-      accountType?: string;
-      churnRisk?: string;
-      lastPurchase?: string;
-      notes?: string;
-    };
-    language: string;
-    lastSeenAt: number;
-    createdAt: number;
-  };
-  intelligence: {
-    _id: Id<"intelligence">;
-    _creationTime: number;
-    visitorId: Id<"visitors">;
-    businessId: Id<"businesses">;
-    intentScore: number;
-    personalisedOpener: string;
-    recommendedAction: string;
-    signals?: string[];
-    computedAt: number;
-  };
-  conversations: {
-    _id: Id<"conversations">;
-    _creationTime: number;
-    visitorId: Id<"visitors">;
-    businessId: Id<"businesses">;
-    transcript: Array<{
-      role: "user" | "assistant";
-      text: string;
-      timestamp: number;
-    }>;
-    outcome: "converted" | "escalated" | "abandoned" | "informational";
-    sentimentArc: Array<{ turn: number; score: number }>;
-    actionItems: string[];
-    duration: number;
-    endedAt: number;
-  };
-  triggers: {
-    _id: Id<"triggers">;
-    _creationTime: number;
-    businessId: Id<"businesses">;
-    condition: "intent_score_above" | "churn_risk_detected" | "appointment_booked";
-    threshold?: number;
-    action: "slack_alert" | "crm_push" | "email_sequence";
-    webhookUrl: string;
-    isActive: boolean;
-    lastFiredAt?: number;
-  };
-};
+/**
+ * An identifier for a document in Convex.
+ *
+ * Convex documents are uniquely identified by their `Id`, which is accessible
+ * on the `_id` field. To learn more, see [Document IDs](https://docs.convex.dev/using/document-ids).
+ *
+ * Documents can be loaded using `db.get(tableName, id)` in query and mutation functions.
+ *
+ * IDs are just strings at runtime, but this type can be used to distinguish them from other
+ * strings when type checking.
+ *
+ * @typeParam TableName - A string literal type of the table name (like "users").
+ */
+export type Id<TableName extends TableNames | SystemTableNames> =
+  GenericId<TableName>;
+
+/**
+ * A type describing your Convex data model.
+ *
+ * This type includes information about what tables you have, the type of
+ * documents stored in those tables, and the indexes defined on them.
+ *
+ * This type is used to parameterize methods like `queryGeneric` and
+ * `mutationGeneric` to make them type-safe.
+ */
+export type DataModel = DataModelFromSchemaDefinition<typeof schema>;

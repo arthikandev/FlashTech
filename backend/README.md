@@ -23,6 +23,7 @@ npm run dev                  # terminal 2 — http://localhost:3000
 | `NEXT_PUBLIC_CONVEX_URL` | Yes |
 | `OPENAI_API_KEY` | Yes |
 | `NEXT_PUBLIC_APP_URL` | Yes |
+| `BEYONDPRESENCE_API_KEY` | Recommended (avatar agent sync) |
 | `N8N_WEBHOOK_SECRET` / `BP_WEBHOOK_SECRET` | Recommended |
 | `SEYLAN_API_*` | Recommended (hackathon sandbox CRM) |
 | `N8N_WEBHOOK_*` | Optional (else Seylan → demo mock) |
@@ -33,7 +34,7 @@ Convex deployment: `dev:adamant-puffin-769` · `https://adamant-puffin-769.conve
 
 ## Clerk + Convex Auth (dashboard)
 
-- **Next.js:** `@clerk/nextjs` in `src/proxy.ts` — pages require sign-in; `/api/*` stays public.
+- **Next.js:** `@clerk/nextjs` in `src/middleware.ts` — pages require sign-in; `/api/*` stays public.
 - **Convex:** JWT validation in `convex/auth.config.ts`; data queries use `ctx.auth.getUserIdentity()`.
 
 ```bash
@@ -49,14 +50,15 @@ Open `/dashboard` after sign-in. See [SETUP.md](SETUP.md).
 | Route | Description |
 |-------|-------------|
 | `/dashboard` | Live sessions (Clerk + Convex; sign-in required) |
-| `GET /api/health` | Config status for convex, openai, n8n |
+| `GET /api/health` | Config status for convex, openai, beyondPresence, n8n |
+| `GET /api/beyondpresence/status` | Verify BP API key + list agents |
 | `GET /api/embed/seylan-demo` | Embed SDK for demo sites |
 | `POST /api/fingerprint` | Visitor fingerprint upsert |
 | `POST /api/pipeline` | Full pre-conversation pipeline |
 | `GET/POST /api/seylan/account-inquiry` | Test Seylan sandbox CRM lookup |
 | `POST /api/intent` | Intent score only |
 
-See [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md).
+See [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md) · [../docs/BEYOND_PRESENCE.md](../docs/BEYOND_PRESENCE.md) · [../docs/API_PROVIDERS.md](../docs/API_PROVIDERS.md).
 
 ## Scripts
 
@@ -65,5 +67,11 @@ See [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md).
 | `npm run dev` | Start Next.js on port 3000 |
 | `npm run dev:3001` | Start Next.js when port 3000 is busy |
 | `npm run check:env` | Validate `.env.local` |
+| `npm run check:env:full` | Env + required n8n webhook URLs |
+| `npm run verify:all` | Env + build + Convex (all layers) |
+| `npm run verify:full` | Full stack + n8n URL validation + webhook ping |
+| `npm run validate:n8n` | Smoke POST to n8n webhooks |
+| `npm run status` | Integration summary from `.env.local` |
+| `npm run test:n8n` | E2E integration test (dev server required) |
 | `npm run seed` | Seed Seylan Bank demo data |
 | `npm run convex:dev` | Start Convex sync |

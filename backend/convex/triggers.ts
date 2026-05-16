@@ -18,6 +18,14 @@ export const evaluateAndFire = mutation({
     intentScore: v.number(),
     visitorName: v.optional(v.string()),
     recommendedAction: v.optional(v.string()),
+    sessionOutcome: v.optional(
+      v.union(
+        v.literal("converted"),
+        v.literal("escalated"),
+        v.literal("abandoned"),
+        v.literal("informational")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const triggers = await ctx.db
@@ -26,7 +34,11 @@ export const evaluateAndFire = mutation({
       .filter((q) => q.eq(q.field("isActive"), true))
       .collect();
 
-    const fired: string[] = [];
+    const fired: Array<{
+      triggerId: string;
+      webhookUrl: string;
+      action: string;
+    }> = [];
 
     for (const trigger of triggers) {
       let shouldFire = false;
@@ -46,13 +58,29 @@ export const evaluateAndFire = mutation({
         }
       }
 
+      if (trigger.condition === "appointment_booked") {
+        const action = args.recommendedAction?.toLowerCase() ?? "";
+        if (
+          args.sessionOutcome === "converted" ||
+          action.includes("appointment") ||
+          action.includes("booking") ||
+          action.includes("account opening")
+        ) {
+          shouldFire = true;
+        }
+      }
+
       if (shouldFire && trigger.webhookUrl) {
-        fired.push(trigger._id);
+        fired.push({
+          triggerId: trigger._id,
+          webhookUrl: trigger.webhookUrl,
+          action: trigger.action,
+        });
         await ctx.db.patch(trigger._id, { lastFiredAt: Date.now() });
       }
     }
 
-    return { firedTriggerIds: fired };
+    return { fired, firedTriggerIds: fired.map((f) => f.triggerId) };
   },
 });
 

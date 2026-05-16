@@ -101,10 +101,43 @@ Score visitor intent (GPT-4o). Requires `OPENAI_API_KEY` or returns demo fallbac
     "intelligence": { "intentScore": 96, "personalisedOpener": "...", "recommendedAction": "...", "signals": [], "computedAt": 0 },
     "visitor": { "name": "Sarangan", "language": "en", "crmId": "CRM-001" },
     "business": { "name": "Seylan Bank", "industry": "bank", "personaTone": "formal" },
+    "bpAgentId": "agent_abc123",
+    "beyondPresence": { "synced": true },
     "pipelineMs": 450
   }
 }
 ```
+
+When `BEYONDPRESENCE_API_KEY` or `bpAgentId` is missing, `beyondPresence` is `{ "synced": false, "reason": "..." }` and pipeline still returns 200.
+
+---
+
+## GET /api/beyondpresence/status
+
+Verify Beyond Presence API key (server-side). No auth header required.
+
+**Response 200** (configured):
+
+```json
+{
+  "configured": true,
+  "verified": true,
+  "agentCount": 1,
+  "agents": [{ "id": "agent_...", "name": "Seylan Assistant" }]
+}
+```
+
+**Response 200** (not configured):
+
+```json
+{
+  "configured": false,
+  "verified": false,
+  "message": "Set BEYONDPRESENCE_API_KEY in backend/.env.local"
+}
+```
+
+See [BEYOND_PRESENCE.md](BEYOND_PRESENCE.md).
 
 ---
 
@@ -154,13 +187,19 @@ Fires hot-lead Slack trigger when latest `intentScore > 80`.
 
 ## Convex queries (Person 3 dashboard)
 
-| Query | Args | Returns |
-|-------|------|---------|
-| `intelligence.listLiveSessions` | `{ businessId }` | Sessions with latest scores |
-| `intelligence.getSessionDetail` | `{ visitorId }` | Visitor + intelligence + conversation |
-| `intelligence.getIntelligenceForAvatar` | `{ visitorId }` | Latest intelligence for Person 1 |
+**Auth:** Dashboard queries require Clerk sign-in (`ConvexProviderWithClerk`) and a `businessMembers` row for the target business. Set `CLERK_JWT_ISSUER_DOMAIN` on the Convex deployment — see [ENV.md](ENV.md).
 
-**Convex URL**: set `NEXT_PUBLIC_CONVEX_URL` / `VITE_CONVEX_URL`
+| Query | Auth | Args | Returns |
+|-------|------|------|---------|
+| `intelligence.listLiveSessions` | Required | `{ businessId }` | Sessions with latest scores |
+| `intelligence.getSessionDetail` | Required | `{ visitorId }` | Visitor + intelligence + conversation |
+| `intelligence.listByBusiness` | Required | `{ businessId }` | Intelligence rows for business |
+| `intelligence.getIntelligenceForAvatar` | Public | `{ visitorId }` | Latest intelligence for Person 1 |
+| `businessMembers.listForCurrentUser` | Required | `{}` | Businesses the signed-in user can access |
+| `businessMembers.linkCurrentUser` | Required | `{ businessId, role? }` | Link current user to a business |
+
+**Convex URL**: set `NEXT_PUBLIC_CONVEX_URL` / `VITE_CONVEX_URL`  
+**Clerk (frontend):** `VITE_CLERK_PUBLISHABLE_KEY`
 
 ---
 
@@ -174,6 +213,61 @@ Fires hot-lead Slack trigger when latest `intentScore > 80`.
     "accountType": "prospect",
     "churnRisk": "low",
     "notes": "Compared Gold and Platinum plans 3 times this week"
+  }
+}
+```
+
+---
+
+## Seylan sandbox (CRM test)
+
+Server-side proxy to hackathon sandbox. Requires `SEYLAN_API_BASE_URL` + `SEYLAN_API_KEY` in `backend/.env.local`.
+
+**GET** `/api/seylan/account-inquiry` — config + reachability
+
+**POST** `/api/seylan/account-inquiry`
+
+```json
+{ "accountNumber": "064000012548001" }
+```
+
+Fingerprint CRM order: n8n → Seylan sandbox → built-in demo mock.
+
+**Automation (server-side):**
+- `POST /api/pipeline` — if `intentScore >= 80`, fires `N8N_WEBHOOK_SLACK` (hot-lead)
+- `POST /api/webhooks/beyondpresence/session` — fires triggers, Slack, `N8N_WEBHOOK_CRM_PUSH`
+
+---
+
+## POST /api/businesses/onboard
+
+Create a new tenant and return embed snippet (PDF onboarding wizard).
+
+**Body**:
+
+```json
+{
+  "name": "Acme Bank",
+  "industry": "bank",
+  "personaTone": "professional",
+  "defaultLanguage": "en",
+  "embedKey": "acme-bank"
+}
+```
+
+`industry`: `bank` | `saas` | `hotel` | `hospital` | `ecommerce` | `hr`
+
+**Response 200**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "businessId": "...",
+    "embedKey": "acme-bank",
+    "embedSnippet": "<script src=\"{BASE}/api/embed/acme-bank\" async></script>",
+    "embedUrl": "{BASE}/api/embed/acme-bank",
+    "dashboardHint": "npx convex run seed:seedDemo ..."
   }
 }
 ```

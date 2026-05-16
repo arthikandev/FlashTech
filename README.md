@@ -29,6 +29,8 @@ cd backend                   # required — Convex/npm commands need backend/pac
 cp .env.example .env.local   # add OPENAI_API_KEY — see SETUP.md
 npm install
 npm run check:env
+npm run verify:all           # env + build + Convex
+npm run verify:full          # + n8n webhooks (after pasting URLs in .env.local)
 npx convex dev               # terminal 1 — deploy schema
 npm run dev                  # terminal 2 — http://localhost:3000
 npx convex run seed:seedDemo # run from backend/ only
@@ -45,6 +47,8 @@ Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 ## API docs
 
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md)
+- [docs/BEYOND_PRESENCE.md](docs/BEYOND_PRESENCE.md) — Beyond Presence setup
+- [docs/API_PROVIDERS.md](docs/API_PROVIDERS.md) — OpenAI, BP, Seylan, n8n, Convex, Clerk
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/BACKEND_CONTRIBUTION.md](docs/BACKEND_CONTRIBUTION.md)
 

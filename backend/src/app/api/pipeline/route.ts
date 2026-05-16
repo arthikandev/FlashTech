@@ -1,5 +1,8 @@
 import { z } from "zod";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import { runPipelineAutomation } from "@/lib/automation";
+import { syncAgentFromIntelligence } from "@/lib/beyondPresenceApi";
+import { pickKnowledgeContext } from "@/lib/knowledge";
 import { api, getConvexClient } from "@/lib/convex";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { runIntentPipeline, waitForCrmData } from "@/lib/pipeline";
@@ -38,6 +41,32 @@ export async function POST(request: Request) {
       return jsonError("Visitor or business not found", 404);
     }
 
+    const automation = await runPipelineAutomation({
+      visitor,
+      business,
+      intelligence,
+    });
+
+    const personaTone = business.avatarConfig.personaTone ?? "formal";
+    const bpAgentId = business.avatarConfig.bpAgentId;
+
+    const knowledgeContext = pickKnowledgeContext({
+      chunks: business.knowledgeChunks ?? [],
+      pageHistory: visitor.pageHistory,
+    });
+
+    const beyondPresence = await syncAgentFromIntelligence({
+      bpAgentId,
+      businessName: business.name,
+      personaTone,
+      visitorName: visitor.crmData?.name,
+      language: visitor.language,
+      intentScore: intelligence.intentScore,
+      recommendedAction: intelligence.recommendedAction,
+      personalisedOpener: intelligence.personalisedOpener,
+      knowledgeContext,
+    });
+
     return jsonSuccess({
       intelligence,
       visitor: {
@@ -50,9 +79,12 @@ export async function POST(request: Request) {
       business: {
         name: business.name,
         industry: business.industry,
-        personaTone: business.avatarConfig.personaTone ?? "formal",
+        personaTone,
       },
+      bpAgentId: bpAgentId ?? null,
+      beyondPresence,
       pipelineMs: Date.now() - started,
+      automation,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Pipeline failed";

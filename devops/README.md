@@ -5,46 +5,29 @@
 - [Person 1 tracker (dev.md)](../dev.md)
 - [Vercel deploy](deploy/vercel.md)
 - [Convex deploy](deploy/convex.md) · [D1 checklist](deploy/D1-convex-checklist.md)
-- [Frontend deploy](deploy/frontend.md)
-- [n8n workflows](n8n/) · [n8n SETUP](n8n/SETUP.md)
+- [Frontend deploy](deploy/frontend.md) · [frontend Vercel](deploy/frontend-vercel.md)
+- [n8n workflows](n8n/) · [n8n SETUP](n8n/SETUP.md) · [n8n README](n8n/README.md)
 - [Generate secrets](scripts/generate-secrets.js)
-- [Integration test (PowerShell)](scripts/integration-test.ps1)
+- [Integration test (bash)](scripts/integration-test.sh) · [PowerShell](scripts/integration-test.ps1)
+- [n8n E2E test](scripts/test-n8n-flow.sh)
 
 ## Environment setup
 
-See [docs/ENV.md](../docs/ENV.md). Backend: `cd backend && cp .env.example .env.local`
+See [docs/ENV.md](../docs/ENV.md) and [scripts/setup-integration-env.md](scripts/setup-integration-env.md). Backend: `cd backend && cp .env.example .env.local`
 
-## Integration test checklist (hour 20)
-
-Run with backend on `http://localhost:3000` and `npx convex dev` + seed:
+## Verify all backend layers
 
 ```bash
 cd backend
-npx convex run seed:seedDemo
+npm run verify:all      # env + build + Convex
+npm run verify:full     # + n8n webhook URLs + smoke ping
+npm run status          # quick integration summary
 ```
 
-- [ ] `curl http://localhost:3000/api/health` returns `"status":"ok"`
-- [ ] `curl http://localhost:3000/api/embed/seylan-demo` returns JavaScript
+## Integration checklist
+
+- [ ] `curl http://localhost:3001/api/embed/seylan-demo` returns JavaScript
 - [ ] POST `/api/fingerprint` with `embedKey: seylan-demo`, `fingerprint: demo-sarangan-fp` returns visitorId
-- [ ] POST `/api/pipeline` with visitorId + businessId returns Sarangan opener, `pipelineMs` < 2000
-- [ ] POST `/api/webhooks/n8n/crm` with `X-Webhook-Secret` patches CRM name
-- [ ] POST `/api/webhooks/beyondpresence/session` saves conversation
-- [ ] Convex dashboard shows visitors + intelligence rows
-
-## n8n setup
-
-1. Import JSON files from `n8n/` into your n8n instance.
-2. Set environment variables:
-   - `PRESENCEIQ_BACKEND_URL` — e.g. `http://localhost:3000`
-   - `N8N_WEBHOOK_SECRET` — must match backend `.env.local`
-3. Copy webhook URLs into backend env:
-   - `N8N_WEBHOOK_CRM_FETCH`
-   - `N8N_WEBHOOK_SLACK`
-   - `N8N_WEBHOOK_CRM_PUSH`
-
-## Production checklist
-
-- [ ] `npx convex deploy` from `backend/`
-- [ ] Vercel deploy with root directory `backend`
-- [ ] All env vars set (see `docs/ENV.md` and `backend/.env.example`)
-- [ ] URLs posted in root `README.md` and `docs/DEVELOPMENT_PLAN.md`
+- [ ] POST `/api/pipeline` returns personalised opener for Sarangan
+- [ ] Beyond Presence status: `curl http://localhost:3001/api/beyondpresence/status`
+- [ ] n8n workflows imported and `N8N_WEBHOOK_*` set in `backend/.env.local`

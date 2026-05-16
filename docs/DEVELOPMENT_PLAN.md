@@ -14,19 +14,19 @@
 
 | Hour | Checkpoint | P2 backend | P1 avatar | P3 frontend | Done |
 |------|------------|------------|-----------|-------------|------|
-| 4 | Embed + Convex visitor | [x] | [ ] | [ ] | [ ] |
-| 10 | Personalised Sarangan E2E | [x] | [ ] | [ ] | [ ] |
-| 15 | Slack + dashboard | [x] | [ ] | [ ] | [ ] |
-| 20 | Full demo script | [ ] | [ ] | [ ] | [ ] |
+| 4 | Embed + Convex visitor | [x] | [x] | [x] | [ ] |
+| 10 | Personalised Sarangan E2E | [x] | [x] | [x] | [ ] |
+| 15 | Slack + dashboard | [x] | [ ] | [x] | [ ] |
+| 20 | Full demo script | [x] | [ ] | [x] | [ ] |
 | 24 | 10 rehearsals | [ ] | [ ] | [ ] | [ ] |
 
 ## Shared URLs (fill when deployed)
 
-- Backend (Vercel): _
-- Convex dashboard: _
-- Frontend dashboard: _
-- n8n instance: _
-- Seylan demo site: _
+- Backend (Vercel): _ (set after `vercel deploy` — see `devops/deploy/vercel.md`)
+- Convex dashboard: https://dashboard.convex.dev → adamant-puffin-769
+- Frontend dashboard: http://localhost:5173 (dev) / _ (Vercel)
+- n8n instance: _ (import `devops/n8n/*.workflow.json`)
+- Seylan demo site: http://localhost:5173/sites/seylan/index.html#/pricing
 
 ## API contract
 

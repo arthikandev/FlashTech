@@ -5,12 +5,54 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "presenceiq-hot-lead",
-        "responseMode": "onReceived"
+        "responseMode": "onReceived",
+        "options": {}
       },
+      "id": "webhook-hot-lead",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300]
+      "position": [240, 300],
+      "webhookId": "presenceiq-hot-lead"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.body || $input.first().json;\nconst score = Number(raw.intentScore ?? raw.body?.intentScore ?? 0);\nreturn [{ json: {\n  intentScore: score,\n  name: raw.name ?? raw.body?.name ?? 'Unknown',\n  recommendedAction: raw.recommendedAction ?? raw.body?.recommendedAction ?? '',\n  visitorId: raw.visitorId ?? raw.body?.visitorId,\n  businessId: raw.businessId ?? raw.body?.businessId,\n  businessName: raw.businessName ?? raw.body?.businessName\n} }];"
+      },
+      "id": "normalize",
+      "name": "Normalize Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "intent-threshold",
+              "leftValue": "={{ $json.intentScore }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-hot",
+      "name": "Intent >= 80",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
     },
     {
       "parameters": {
@@ -21,17 +63,30 @@
           "mode": "name",
           "value": "#sales-alerts"
         },
-        "text": "=🔥 Hot lead — {{ $json.body.name || $json.name }} — Intent {{ $json.body.intentScore || $json.intentScore }}/100\nAction: {{ $json.body.recommendedAction || $json.recommendedAction }}"
+        "text": "=🔥 Hot lead — {{ $json.name }} — Intent {{ $json.intentScore }}/100\nAction: {{ $json.recommendedAction }}\nVisitor: {{ $json.visitorId }}"
       },
+      "id": "slack-post",
       "name": "Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2,
-      "position": [460, 300]
+      "position": [900, 220]
     }
   ],
   "connections": {
     "Webhook": {
-      "main": [[{ "node": "Slack", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Normalize Payload", "type": "main", "index": 0 }]]
+    },
+    "Normalize Payload": {
+      "main": [[{ "node": "Intent >= 80", "type": "main", "index": 0 }]]
+    },
+    "Intent >= 80": {
+      "main": [
+        [{ "node": "Slack", "type": "main", "index": 0 }],
+        []
+      ]
     }
+  },
+  "settings": {
+    "executionOrder": "v1"
   }
 }

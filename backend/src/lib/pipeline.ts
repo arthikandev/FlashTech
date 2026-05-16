@@ -105,3 +105,37 @@ export async function forwardCrmPush(payload: Record<string, unknown>): Promise<
     console.error("[n8n] CRM push failed", err);
   }
 }
+
+export async function fireChurnWebhook(
+  payload: Record<string, unknown>
+): Promise<void> {
+  const url = process.env.N8N_WEBHOOK_CHURN;
+  if (!url) return;
+
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("[n8n] Churn webhook failed", err);
+  }
+}
+
+export async function fireTriggerWebhook(
+  webhookUrl: string,
+  payload: Record<string, unknown>
+): Promise<void> {
+  if (!webhookUrl?.trim()) return;
+
+  try {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("[automation] Trigger webhook failed", webhookUrl, err);
+  }
+}
