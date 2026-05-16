@@ -6,12 +6,14 @@ export async function GET(
 ) {
   const { embedKey } = await params;
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3001";
+  const bpWebhookSecret = process.env.BP_WEBHOOK_SECRET?.trim() ?? "";
 
   const script = `
 (function(){
   var EMBED_KEY=${JSON.stringify(embedKey)};
   var BASE=${JSON.stringify(baseUrl)};
+  window.__piq_bp_webhook_secret=${JSON.stringify(bpWebhookSecret)};
   var FP_KEY="piq_fp";
   var startTime=Date.now();
 

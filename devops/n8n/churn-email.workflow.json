@@ -5,27 +5,49 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "presenceiq-churn-email",
-        "responseMode": "onReceived"
+        "responseMode": "onReceived",
+        "options": {}
       },
+      "id": "webhook-churn",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300]
+      "position": [240, 300],
+      "webhookId": "presenceiq-churn-email"
     },
     {
       "parameters": {
-        "subject": "We'd love to keep you",
-        "message": "Personalised retention offer based on churn risk signal."
+        "jsCode": "const p = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  to: p.email || 'prospect@example.com',\n  name: p.name || 'Customer',\n  subject: \"We'd love to keep you — Seylan Bank\",\n  message: `Hi ${p.name || 'there'}, we noticed elevated churn risk. Let's discuss Gold vs Platinum plans with a personal advisor.`\n} }];"
       },
+      "id": "build-email",
+      "name": "Build Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@seylan-demo.local",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "text": "={{ $json.message }}"
+      },
+      "id": "send-email",
       "name": "Send Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [460, 300]
+      "position": [680, 300]
     }
   ],
   "connections": {
     "Webhook": {
+      "main": [[{ "node": "Build Email", "type": "main", "index": 0 }]]
+    },
+    "Build Email": {
       "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]]
     }
+  },
+  "settings": {
+    "executionOrder": "v1"
   }
 }

@@ -22,13 +22,18 @@ See **[docs/ENV.md](docs/ENV.md)** — one `.env.example` per track (`backend/`,
 
 ## Quick start (backend)
 
+See **[backend/SETUP.md](backend/SETUP.md)** for full API key setup.
+
 ```bash
-cd backend
-cp .env.example .env.local   # Convex, OpenAI, webhooks — see docs/ENV.md
+cd backend                   # required — Convex/npm commands need backend/package.json
+cp .env.example .env.local   # add OPENAI_API_KEY — see SETUP.md
 npm install
-npx convex dev               # terminal 1 — deploy schema + seed
+npm run check:env
+npm run verify:all           # env + build + Convex
+npm run verify:full          # + n8n webhooks (after pasting URLs in .env.local)
+npx convex dev               # terminal 1 — deploy schema
 npm run dev                  # terminal 2 — http://localhost:3000
-npx convex run seed:seedDemo # seed Seylan Bank + Sarangan demo data
+npx convex run seed:seedDemo # run from backend/ only
 ```
 
 ## Embed (demo sites)
@@ -42,6 +47,8 @@ Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 ## API docs
 
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md)
+- [docs/BEYOND_PRESENCE.md](docs/BEYOND_PRESENCE.md) — Beyond Presence setup
+- [docs/API_PROVIDERS.md](docs/API_PROVIDERS.md) — OpenAI, BP, Seylan, n8n, Convex, Clerk
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/BACKEND_CONTRIBUTION.md](docs/BACKEND_CONTRIBUTION.md)
 

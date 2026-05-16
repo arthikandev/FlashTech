@@ -14,3 +14,4 @@ coverage/
 .vercel/
 devops/.secrets.local
 avatar/demo/config.js
+*.tsbuildinfo

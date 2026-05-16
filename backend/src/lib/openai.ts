@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { z } from "zod";
-import type { IntelligenceResult } from "./types";
+import type { IntelligenceResult, PostCallAnalysis, SessionOutcome } from "./types";
 
 const intentSchema = z.object({
   intentScore: z.number().min(0).max(100),
@@ -135,4 +135,69 @@ export async function scoreIntent(context: {
     ...parsed.data,
     computedAt: Date.now(),
   };
+}
+
+const postCallSchema = z.object({
+  outcome: z.enum(["converted", "escalated", "abandoned", "informational"]),
+  summary: z.string(),
+  actionItems: z.array(z.string()),
+  sentimentArc: z.array(
+    z.object({
+      turn: z.number(),
+      score: z.number().min(0).max(1),
+    })
+  ),
+});
+
+/** POST-call: summarise transcript and extract outcome / action items. */
+export async function analyzePostCallSession(args: {
+  transcript: Array<{ role: string; text: string }>;
+  preIntentScore: number;
+  visitorName?: string;
+  businessName: string;
+}): Promise<PostCallAnalysis | null> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || args.transcript.length === 0) return null;
+
+  const openai = new OpenAI({ apiKey });
+  const transcriptText = args.transcript
+    .map((t) => `${t.role}: ${t.text}`)
+    .join("\n");
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      temperature: 0.2,
+      max_tokens: 500,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `You analyse a short avatar sales conversation. Output JSON only:
+{ "outcome": "converted"|"escalated"|"abandoned"|"informational",
+  "summary": "<one sentence>",
+  "actionItems": ["<tasks for sales team>"],
+  "sentimentArc": [{ "turn": 1, "score": 0.0-1.0 }] }
+Pre-call intent was ${args.preIntentScore}/100. Use "converted" if they agreed to open account, book, or buy.`,
+        },
+        {
+          role: "user",
+          content: `Business: ${args.businessName}\nVisitor: ${args.visitorName ?? "guest"}\n\nTranscript:\n${transcriptText}`,
+        },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content?.trim() ?? "{}";
+    const parsed = postCallSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) return null;
+
+    return {
+      outcome: parsed.data.outcome as SessionOutcome,
+      summary: parsed.data.summary,
+      actionItems: parsed.data.actionItems,
+      sentimentArc: parsed.data.sentimentArc,
+    };
+  } catch {
+    return null;
+  }
 }

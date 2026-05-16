@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
+import { checkEnv, getDemoEmbedKeys, getIntegrationsStatus } from "@/lib/env";
 
 export async function GET() {
-  const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
+  const env = checkEnv();
+
   return NextResponse.json({
-    status: "ok",
+    status: env.ok ? "ok" : "degraded",
     service: "presenceiq-backend",
-    convex: convexConfigured ? "configured" : "missing NEXT_PUBLIC_CONVEX_URL",
+    checks: env.checks,
+    integrations: getIntegrationsStatus(),
+    embedKeys: getDemoEmbedKeys(),
+    warnings: env.warnings.length > 0 ? env.warnings : undefined,
+    missing: env.missing.length > 0 ? env.missing : undefined,
     timestamp: Date.now(),
   });
 }

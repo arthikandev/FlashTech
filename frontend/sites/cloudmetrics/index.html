@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CloudMetrics — SaaS Demo</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+      header { padding: 1rem 2rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
+      .logo { font-weight: 700; color: #38bdf8; }
+      nav a { color: #94a3b8; margin-left: 1rem; text-decoration: none; }
+      .hero { padding: 3rem 2rem; max-width: 640px; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 2rem; max-width: 900px; }
+      .tier { border: 1px solid #334155; border-radius: 8px; padding: 1.25rem; }
+      .tier.pro { border-color: #38bdf8; }
+      #avatar-slot { position: fixed; bottom: 1rem; right: 1rem; width: 300px; height: 380px; border-radius: 12px; border: 2px solid #38bdf8; background: #111; z-index: 50; }
+      #avatar-slot.hidden, #avatar-spinner.hidden { display: none; }
+      #avatar-spinner { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 51; background: #38bdf8; color: #0f172a; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="logo">CloudMetrics</span>
+      <nav>
+        <a href="#/">Product</a>
+        <a href="#/pricing">Pricing</a>
+      </nav>
+    </header>
+    <section data-route="/" class="hero">
+      <h1>Observability for modern teams</h1>
+      <p>Metrics, logs, and traces in one platform.</p>
+    </section>
+    <section data-route="/pricing" class="hidden">
+      <h2 style="padding: 2rem 2rem 0">Pricing</h2>
+      <div class="grid">
+        <div class="tier"><h3>Starter</h3><p>$49/mo</p></div>
+        <div class="tier pro"><h3>Pro</h3><p>$199/mo</p></div>
+        <div class="tier"><h3>Enterprise</h3><p>Custom</p></div>
+      </div>
+    </section>
+    <div id="avatar-spinner" class="hidden">Loading advisor…</div>
+    <div id="avatar-slot" class="hidden"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

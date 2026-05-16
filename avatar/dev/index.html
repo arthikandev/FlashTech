@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PresenceIQ Avatar — dev harness</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      #presenceiq-avatar {
+        min-height: 420px;
+        margin-top: 1.5rem;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .hint {
+        color: #555;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PresenceIQ Avatar harness</h1>
+    <p class="hint">
+      Requires backend at <code>http://localhost:3000</code> with embed + pipeline.
+      Reload to test personalised opener (seeded Sarangan visitor).
+    </p>
+    <div id="presenceiq-avatar"></div>
+    <script src="http://localhost:3000/api/embed/seylan-demo" async></script>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
