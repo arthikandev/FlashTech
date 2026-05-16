@@ -1,4 +1,4 @@
 {
-  "backendUrl": "http://localhost:3001",
+  "backendUrl": "https://backend-blond-theta-13.vercel.app",
   "convexUrl": "https://adamant-puffin-769.convex.cloud"
 }

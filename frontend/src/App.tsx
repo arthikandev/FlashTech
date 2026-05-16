@@ -28,8 +28,8 @@ export default function App() {
           <Route path="deck" element={<PitchDeck />} />
           <Route path="slack" element={<SlackMock />} />
           <Route path="present" element={<PresentPage />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="register" element={<RegisterPage />} />
+          <Route path="login/*" element={<LoginPage />} />
+          <Route path="register/*" element={<RegisterPage />} />
           <Route path="onboard" element={<OnboardingRoute />} />
           <Route path="dashboard" element={<DashboardRoute />}>
             <Route index element={<OverviewPage />} />

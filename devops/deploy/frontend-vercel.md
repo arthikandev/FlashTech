@@ -28,6 +28,16 @@ Set in **Vercel → Project → Settings → Environment Variables** for branche
 
 **Convex auth:** Frontend origin (`https://<project>.vercel.app` or custom domain) must be allowed wherever your Convex + Clerk config expects JWT / CORS behavior.
 
+### Clerk redirect URLs (required for Google / SSO)
+
+In **Clerk Dashboard → Configure → Paths** (or **Allowed redirect URLs**), allow your deployed frontend origin plus:
+
+- `https://<your-frontend-host>/login` and `https://<your-frontend-host>/login/*` (includes `/login/sso-callback`)
+- `https://<your-frontend-host>/register` and `https://<your-frontend-host>/register/*`
+- `https://<your-frontend-host>/onboard`
+
+React Router must use `login/*` and `register/*` routes (not exact `/login` only) so Clerk path-based auth can mount `<SignIn />` on SSO callback.
+
 Template for local parity: [`frontend/.env.example`](../../frontend/.env.example), production sample: `.env.production` (never commit secrets).
 
 ## 3. SPA routing
@@ -45,7 +55,8 @@ Smoke: after deploy open `https://<your-deployment>/presenceiq-avatar.js` — sh
 Manual checks after each production deploy:
 
 - [ ] `/` landing loads  
-- [ ] `/dashboard` loads (Convex + optional Clerk — network tab shows Convex websocket)  
+- [ ] `/login` → Google/SSO → brief `/login/sso-callback` → `/onboard` (no blank screen)  
+- [ ] `/dashboard` loads (Convex + optional Clerk — network tab shows Convex websocket)    
 - [ ] **`/dashboard` hard refresh** (reload) still serves app (SPA rewrite)  
 - [ ] `/demos/seylan` (and other `/demos/*`)  
 - [ ] `/deck`, `/present` if using pitch flows  

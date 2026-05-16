@@ -1,7 +1,7 @@
-import { SignIn } from "@clerk/clerk-react";
+import { SignedIn, SignIn } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
@@ -10,8 +10,10 @@ import { authClerkAppearance } from "./clerkAppearance";
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function LoginPage() {
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/onboard";
+  const isSsoCallback = location.pathname.includes("sso-callback");
 
   return (
     <motion.div
@@ -19,7 +21,7 @@ export function LoginPage() {
       animate={{ opacity: 1 }}
       className="brand-theme fixed inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-background text-foreground lg:grid lg:grid-cols-2"
     >
-      <div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
+      <motion.div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
         <motion.div
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
@@ -43,36 +45,53 @@ export function LoginPage() {
                 PresenceIQ
               </p>
               <h1 className="font-serif text-4xl leading-[1.05] tracking-tight sm:text-[2.75rem]">
-                Sign in
+                {isSsoCallback ? "Almost there" : "Sign in"}
               </h1>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                Operator dashboard and live session intelligence.
+                {isSsoCallback
+                  ? "Finishing your secure sign-in. You will be redirected in a moment."
+                  : "Operator dashboard and live session intelligence."}
               </p>
 
-              <div className="mt-9 flex flex-col gap-4">
+              <motion.div className="mt-9 flex flex-col gap-4">
                 {!clerkEnabled ? (
                   <p className="text-sm text-muted-foreground">
                     Set <code className="text-foreground">VITE_CLERK_PUBLISHABLE_KEY</code> in{" "}
                     <code className="text-foreground">frontend/.env.local</code> to enable sign in.
                   </p>
                 ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.45, ease, delay: 0.1 }}
-                    className="auth-clerk-shell"
-                  >
-                    <SignIn
-                      routing="path"
-                      path="/login"
-                      signUpUrl="/register"
-                      forceRedirectUrl={redirect}
-                      fallbackRedirectUrl={redirect}
-                      signUpForceRedirectUrl={redirect}
-                      signUpFallbackRedirectUrl={redirect}
-                      appearance={authClerkAppearance}
-                    />
-                  </motion.div>
+                  <>
+                    <SignedIn>
+                      {!isSsoCallback && <Navigate to={redirect} replace />}
+                    </SignedIn>
+                    {isSsoCallback && (
+                      <div
+                        className="flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        <Loader2 className="size-4 animate-spin text-primary" aria-hidden />
+                        Completing sign-in…
+                      </div>
+                    )}
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.45, ease, delay: 0.1 }}
+                      className="auth-clerk-shell"
+                    >
+                      <SignIn
+                        routing="path"
+                        path="/login"
+                        signUpUrl="/register"
+                        forceRedirectUrl={redirect}
+                        fallbackRedirectUrl={redirect}
+                        signUpForceRedirectUrl={redirect}
+                        signUpFallbackRedirectUrl={redirect}
+                        appearance={authClerkAppearance}
+                      />
+                    </motion.div>
+                  </>
                 )}
                 <p className="text-center text-sm text-muted-foreground">
                   No account?{" "}
@@ -80,11 +99,11 @@ export function LoginPage() {
                     Create one
                   </Link>
                 </p>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
 
       <AuthSidePanel />
     </motion.div>
