@@ -2,9 +2,13 @@
 
 ## Quick links
 
+- [Person 1 tracker (dev.md)](../dev.md)
 - [Vercel deploy](deploy/vercel.md)
-- [Convex deploy](deploy/convex.md)
-- [n8n workflows](n8n/)
+- [Convex deploy](deploy/convex.md) · [D1 checklist](deploy/D1-convex-checklist.md)
+- [Frontend deploy](deploy/frontend.md)
+- [n8n workflows](n8n/) · [n8n SETUP](n8n/SETUP.md)
+- [Generate secrets](scripts/generate-secrets.js)
+- [Integration test (PowerShell)](scripts/integration-test.ps1)
 
 ## Environment setup
 

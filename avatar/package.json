@@ -1,0 +1,15 @@
+{
+  "name": "@presenceiq/avatar",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PresenceIQ BeyondPresence integration",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --outfile=demo/presenceiq-avatar.js --format=iife --global-name=PresenceIQAvatar --platform=browser --target=es2020",
+    "dev": "npm run build -- --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0"
+  }
+}
