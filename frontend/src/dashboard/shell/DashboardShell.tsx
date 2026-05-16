@@ -1,11 +1,15 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardTopBar } from "./DashboardTopBar";
 import { AiIntelligenceFeed } from "./AiIntelligenceFeed";
 import { DashboardMobileNav } from "./DashboardMobileNav";
-import type { FeedEvent } from "../hooks/useAiFeedEvents";
+import type { FeedEvent } from "@/lib/dashboard/feedEvents";
 
 type Props = {
   workspaceLabel: string;
@@ -30,56 +34,43 @@ export function DashboardShell({
   notificationsPanel,
   children,
 }: Props) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <div className="flex min-h-screen w-full bg-dash-bg text-dash-ink font-sans">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-dash-accent focus:text-black"
-      >
-        Skip to content
-      </a>
-
-      <div className="hidden lg:flex shrink-0">
+    <div className="dark dash-theme min-h-screen bg-background text-foreground">
+      <SidebarProvider>
         <DashboardSidebar workspaceLabel={workspaceLabel} />
-      </div>
-
-      <Sheet open={sidebarOpen} onClose={() => setSidebarOpen(false)} side="left" title="Menu">
-        <DashboardSidebar
-          workspaceLabel={workspaceLabel}
-          onNavigate={() => setSidebarOpen(false)}
-        />
-      </Sheet>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <DashboardTopBar
-          search={search}
-          onSearchChange={onSearchChange}
-          onOpenSidebar={() => setSidebarOpen(true)}
-          onOpenNotifications={() => onNotificationsOpenChange(true)}
-          signedIn={signedIn}
-        />
-
-        <div className="flex min-h-0 flex-1">
-          <main
-            id="main-content"
-            className="min-w-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8 pb-24 lg:pb-8"
+        <SidebarInset>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:p-4 focus:text-primary-foreground"
           >
-            {children}
-          </main>
-
-          <div className="hidden xl:flex w-[320px] shrink-0">
-            <AiIntelligenceFeed events={feedEvents} />
+            Skip to content
+          </a>
+          <DashboardTopBar
+            search={search}
+            onSearchChange={onSearchChange}
+            onOpenNotifications={() => onNotificationsOpenChange(true)}
+            signedIn={signedIn}
+            sidebarTrigger={<SidebarTrigger className="lg:hidden" />}
+          />
+          <div className="flex min-h-[calc(100vh-3.5rem)]">
+            <main
+              id="main-content"
+              className="min-w-0 flex-1 overflow-y-auto px-4 py-6 pb-24 lg:px-8 lg:pb-8"
+            >
+              {children}
+            </main>
+            <aside className="hidden w-[300px] shrink-0 border-l border-border xl:block">
+              <AiIntelligenceFeed events={feedEvents} />
+            </aside>
           </div>
-        </div>
-
-        <DashboardMobileNav />
-      </div>
+          <DashboardMobileNav />
+        </SidebarInset>
+      </SidebarProvider>
 
       <Sheet
         open={notificationsOpen}
         onClose={() => onNotificationsOpenChange(false)}
+        side="right"
         title="Notifications"
       >
         {notificationsPanel}

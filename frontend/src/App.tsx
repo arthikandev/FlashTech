@@ -13,6 +13,7 @@ import { SeylanPage } from "./demos/SeylanPage";
 import { CloudMetricsPage } from "./demos/CloudMetricsPage";
 import { CoralPage } from "./demos/CoralPage";
 import { LoginPage } from "./auth/LoginPage";
+import { RegisterPage } from "./auth/RegisterPage";
 import { LandingPage } from "./landing/LandingPage";
 import { OnboardingRoute } from "./onboarding/OnboardingRoute";
 import { PitchDeck } from "./pitch/PitchDeck";
@@ -27,7 +28,8 @@ export default function App() {
           <Route path="deck" element={<PitchDeck />} />
           <Route path="slack" element={<SlackMock />} />
           <Route path="present" element={<PresentPage />} />
-          <Route path="login" element={<LoginPage />} />
+          <Route path="login/*" element={<LoginPage />} />
+          <Route path="register/*" element={<RegisterPage />} />
           <Route path="onboard" element={<OnboardingRoute />} />
           <Route path="dashboard" element={<DashboardRoute />}>
             <Route index element={<OverviewPage />} />

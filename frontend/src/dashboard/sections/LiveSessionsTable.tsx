@@ -5,6 +5,16 @@ import { IntentBadge } from "../IntentBadge";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/card";
 
 type Props = {
   sessions: LiveSession[] | undefined;
@@ -14,6 +24,9 @@ type Props = {
   searchQuery: string;
   highlightIds: Set<string>;
   compact?: boolean;
+  canLoadMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
 };
 
 function deriveSentiment(s: LiveSession): string {
@@ -36,6 +49,8 @@ function deriveCrm(s: LiveSession): string {
   return "New visitor";
 }
 
+const MotionTableRow = motion.create(TableRow);
+
 export function LiveSessionsTable({
   sessions,
   businessReady,
@@ -44,6 +59,9 @@ export function LiveSessionsTable({
   searchQuery,
   highlightIds,
   compact = false,
+  canLoadMore = false,
+  loadingMore = false,
+  onLoadMore,
 }: Props) {
   if (!businessReady) {
     return <LoadingState variant="inline" label="Loading business…" />;
@@ -108,71 +126,91 @@ export function LiveSessionsTable({
           compact
         />
       )}
-      <div
-        className={`${compact ? "" : "mt-4"} overflow-x-auto rounded-md border border-dash-border bg-dash-surface hidden md:block`}
-      >
-        <table className="w-full min-w-[800px] text-sm">
-          <thead>
-            <tr className="border-b border-[#212121] text-left text-[10px] uppercase tracking-widest text-gray-600">
-              <th className="px-4 py-3 font-medium">Visitor</th>
-              <th className="px-4 py-3 font-medium">Intent</th>
-              <th className="px-4 py-3 font-medium">Sentiment</th>
-              <th className="px-4 py-3 font-medium">Pages</th>
-              <th className="px-4 py-3 font-medium">CRM</th>
-              <th className="px-4 py-3 font-medium">Recommendation</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className={`${compact ? "" : "mt-4"} hidden overflow-hidden md:block`}>
+        <Table className="min-w-[800px]">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Visitor
+              </TableHead>
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Intent
+              </TableHead>
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Sentiment
+              </TableHead>
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Pages
+              </TableHead>
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                CRM
+              </TableHead>
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Recommendation
+              </TableHead>
+              <TableHead className="px-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Status
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filtered.map((s, i) => {
               const selected = selectedVisitorId === s.visitorId;
               const highlight = highlightIds.has(s.visitorId);
               return (
-                <motion.tr
+                <MotionTableRow
                   key={s.visitorId}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
                   onClick={() => onSelect(s.visitorId)}
-                  className={`cursor-pointer border-b border-[#212121]/80 transition-colors hover:bg-white/[0.03] ${
+                  className={`cursor-pointer ${
                     selected ? "bg-primary/5" : ""
                   } ${highlight ? "row-highlight" : ""}`}
                 >
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-[#E1E0CC]">
+                  <TableCell className="px-4 py-3">
+                    <p className="font-medium text-foreground">
                       {s.name ?? `${s.fingerprint.slice(0, 12)}…`}
                     </p>
-                    <p className="text-[10px] text-gray-600">
-                      Returns {s.returnCount}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
+                    <p className="text-[10px] text-muted-foreground">Returns {s.returnCount}</p>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <IntentBadge score={s.intentScore} />
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">{deriveSentiment(s)}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500 max-w-[180px] truncate">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-muted-foreground">
+                    {deriveSentiment(s)}
+                  </TableCell>
+                  <TableCell className="max-w-[180px] truncate px-4 py-3 text-xs text-muted-foreground">
                     {s.pageTrail ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">{deriveCrm(s)}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500 max-w-[160px] truncate">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-muted-foreground">{deriveCrm(s)}</TableCell>
+                  <TableCell className="max-w-[160px] truncate px-4 py-3 text-xs text-muted-foreground">
                     {s.recommendedAction ?? "—"}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400/90">
                       {s.hasConversation && (
                         <span className="ai-pulse-dot h-1.5 w-1.5 rounded-full bg-emerald-400" />
                       )}
                       {deriveStatus(s)}
                     </span>
-                  </td>
-                </motion.tr>
+                  </TableCell>
+                </MotionTableRow>
               );
             })}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
 
-      <div className="mt-4 md:hidden space-y-2">
+      {!compact && canLoadMore && onLoadMore && (
+        <div className="mt-3 hidden justify-center md:flex">
+          <Button type="button" variant="outline" size="sm" onClick={onLoadMore} disabled={loadingMore}>
+            {loadingMore ? "Loading…" : "Load more sessions"}
+          </Button>
+        </div>
+      )}
+
+      <div className="mt-4 space-y-2 md:hidden">
         {filtered.map((s) => {
           const selected = selectedVisitorId === s.visitorId;
           return (
@@ -180,25 +218,37 @@ export function LiveSessionsTable({
               key={s.visitorId}
               type="button"
               onClick={() => onSelect(s.visitorId)}
-              className={`w-full text-left rounded-xl border border-[#212121] glass-panel p-4 min-h-[44px] transition-colors ${
-                selected ? "border-primary/40 bg-primary/5" : ""
+              className={`min-h-[44px] w-full rounded-xl border bg-card p-4 text-left transition-colors ${
+                selected ? "border-primary/40 bg-primary/5" : "border-border"
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-medium text-[#E1E0CC]">
+                  <p className="font-medium text-foreground">
                     {s.name ?? `${s.fingerprint.slice(0, 12)}…`}
                   </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">{deriveStatus(s)}</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">{deriveStatus(s)}</p>
                 </div>
                 <IntentBadge score={s.intentScore} />
               </div>
-              <p className="text-xs text-gray-500 mt-2 truncate">
+              <p className="mt-2 truncate text-xs text-muted-foreground">
                 {s.recommendedAction ?? "—"}
               </p>
             </button>
           );
         })}
+        {canLoadMore && onLoadMore && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? "Loading…" : "Load more sessions"}
+          </Button>
+        )}
       </div>
     </section>
   );

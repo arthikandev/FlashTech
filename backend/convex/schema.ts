@@ -65,7 +65,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_fingerprint_and_business", ["fingerprint", "businessId"])
-    .index("by_business", ["businessId"]),
+    .index("by_business", ["businessId"])
+    .index("by_business_lastSeen", ["businessId", "lastSeenAt"]),
 
   intelligence: defineTable({
     visitorId: v.id("visitors"),

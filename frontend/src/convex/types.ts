@@ -19,6 +19,19 @@ export type Business = {
     personaTone?: string;
     defaultLanguage?: string;
   };
+  webhookUrls?: {
+    n8nCrmFetch?: string;
+    n8nCrmPush?: string;
+    n8nSlack?: string;
+  };
+};
+
+export type DashboardStats = {
+  liveVisitors: number;
+  conversations: number;
+  hotLeadRate: number | null;
+  avgIntent: number | null;
+  conversionRate: number | null;
 };
 
 export type LiveSession = {

@@ -1,4 +1,12 @@
-import type { FeedEvent } from "../hooks/useAiFeedEvents";
+import type { FeedEvent } from "@/lib/dashboard/feedEvents";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 type Notification = {
   id: string;
@@ -6,36 +14,6 @@ type Notification = {
   title: string;
   body: string;
   time: string;
-};
-
-const MOCK: Notification[] = [
-  {
-    id: "mock-1",
-    priority: "high",
-    title: "Hot lead detected",
-    body: "Intent score crossed 80 for an enterprise visitor.",
-    time: "Just now",
-  },
-  {
-    id: "mock-2",
-    priority: "medium",
-    title: "Returning customer online",
-    body: "CRM match found — personalised opener deployed.",
-    time: "2m ago",
-  },
-  {
-    id: "mock-3",
-    priority: "low",
-    title: "Weekly analytics ready",
-    body: "Your pipeline summary is available to export.",
-    time: "1h ago",
-  },
-];
-
-const PRIORITY_STYLES = {
-  high: "border-rose-500/40 bg-rose-950/20",
-  medium: "border-amber-500/30 bg-amber-950/15",
-  low: "border-[#212121] bg-[#101010]",
 };
 
 function tagToPriority(tag: FeedEvent["tag"], message: string): Notification["priority"] {
@@ -76,25 +54,62 @@ function fromFeedEvents(events: FeedEvent[]): Notification[] {
   }));
 }
 
+const PRIORITY_VARIANT = {
+  high: "destructive",
+  medium: "secondary",
+  low: "outline",
+} as const;
+
 type Props = {
   events?: FeedEvent[];
+  signedIn?: boolean;
+  hasMembership?: boolean;
 };
 
-export function NotificationsCenter({ events = [] }: Props) {
-  const items = events.length > 0 ? fromFeedEvents(events) : MOCK;
+export function NotificationsCenter({
+  events = [],
+  signedIn = false,
+  hasMembership = false,
+}: Props) {
+  const items = fromFeedEvents(events);
+  const liveMode = signedIn && hasMembership;
+
+  if (items.length === 0) {
+    if (liveMode) {
+      return (
+        <Empty className="py-8">
+          <EmptyHeader>
+            <EmptyTitle>No notifications yet</EmptyTitle>
+            <EmptyDescription>
+              Events appear when visitors trigger intent spikes or avatar sessions.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      );
+    }
+    return (
+      <p className="py-4 text-sm text-muted-foreground">
+        Live notifications appear when visitors interact with your embed.
+      </p>
+    );
+  }
 
   return (
-    <ul className="space-y-3">
+    <ul className="flex flex-col gap-3">
       {items.map((n) => (
-        <li
-          key={n.id}
-          className={`rounded-xl border p-4 ${PRIORITY_STYLES[n.priority]}`}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-[#E1E0CC]">{n.title}</p>
-            <span className="text-[10px] text-gray-600 shrink-0">{n.time}</span>
-          </div>
-          <p className="mt-1 text-xs text-gray-500">{n.body}</p>
+        <li key={n.id}>
+          <Card>
+            <CardContent className="flex flex-col gap-2 pt-4">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-medium">{n.title}</p>
+                <span className="shrink-0 text-[10px] text-muted-foreground">{n.time}</span>
+              </div>
+              <Badge variant={PRIORITY_VARIANT[n.priority]} className="w-fit text-[10px]">
+                {n.priority}
+              </Badge>
+              <p className="text-xs text-muted-foreground">{n.body}</p>
+            </CardContent>
+          </Card>
         </li>
       ))}
     </ul>

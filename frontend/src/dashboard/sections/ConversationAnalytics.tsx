@@ -70,7 +70,7 @@ export function ConversationAnalytics({ sessions, detail }: Props) {
       />
       <Suspense
         fallback={
-          <div className="h-64 rounded-xl border border-[#212121] glass-panel animate-pulse" />
+          <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
         }
       >
         <Charts data={chartData} sentimentLabel={sentimentLabel} />

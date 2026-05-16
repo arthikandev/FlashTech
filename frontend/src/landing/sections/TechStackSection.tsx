@@ -1,6 +1,7 @@
 import { Bot, Database, Mic, Sparkles, Workflow } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 const TOOLS: Array<{
   name: string;
@@ -52,13 +53,15 @@ const TOOLS: Array<{
 ];
 
 export function TechStackSection() {
+  const { t } = useLandingLocale();
+
   return (
     <section id="stack" className="section-pad bg-black px-4 border-t border-[#212121]">
       <div className="max-w-6xl mx-auto">
         <SectionHeading
-          eyebrow="Full tech stack"
-          title="All 5 sponsor tools"
-          subtitle="Every judge sees their product shine — unified into one intelligence system."
+          eyebrow={t("tech.eyebrow")}
+          title={t("tech.title")}
+          subtitle={t("tech.subtitle")}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {TOOLS.map((tool) => {

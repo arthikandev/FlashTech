@@ -12,7 +12,7 @@ function DashboardLayoutInner({ standalone = false }: { standalone?: boolean }) 
 
   if (!ctx.authReady) {
     return (
-      <div className="min-h-screen bg-dash-bg flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <LoadingState variant="fullscreen" label="Loading dashboard…" />
       </div>
     );
@@ -27,7 +27,13 @@ function DashboardLayoutInner({ standalone = false }: { standalone?: boolean }) 
       feedEvents={ctx.feedEvents}
       notificationsOpen={notificationsOpen}
       onNotificationsOpenChange={setNotificationsOpen}
-      notificationsPanel={<NotificationsCenter events={ctx.feedEvents} />}
+      notificationsPanel={
+        <NotificationsCenter
+          events={ctx.feedEvents}
+          signedIn={ctx.signedIn}
+          hasMembership={!ctx.needsMembership && ctx.signedIn}
+        />
+      }
     >
       <DashboardMain
         previewOnly={ctx.previewOnly}
@@ -48,7 +54,7 @@ function DashboardMain({
   standalone: boolean;
 }) {
   return (
-    <div className="max-w-[1280px] mx-auto dash-page space-y-6">
+    <div className="mx-auto max-w-[1280px] space-y-6">
       {previewOnly && (
         <p className="rounded-md border border-amber-500/30 bg-amber-950/20 px-4 py-3 text-sm text-amber-100/90">
           Preview mode — link your account for full workspace access.

@@ -1,20 +1,20 @@
 import { useDashboardContext } from "../context/DashboardContext";
+import { DashboardPageHeader } from "../components/DashboardPageHeader";
 import { AvatarPerformance } from "../sections/AvatarPerformance";
 
 export function AvatarPage() {
   const { sessions, business } = useDashboardContext();
 
+  const agentHint = business?.avatarConfig?.bpAgentId
+    ? ` · Agent ${business.avatarConfig.bpAgentId.slice(0, 8)}…`
+    : "";
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold text-dash-ink">Avatar</h1>
-        <p className="text-xs text-dash-muted">
-          Beyond Presence telemetry
-          {business?.avatarConfig?.bpAgentId
-            ? ` · Agent ${business.avatarConfig.bpAgentId.slice(0, 8)}…`
-            : ""}
-        </p>
-      </div>
+      <DashboardPageHeader
+        title="Avatar"
+        subtitle={`Beyond Presence telemetry${agentHint}`}
+      />
       <AvatarPerformance sessions={sessions} />
     </div>
   );

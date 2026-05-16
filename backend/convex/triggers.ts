@@ -1,12 +1,37 @@
 import { mutation, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { requireBusinessMember } from "./lib/auth";
+
+async function businessForPreviewEmbed(ctx: QueryCtx, embedKey: string) {
+  const business = await ctx.db
+    .query("businesses")
+    .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
+    .unique();
+  if (!business) {
+    throw new Error("Unknown embedKey");
+  }
+  return business;
+}
 
 export const listByBusiness = query({
   args: { businessId: v.id("businesses") },
   handler: async (ctx, { businessId }) => {
+    await requireBusinessMember(ctx, businessId);
     return await ctx.db
       .query("triggers")
       .withIndex("by_business", (q) => q.eq("businessId", businessId))
+      .collect();
+  },
+});
+
+export const listByBusinessDemo = query({
+  args: { embedKey: v.string() },
+  handler: async (ctx, { embedKey }) => {
+    const business = await businessForPreviewEmbed(ctx, embedKey);
+    return await ctx.db
+      .query("triggers")
+      .withIndex("by_business", (q) => q.eq("businessId", business._id))
       .collect();
   },
 });
@@ -107,5 +132,81 @@ export const seedTriggers = mutation({
     });
 
     return { created: true };
+  },
+});
+
+const triggerCondition = v.union(
+  v.literal("intent_score_above"),
+  v.literal("churn_risk_detected"),
+  v.literal("appointment_booked")
+);
+
+const triggerAction = v.union(
+  v.literal("slack_alert"),
+  v.literal("crm_push"),
+  v.literal("email_sequence")
+);
+
+export const upsertTrigger = mutation({
+  args: {
+    businessId: v.id("businesses"),
+    triggerId: v.optional(v.id("triggers")),
+    condition: triggerCondition,
+    threshold: v.optional(v.number()),
+    action: triggerAction,
+    webhookUrl: v.string(),
+    isActive: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { membership } = await requireBusinessMember(ctx, args.businessId);
+    if (membership.role !== "admin") {
+      throw new Error("Forbidden: admin role required");
+    }
+
+    if (args.triggerId) {
+      const existing = await ctx.db.get(args.triggerId);
+      if (!existing || existing.businessId !== args.businessId) {
+        throw new Error("Trigger not found");
+      }
+      await ctx.db.patch(args.triggerId, {
+        condition: args.condition,
+        threshold: args.threshold,
+        action: args.action,
+        webhookUrl: args.webhookUrl,
+        isActive: args.isActive,
+      });
+      return { triggerId: args.triggerId };
+    }
+
+    const triggerId = await ctx.db.insert("triggers", {
+      businessId: args.businessId,
+      condition: args.condition,
+      threshold: args.threshold,
+      action: args.action,
+      webhookUrl: args.webhookUrl,
+      isActive: args.isActive,
+    });
+    return { triggerId };
+  },
+});
+
+export const deleteTrigger = mutation({
+  args: {
+    businessId: v.id("businesses"),
+    triggerId: v.id("triggers"),
+  },
+  handler: async (ctx, { businessId, triggerId }) => {
+    const { membership } = await requireBusinessMember(ctx, businessId);
+    if (membership.role !== "admin") {
+      throw new Error("Forbidden: admin role required");
+    }
+
+    const existing = await ctx.db.get(triggerId);
+    if (!existing || existing.businessId !== businessId) {
+      throw new Error("Trigger not found");
+    }
+
+    await ctx.db.delete(triggerId);
+    return { deleted: true };
   },
 });

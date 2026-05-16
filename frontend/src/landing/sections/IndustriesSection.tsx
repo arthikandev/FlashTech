@@ -11,6 +11,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 const INDUSTRIES: Array<{
   name: string;
@@ -73,13 +74,15 @@ const INDUSTRIES: Array<{
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function IndustriesSection() {
+  const { t } = useLandingLocale();
+
   return (
     <section id="industries" className="section-pad bg-[#101010] px-4">
       <div className="max-w-6xl mx-auto">
         <SectionHeading
-          eyebrow="Industries · enterprise AI avatar"
-          title="6 verticals, one intelligence platform"
-          subtitle="Banks, SaaS, hospitality, healthcare, retail, and HR — same pipeline, infinite branded deployments."
+          eyebrow={t("industries.eyebrow")}
+          title={t("industries.title")}
+          subtitle={t("industries.subtitle")}
         />
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {INDUSTRIES.map((ind, i) => {

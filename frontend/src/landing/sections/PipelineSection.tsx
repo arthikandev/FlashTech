@@ -11,6 +11,7 @@ import {
 import { useRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 const STEPS: Array<{
   step: number;
@@ -81,6 +82,7 @@ const STEPS: Array<{
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function PipelineSection() {
+  const { t } = useLandingLocale();
   const sectionRef = useRef<HTMLElement>(null);
   const inView = useInView(sectionRef, { once: true, margin: "-100px" });
 
@@ -88,9 +90,9 @@ export function PipelineSection() {
     <section id="pipeline" ref={sectionRef} className="section-pad bg-black px-4">
       <div className="max-w-4xl mx-auto">
         <SectionHeading
-          eyebrow="Pre-conversation intelligence pipeline"
-          title="All 7 steps complete in under 2 seconds"
-          subtitle="Visitor lands → fingerprint → n8n CRM → GPT-4o intent → voice → Beyond Presence avatar → personalised opener"
+          eyebrow={t("pipeline.eyebrow")}
+          title={t("pipeline.title")}
+          subtitle={t("pipeline.subtitle")}
         />
 
         <div className="relative mt-12 space-y-0">

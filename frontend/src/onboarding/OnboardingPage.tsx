@@ -119,7 +119,7 @@ export function OnboardingPage() {
   }, [step.id, onboardResult, isSubmitting, submitError, persistTenant]);
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col">
+    <div className="brand-theme min-h-[100dvh] bg-background text-foreground flex flex-col">
       <div className="noise-overlay pointer-events-none fixed inset-0 opacity-20 mix-blend-overlay" />
 
       <header className="relative z-10 flex items-center justify-between px-4 sm:px-8 pt-6 pb-4 max-w-3xl mx-auto w-full">

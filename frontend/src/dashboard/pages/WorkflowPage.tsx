@@ -1,20 +1,48 @@
+import { Link } from "react-router-dom";
 import { useDashboardContext } from "../context/DashboardContext";
+import { DashboardPageHeader } from "../components/DashboardPageHeader";
 import { WorkflowActivity } from "../sections/WorkflowActivity";
+import { WorkflowTriggers } from "../sections/WorkflowTriggers";
 
 export function WorkflowPage() {
-  const { detail, triggers, triggersLoading, businessId } = useDashboardContext();
+  const {
+    detail,
+    triggers,
+    triggersLoading,
+    businessId,
+    business,
+    signedIn,
+    needsMembership,
+  } = useDashboardContext();
+
+  const canEdit = signedIn && !needsMembership;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold text-dash-ink">Workflow</h1>
-        <p className="text-xs text-dash-muted">n8n automation triggers and pipeline status</p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <DashboardPageHeader
+        title="Workflow"
+        subtitle="n8n automation triggers and pipeline status"
+        actions={
+          <Link to="/dashboard/settings" className="text-xs text-primary hover:underline">
+            Configure webhooks →
+          </Link>
+        }
+      />
+
       <WorkflowActivity
         hasIntelligence={!!detail?.intelligence}
         hasConversation={!!detail?.conversation}
+        hasCrmData={Boolean(detail?.visitor.crmData)}
+        hasBpAgent={Boolean(business?.avatarConfig?.bpAgentId?.trim())}
         triggers={triggers}
         triggersLoading={triggersLoading && Boolean(businessId)}
+      />
+
+      <WorkflowTriggers
+        businessId={businessId}
+        triggers={triggers}
+        loading={triggersLoading}
+        canEdit={canEdit}
       />
     </div>
   );

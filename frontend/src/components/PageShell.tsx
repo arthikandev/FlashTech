@@ -26,7 +26,7 @@ export function PageShell({
   maxWidth = "lg",
 }: Props) {
   return (
-    <div className="min-h-screen bg-black px-4 sm:px-6 py-10">
+    <div className="brand-theme min-h-screen bg-black px-4 sm:px-6 py-10">
       <div className={`mx-auto ${widths[maxWidth]}`}>
         <Link to={backTo} className="text-sm text-gray-500 hover:text-[#E1E0CC] transition-colors">
           {backLabel}

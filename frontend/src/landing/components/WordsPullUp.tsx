@@ -50,7 +50,7 @@ export function WordsPullUp({ text, className = "", showAsterisk = false }: Prop
     return (
       <h1
         ref={ref}
-        className={`whitespace-nowrap overflow-visible ${className}`}
+        className={`whitespace-nowrap overflow-visible ${showAsterisk ? "pr-[0.4em]" : ""} ${className}`}
         style={{ color: "#E1E0CC" }}
       >
         {chars.map((char, i) => (

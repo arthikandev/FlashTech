@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { useLandingLocale } from "@/landing/i18n/LandingLocaleProvider";
 import { LANDING_NAV_ITEMS, type LandingNavItem } from "@/landing/nav";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ function NavLink({
   className?: string;
   onNavigate?: () => void;
 }) {
+  const { t } = useLandingLocale();
   const base = cn(
     "text-foreground/80 hover:text-foreground transition-colors",
     className
@@ -29,14 +31,14 @@ function NavLink({
   if (item.to) {
     return (
       <Link to={item.to} className={base} onClick={onNavigate}>
-        {item.label}
+        {t(item.key)}
       </Link>
     );
   }
 
   return (
     <a href={item.href} className={base} onClick={onNavigate}>
-      {item.label}
+      {t(item.key)}
     </a>
   );
 }
@@ -99,7 +101,7 @@ export function LandingHeader({ embedded = false }: Props) {
           <nav className="hidden lg:flex justify-self-center" aria-label="Main">
             <ul className="flex items-center gap-5 xl:gap-7 bg-[var(--nav-pill)] border border-border rounded-b-2xl md:rounded-b-3xl px-4 py-2.5 md:px-5 shadow-lg backdrop-blur-md">
               {LANDING_NAV_ITEMS.map((item) => (
-                <li key={item.label}>
+                <li key={item.key}>
                   <NavLink item={item} className="text-xs md:text-sm whitespace-nowrap" />
                 </li>
               ))}
@@ -162,7 +164,7 @@ export function LandingHeader({ embedded = false }: Props) {
               <ul className="flex flex-col gap-1">
                 {LANDING_NAV_ITEMS.map((item, i) => (
                   <motion.li
-                    key={item.label}
+                    key={item.key}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 + i * 0.04 }}

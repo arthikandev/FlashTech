@@ -1,16 +1,23 @@
 import { useAuth } from "@clerk/clerk-react";
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { api, clerkEnabled } from "@/convex/api";
 import { showError, showSuccess } from "@/lib/toast";
 import type { Id } from "@/convex/ids";
-import type { Business, LiveSession, SessionDetailResult } from "@/convex/types";
+import type {
+  Business,
+  DashboardStats,
+  LiveSession,
+  SessionDetailResult,
+} from "@/convex/types";
 
 const DEFAULT_EMBED_KEYS = [
   { key: "seylan-demo", label: "Seylan Bank" },
   { key: "cloudmetrics-demo", label: "CloudMetrics" },
   { key: "coral-demo", label: "Coral Resort" },
 ] as const;
+
+const SESSIONS_PAGE_SIZE = 25;
 
 export function useDashboardData(embedKey: string, selectedVisitorId: Id<"visitors"> | null) {
   const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
@@ -66,19 +73,27 @@ export function useDashboardData(embedKey: string, selectedVisitorId: Id<"visito
   /** Preview mode: unsigned, or signed in but not yet linked to this tenant. */
   const usePreviewQueries = authReady && !useAuthQueries;
 
-  const authSessions = useQuery(
+  const authSessionsPaginated = usePaginatedQuery(
     api.intelligence.listLiveSessions,
     useAuthQueries && memberBusinessId
       ? { businessId: memberBusinessId }
-      : "skip"
-  ) as LiveSession[] | undefined;
+      : "skip",
+    { initialNumItems: SESSIONS_PAGE_SIZE }
+  );
 
-  const previewSessions = useQuery(
+  const previewSessionsPaginated = usePaginatedQuery(
     api.intelligence.listLiveSessionsDemo,
-    usePreviewQueries && embedKey ? { embedKey } : "skip"
-  ) as LiveSession[] | undefined;
+    usePreviewQueries && embedKey ? { embedKey } : "skip",
+    { initialNumItems: SESSIONS_PAGE_SIZE }
+  );
 
-  const sessions = useAuthQueries ? authSessions : previewSessions;
+  const activePagination = useAuthQueries ? authSessionsPaginated : previewSessionsPaginated;
+
+  const sessions = activePagination.results as LiveSession[] | undefined;
+  const sessionsStatus = activePagination.status;
+  const canLoadMoreSessions = sessionsStatus === "CanLoadMore";
+  const sessionsLoadingMore = sessionsStatus === "LoadingMore";
+  const loadMoreSessions = activePagination.loadMore;
 
   const authDetail = useQuery(
     api.intelligence.getSessionDetail,
@@ -93,6 +108,18 @@ export function useDashboardData(embedKey: string, selectedVisitorId: Id<"visito
   ) as SessionDetailResult | null | undefined;
 
   const detail = useAuthQueries ? authDetail : previewDetail;
+
+  const authStats = useQuery(
+    api.intelligence.dashboardStats,
+    useAuthQueries && memberBusinessId ? { businessId: memberBusinessId } : "skip"
+  ) as DashboardStats | undefined;
+
+  const previewStats = useQuery(
+    api.intelligence.dashboardStatsDemo,
+    usePreviewQueries && embedKey ? { embedKey } : "skip"
+  ) as DashboardStats | undefined;
+
+  const dashboardStats = useAuthQueries ? authStats : previewStats;
 
   const previewOnly =
     signedIn && authReady && !hasMembershipForEmbed && Boolean(business?._id);
@@ -119,7 +146,12 @@ export function useDashboardData(embedKey: string, selectedVisitorId: Id<"visito
     clerkEnabled,
     business,
     sessions,
+    sessionsStatus,
+    canLoadMoreSessions,
+    sessionsLoadingMore,
+    loadMoreSessions,
     detail,
+    dashboardStats,
     embedOptions,
     linking,
     linkError,

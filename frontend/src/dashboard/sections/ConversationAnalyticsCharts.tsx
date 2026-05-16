@@ -34,7 +34,7 @@ export default function ConversationAnalyticsCharts({
 
   if (empty) {
     return (
-      <p className="text-sm text-gray-500 py-8 text-center rounded-xl border border-[#212121] glass-panel">
+      <p className="rounded-xl border border-border bg-card py-8 text-center text-sm text-muted-foreground">
         Chart data appears when live sessions are detected.
       </p>
     );
@@ -42,8 +42,8 @@ export default function ConversationAnalyticsCharts({
 
   return (
     <div className="grid md:grid-cols-2 gap-4">
-      <div className="rounded-xl border border-[#212121] glass-panel p-4 h-56">
-        <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-3">
+      <div className="rounded-xl border border-border bg-card p-4 h-56">
+        <p className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           Conversation volume
         </p>
         <ResponsiveContainer width="100%" height="85%">
@@ -52,9 +52,10 @@ export default function ConversationAnalyticsCharts({
             <YAxis stroke="#64748b" fontSize={10} />
             <Tooltip
               contentStyle={{
-                background: "#101010",
-                border: "1px solid #212121",
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
                 borderRadius: 8,
+                color: "hsl(var(--foreground))",
               }}
             />
             <Line type="monotone" dataKey="score" stroke="#dedbc8" strokeWidth={2} dot={false} />
@@ -62,8 +63,8 @@ export default function ConversationAnalyticsCharts({
         </ResponsiveContainer>
       </div>
 
-      <div className="rounded-xl border border-[#212121] glass-panel p-4 h-56">
-        <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-3">
+      <div className="rounded-xl border border-border bg-card p-4 h-56">
+        <p className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           Intent distribution
         </p>
         <ResponsiveContainer width="100%" height="85%">
@@ -72,9 +73,10 @@ export default function ConversationAnalyticsCharts({
             <YAxis stroke="#64748b" fontSize={10} />
             <Tooltip
               contentStyle={{
-                background: "#101010",
-                border: "1px solid #212121",
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
                 borderRadius: 8,
+                color: "hsl(var(--foreground))",
               }}
             />
             <Bar dataKey="count" fill="#dedbc8" radius={[4, 4, 0, 0]} />
@@ -82,8 +84,8 @@ export default function ConversationAnalyticsCharts({
         </ResponsiveContainer>
       </div>
 
-      <div className="rounded-xl border border-[#212121] glass-panel p-4 h-56">
-        <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-3">
+      <div className="rounded-xl border border-border bg-card p-4 h-56">
+        <p className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           {sentimentLabel}
         </p>
         <ResponsiveContainer width="100%" height="85%">
@@ -92,9 +94,10 @@ export default function ConversationAnalyticsCharts({
             <YAxis stroke="#64748b" fontSize={10} />
             <Tooltip
               contentStyle={{
-                background: "#101010",
-                border: "1px solid #212121",
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
                 borderRadius: 8,
+                color: "hsl(var(--foreground))",
               }}
             />
             <Area
@@ -108,8 +111,8 @@ export default function ConversationAnalyticsCharts({
         </ResponsiveContainer>
       </div>
 
-      <div className="rounded-xl border border-[#212121] glass-panel p-4 h-56">
-        <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-3">
+      <div className="rounded-xl border border-border bg-card p-4 h-56">
+        <p className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           Session attribution
         </p>
         <ResponsiveContainer width="100%" height="85%">
@@ -129,9 +132,10 @@ export default function ConversationAnalyticsCharts({
             </Pie>
             <Tooltip
               contentStyle={{
-                background: "#101010",
-                border: "1px solid #212121",
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
                 borderRadius: 8,
+                color: "hsl(var(--foreground))",
               }}
             />
           </PieChart>

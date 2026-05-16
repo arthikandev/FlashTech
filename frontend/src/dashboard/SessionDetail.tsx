@@ -1,5 +1,8 @@
 import type { Id } from "@/convex/ids";
 import type { SessionDetailResult } from "@/convex/types";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IntentBadge } from "./IntentBadge";
 import { SentimentArcChart } from "./SentimentArcChart";
 import { SlackAlertCard } from "./SlackAlertCard";
@@ -11,25 +14,20 @@ type Props = {
 };
 
 export function SessionDetail({ visitorId, detail, variant = "default" }: Props) {
-  const cardClass =
-    variant === "panel"
-      ? "rounded-md border border-dash-border bg-dash-bg p-4"
-      : "rounded-md border border-dash-border bg-dash-surface p-4";
-
   if (!visitorId) {
     return (
-      <p className="text-dash-muted text-sm py-8 text-center">
+      <p className="py-8 text-center text-sm text-muted-foreground">
         Select a session to view intelligence, transcript, and CRM.
       </p>
     );
   }
 
   if (detail === undefined) {
-    return <p className="text-dash-muted text-sm">Loading detail…</p>;
+    return <p className="text-sm text-muted-foreground">Loading detail…</p>;
   }
 
   if (detail === null) {
-    return <p className="text-dash-muted text-sm">Visitor not found.</p>;
+    return <p className="text-sm text-muted-foreground">Visitor not found.</p>;
   }
 
   const intel = detail.intelligence;
@@ -38,134 +36,136 @@ export function SessionDetail({ visitorId, detail, variant = "default" }: Props)
   const name = crm?.name ?? detail.visitor.fingerprint;
 
   return (
-    <div className="space-y-4 text-sm">
-      <section className={cardClass}>
-        <IntelHeader name={name} intel={intel} />
-      </section>
-
+    <div className="flex flex-col gap-4 text-sm">
       {(intel?.intentScore ?? 0) >= 80 && <SlackAlertCard detail={detail} />}
 
-      {conv?.sentimentArc && conv.sentimentArc.length > 0 && (
-        <section className={cardClass}>
-          <h3 className="dash-label mb-3">Intent arc</h3>
-          <SentimentArcChart arc={conv.sentimentArc} />
-        </section>
-      )}
+      <Tabs defaultValue="intelligence">
+        <TabsList className="w-full">
+          <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
+          <TabsTrigger value="transcript">Transcript</TabsTrigger>
+          <TabsTrigger value="crm">CRM</TabsTrigger>
+        </TabsList>
 
-      {conv?.transcript && conv.transcript.length > 0 && (
-        <section className={cardClass}>
-          <h3 className="dash-label mb-3">Transcript</h3>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {conv.transcript.map((t, i) => (
-              <div
-                key={i}
-                className={`rounded-md px-3 py-2 text-xs ${
-                  t.role === "user"
-                    ? "bg-dash-hover text-dash-ink ml-2"
-                    : "bg-dash-accent/10 text-dash-muted mr-2"
-                }`}
-              >
-                <span className="text-[10px] uppercase text-dash-muted block mb-0.5">
-                  {t.role}
-                </span>
-                {t.text}
+        <TabsContent value="intelligence" className="mt-3">
+          <Card className={variant === "panel" ? "bg-background" : undefined}>
+            <CardContent className="flex flex-col gap-3 pt-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                    Intelligence
+                  </p>
+                  <p className="mt-1 text-base font-medium">{name}</p>
+                </div>
+                <IntentBadge score={intel?.intentScore} />
               </div>
-            ))}
-          </div>
-          {conv.duration != null && (
-            <p className="text-[10px] text-dash-muted mt-2">
-              Duration {Math.round(conv.duration / 1000)}s · Outcome: {conv.outcome ?? "—"}
-            </p>
-          )}
-        </section>
-      )}
+              {intel?.personalisedOpener && (
+                <p className="border-l-2 border-primary pl-3 text-sm leading-relaxed">
+                  {intel.personalisedOpener}
+                </p>
+              )}
+              {intel?.recommendedAction && (
+                <p className="text-xs text-muted-foreground">→ {intel.recommendedAction}</p>
+              )}
+              {intel?.signals && intel.signals.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {intel.signals.map((sig) => (
+                    <Badge key={sig} variant="secondary" className="text-[10px]">
+                      {sig}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {conv?.sentimentArc && conv.sentimentArc.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                    Intent arc
+                  </p>
+                  <SentimentArcChart arc={conv.sentimentArc} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {conv?.actionItems && conv.actionItems.length > 0 && (
-        <section className={cardClass}>
-          <h3 className="dash-label mb-2">Action items</h3>
-          <ul className="list-disc list-inside text-dash-muted space-y-1 text-xs">
-            {conv.actionItems.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+        <TabsContent value="transcript" className="mt-3">
+          <Card>
+            <CardContent className="pt-4">
+              {conv?.transcript && conv.transcript.length > 0 ? (
+                <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
+                  {conv.transcript.map((t, i) => (
+                    <div
+                      key={i}
+                      className={`rounded-md px-3 py-2 text-xs ${
+                        t.role === "user"
+                          ? "ml-2 bg-muted text-foreground"
+                          : "mr-2 bg-primary/10 text-muted-foreground"
+                      }`}
+                    >
+                      <span className="mb-0.5 block text-[10px] uppercase text-muted-foreground">
+                        {t.role}
+                      </span>
+                      {t.text}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No transcript yet.</p>
+              )}
+              {conv?.duration != null && (
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Duration {Math.round(conv.duration / 1000)}s · Outcome: {conv.outcome ?? "—"}
+                </p>
+              )}
+              {conv?.actionItems && conv.actionItems.length > 0 && (
+                <ul className="mt-3 list-inside list-disc text-xs text-muted-foreground">
+                  {conv.actionItems.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <section className={cardClass}>
-        <h3 className="dash-label mb-2">CRM record</h3>
-        {crm ? (
-          <dl className="grid grid-cols-2 gap-2 text-xs">
-            {crm.accountType && (
-              <>
-                <dt className="text-dash-muted">Account</dt>
-                <dd className="text-dash-ink">{crm.accountType}</dd>
-              </>
-            )}
-            {crm.churnRisk && (
-              <>
-                <dt className="text-dash-muted">Churn risk</dt>
-                <dd className={crm.churnRisk === "high" ? "text-rose-400" : "text-dash-ink"}>
-                  {crm.churnRisk}
-                </dd>
-              </>
-            )}
-            {crm.email && (
-              <>
-                <dt className="text-dash-muted">Email</dt>
-                <dd className="text-dash-ink truncate">{crm.email}</dd>
-              </>
-            )}
-            {detail.visitor.crmId && (
-              <>
-                <dt className="text-dash-muted">CRM ID</dt>
-                <dd className="text-dash-ink">{detail.visitor.crmId}</dd>
-              </>
-            )}
-          </dl>
-        ) : (
-          <p className="text-dash-muted text-xs">No CRM enrichment yet.</p>
-        )}
-      </section>
+        <TabsContent value="crm" className="mt-3">
+          <Card>
+            <CardContent className="pt-4">
+              {crm ? (
+                <dl className="grid grid-cols-2 gap-2 text-xs">
+                  {crm.accountType && (
+                    <>
+                      <dt className="text-muted-foreground">Account</dt>
+                      <dd>{crm.accountType}</dd>
+                    </>
+                  )}
+                  {crm.churnRisk && (
+                    <>
+                      <dt className="text-muted-foreground">Churn risk</dt>
+                      <dd className={crm.churnRisk === "high" ? "text-destructive" : ""}>
+                        {crm.churnRisk}
+                      </dd>
+                    </>
+                  )}
+                  {crm.email && (
+                    <>
+                      <dt className="text-muted-foreground">Email</dt>
+                      <dd className="truncate">{crm.email}</dd>
+                    </>
+                  )}
+                  {detail.visitor.crmId && (
+                    <>
+                      <dt className="text-muted-foreground">CRM ID</dt>
+                      <dd>{detail.visitor.crmId}</dd>
+                    </>
+                  )}
+                </dl>
+              ) : (
+                <p className="text-xs text-muted-foreground">No CRM enrichment yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  );
-}
-
-function IntelHeader({
-  name,
-  intel,
-}: {
-  name: string;
-  intel: SessionDetailResult["intelligence"];
-}) {
-  return (
-    <>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="dash-label">Intelligence</h3>
-          <p className="text-base font-medium text-dash-ink mt-1">{name}</p>
-        </div>
-        <IntentBadge score={intel?.intentScore} />
-      </div>
-      {intel?.personalisedOpener && (
-        <p className="mt-3 text-dash-ink leading-relaxed border-l-2 border-dash-accent pl-3 text-sm">
-          {intel.personalisedOpener}
-        </p>
-      )}
-      {intel?.recommendedAction && (
-        <p className="mt-2 text-xs text-dash-muted">→ {intel.recommendedAction}</p>
-      )}
-      {intel?.signals && intel.signals.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3">
-          {intel.signals.map((sig) => (
-            <span
-              key={sig}
-              className="rounded-full bg-dash-hover px-2 py-0.5 text-[10px] text-dash-muted"
-            >
-              {sig}
-            </span>
-          ))}
-        </div>
-      )}
-    </>
   );
 }

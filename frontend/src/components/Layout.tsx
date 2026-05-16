@@ -28,7 +28,7 @@ export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-black">
+    <div className="brand-theme min-h-screen flex flex-col bg-black">
       <header className="border-b border-[#212121] bg-[#101010]/80 backdrop-blur-xl sticky top-0 z-10">
         <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <Link

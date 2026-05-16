@@ -1,16 +1,18 @@
 import { NavLink } from "react-router-dom";
 import { MOBILE_TABS } from "./navConfig";
+import { cn } from "@/lib/utils";
 
 function tabClass({ isActive }: { isActive: boolean }) {
-  return `flex-1 min-h-[48px] flex flex-col items-center justify-center text-[10px] uppercase tracking-wide transition-colors ${
-    isActive ? "text-dash-accent" : "text-dash-muted hover:text-dash-ink"
-  }`;
+  return cn(
+    "flex min-h-12 flex-1 flex-col items-center justify-center text-[10px] uppercase tracking-wide transition-colors",
+    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+  );
 }
 
 export function DashboardMobileNav() {
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-dash-border bg-dash-sidebar/95 backdrop-blur-xl"
+      className="fixed right-0 bottom-0 left-0 z-30 border-t border-border bg-sidebar/95 backdrop-blur-xl lg:hidden"
       aria-label="Dashboard navigation"
     >
       <div className="flex">

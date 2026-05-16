@@ -1,69 +1,118 @@
 import { Bot, BrainCircuit, Percent, TrendingUp, Users } from "lucide-react";
-import { StatCard } from "@/components/ui/StatCard";
-import { LoadingState } from "@/components/ui/LoadingState";
-import { EmptyState } from "@/components/ui/EmptyState";
-import type { LiveSession } from "@/convex/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { computeKpiSnapshot, type KpiSnapshot } from "@/lib/dashboard/metrics";
+import type { DashboardStats, LiveSession } from "@/convex/types";
 
 type Props = {
   sessions: LiveSession[] | undefined;
+  stats?: DashboardStats | undefined;
 };
 
-export function KpiGrid({ sessions }: Props) {
-  if (sessions === undefined) {
-    return <LoadingState variant="card" rows={5} />;
-  }
+const KPI_META: Array<{
+  key: keyof KpiSnapshot;
+  label: string;
+  icon: typeof Users;
+  format: (v: number | null) => string;
+}> = [
+  {
+    key: "liveVisitors",
+    label: "Live visitors",
+    icon: Users,
+    format: (v) => (v != null ? v.toLocaleString() : "—"),
+  },
+  {
+    key: "conversations",
+    label: "AI conversations",
+    icon: Bot,
+    format: (v) => (v != null ? v.toLocaleString() : "—"),
+  },
+  {
+    key: "hotLeadRate",
+    label: "Hot lead rate",
+    icon: TrendingUp,
+    format: (v) => (v != null ? `${v}%` : "—"),
+  },
+  {
+    key: "avgIntent",
+    label: "Avg intent score",
+    icon: BrainCircuit,
+    format: (v) => (v != null ? `${v}/100` : "—"),
+  },
+  {
+    key: "conversionRate",
+    label: "Conversion rate",
+    icon: Percent,
+    format: (v) => (v != null ? `${v}%` : "—"),
+  },
+];
 
-  const list = sessions;
-  if (list.length === 0) {
+function resolveSnapshot(
+  stats: DashboardStats | undefined,
+  sessions: LiveSession[] | undefined
+): KpiSnapshot | undefined {
+  if (stats) return stats;
+  if (sessions === undefined) return undefined;
+  return computeKpiSnapshot(sessions);
+}
+
+export function KpiGrid({ sessions, stats }: Props) {
+  const snapshot = resolveSnapshot(stats, sessions);
+
+  if (snapshot === undefined) {
     return (
-      <EmptyState
-        preset="no-data"
-        title="No visitor activity yet"
-        description="Embed PresenceIQ on your site or open a demo to see live KPIs."
-      />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {KPI_META.map((m) => (
+          <Card key={m.key}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     );
   }
-  const withScore = list.filter((s) => s.intentScore != null);
-  const avgIntent =
-    withScore.length > 0
-      ? Math.round(withScore.reduce((a, s) => a + (s.intentScore ?? 0), 0) / withScore.length)
-      : null;
-  const conversations = list.filter((s) => s.hasConversation).length;
-  const hotRate =
-    list.length > 0
-      ? Math.round((list.filter((s) => (s.intentScore ?? 0) >= 80).length / list.length) * 100)
-      : 0;
-  const converted = list.filter((s) => s.conversationOutcome === "converted").length;
-  const conversionRate =
-    conversations > 0 ? Math.round((converted / conversations) * 100) : null;
+
+  if (snapshot.liveVisitors === 0 && !sessions?.length) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>No visitor activity yet</EmptyTitle>
+          <EmptyDescription>
+            Embed PresenceIQ on your site or open a demo to see live KPIs.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-      <StatCard
-        value={list.length > 0 ? list.length.toLocaleString() : "—"}
-        label="Live visitors"
-        icon={Users}
-      />
-      <StatCard
-        value={conversations > 0 ? conversations.toLocaleString() : "—"}
-        label="AI conversations"
-        icon={Bot}
-      />
-      <StatCard
-        value={list.length > 0 ? `${hotRate}%` : "—"}
-        label="Hot lead rate"
-        icon={TrendingUp}
-      />
-      <StatCard
-        value={avgIntent != null ? `${avgIntent}/100` : "—"}
-        label="Avg intent score"
-        icon={BrainCircuit}
-      />
-      <StatCard
-        value={conversionRate != null ? `${conversionRate}%` : "—"}
-        label="Conversion rate"
-        icon={Percent}
-      />
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      {KPI_META.map((m) => {
+        const Icon = m.icon;
+        const raw = snapshot[m.key];
+        const display = m.format(raw);
+        return (
+          <Card key={m.key}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground">{m.label}</CardTitle>
+              <Icon className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold tabular-nums">{display}</p>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

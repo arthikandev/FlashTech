@@ -104,6 +104,7 @@ var PresenceIQAvatar = (() => {
   var MockBeyondPresenceClient = class {
     constructor(opts, containerId) {
       this.opts = opts;
+      this.sessionEndListenerAttached = false;
       this.containerId = containerId;
     }
     async init() {
@@ -133,6 +134,8 @@ var PresenceIQAvatar = (() => {
     }
     onSessionEnd(handler) {
       this.sessionHandler = handler;
+      if (this.sessionEndListenerAttached) return;
+      this.sessionEndListenerAttached = true;
       window.addEventListener("presenceiq:mock-session-end", () => {
         void this.flushSession();
       });
@@ -158,6 +161,7 @@ var PresenceIQAvatar = (() => {
   var SdkBeyondPresenceClient = class {
     constructor(opts, containerId) {
       this.opts = opts;
+      this.sessionEndListenerAttached = false;
       this.containerId = containerId;
     }
     async init() {
@@ -191,8 +195,10 @@ var PresenceIQAvatar = (() => {
     }
     onSessionEnd(handler) {
       this.sessionHandler = handler;
+      if (this.sessionEndListenerAttached) return;
       const bp = getBpGlobal();
       if (bp?.onSessionEnd) {
+        this.sessionEndListenerAttached = true;
         bp.onSessionEnd((session) => {
           this.lastSession = session ?? {
             messages: bp.getMessages?.() ?? []
@@ -206,12 +212,16 @@ var PresenceIQAvatar = (() => {
     }
     async flushSession() {
       if (!this.sessionHandler) return;
-      const payload = this.sessionHandler(this.lastSession);
-      await postSessionWebhook(
-        this.opts.backendUrl,
-        this.opts.bpWebhookSecret,
-        payload
-      );
+      try {
+        const payload = this.sessionHandler(this.lastSession);
+        await postSessionWebhook(
+          this.opts.backendUrl,
+          this.opts.bpWebhookSecret,
+          payload
+        );
+      } catch (err) {
+        console.error("[PresenceIQ] post-call webhook failed", err);
+      }
     }
   };
   function createBeyondPresenceClient(opts, containerId = "presenceiq-avatar") {
@@ -310,7 +320,18 @@ var PresenceIQAvatar = (() => {
   var lastPipeline = null;
   var lastVisitorId = null;
   var lastBusinessId = null;
+  var readyGeneration = 0;
+  var activeCallContext = null;
   var client = null;
+  function isLatestReady(gen) {
+    return gen === readyGeneration;
+  }
+  function setLatestReadyContext(gen, visitorId, businessId, pipeline = null) {
+    if (!isLatestReady(gen)) return;
+    lastVisitorId = visitorId;
+    lastBusinessId = businessId;
+    if (pipeline) lastPipeline = pipeline;
+  }
   function setAvatarLoading(loading) {
     const el = document.getElementById(mountContainerId);
     if (!el) return;
@@ -333,6 +354,26 @@ var PresenceIQAvatar = (() => {
     } catch {
     }
   }
+  function buildSessionEndPayload(session) {
+    const visitorId = activeCallContext?.visitorId ?? lastVisitorId;
+    const businessId = activeCallContext?.businessId ?? lastBusinessId;
+    if (!visitorId || !businessId) {
+      throw new Error("[PresenceIQ] session end without active visitor/business context");
+    }
+    const opener = activeCallContext?.pipeline?.intelligence.personalisedOpener ?? lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
+    const transcript = mapBpMessagesToTranscript(session, opener);
+    const payload = defaultSessionPayload(visitorId, businessId, transcript);
+    if (session?.duration != null && session.duration > 0) {
+      payload.duration = session.duration;
+    }
+    if (session?.outcome) {
+      payload.outcome = session.outcome;
+    }
+    return payload;
+  }
+  function attachSessionEndHandler(bpClient) {
+    bpClient.onSessionEnd((session) => buildSessionEndPayload(session));
+  }
   async function onPresenceIQReady(event) {
     const detail = event.detail;
     const visitorId = detail.visitorId;
@@ -341,8 +382,8 @@ var PresenceIQAvatar = (() => {
       console.error("[PresenceIQ] presenceiq:ready missing visitorId or businessId");
       return;
     }
-    lastVisitorId = visitorId;
-    lastBusinessId = businessId;
+    const gen = ++readyGeneration;
+    setLatestReadyContext(gen, visitorId, businessId);
     const config = getConfig();
     if (!client) {
       client = createBeyondPresenceClient(
@@ -357,18 +398,7 @@ var PresenceIQAvatar = (() => {
       );
       await client.init();
       client.hideAvatar();
-      client.onSessionEnd((session) => {
-        const opener = lastPipeline?.intelligence.personalisedOpener ?? DEFAULT_OPENER;
-        const transcript = mapBpMessagesToTranscript(session, opener);
-        const payload = defaultSessionPayload(visitorId, businessId, transcript);
-        if (session?.duration != null && session.duration > 0) {
-          payload.duration = session.duration;
-        }
-        if (session?.outcome) {
-          payload.outcome = session.outcome;
-        }
-        return payload;
-      });
+      attachSessionEndHandler(client);
     }
     mark("piq:ready");
     setAvatarLoading(true);
@@ -392,7 +422,7 @@ var PresenceIQAvatar = (() => {
     let data = null;
     if (pipelineSettled.status === "fulfilled") {
       data = pipelineSettled.value;
-      lastPipeline = data;
+      setLatestReadyContext(gen, visitorId, businessId, data);
       mark("piq:pipeline-done");
       console.log("[PresenceIQ] pipeline", {
         pipelineMs: data.pipelineMs,
@@ -435,13 +465,20 @@ var PresenceIQAvatar = (() => {
           detail: { reason: String(avatarSettled.reason) }
         })
       );
-    } else {
+    } else if (isLatestReady(gen)) {
       mark("piq:avatar-visible");
+      activeCallContext = {
+        visitorId,
+        businessId,
+        pipeline: data
+      };
       client.showAvatar();
     }
-    measure("time-to-pipeline", "piq:pipeline-start", "piq:pipeline-done");
-    measure("time-to-avatar", "piq:ready", "piq:avatar-visible");
-    setAvatarLoading(false);
+    if (isLatestReady(gen)) {
+      measure("time-to-pipeline", "piq:pipeline-start", "piq:pipeline-done");
+      measure("time-to-avatar", "piq:ready", "piq:avatar-visible");
+      setAvatarLoading(false);
+    }
   }
   function bootstrap() {
     if (bootstrapAttached) return;
