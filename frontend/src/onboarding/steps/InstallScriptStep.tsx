@@ -1,23 +1,34 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { goToBackendDashboard } from "@/lib/backendUrl";
-import { buildEmbedSnippet, slugifyEmbedKey } from "../constants";
 import { markOnboardingComplete } from "../storage";
+import type { OnboardApiResult } from "../submitOnboarding";
 import { OnboardingShell } from "../components/OnboardingShell";
-import type { OnboardingData } from "../types";
 
 type Props = {
-  data: OnboardingData;
+  result: OnboardApiResult | null;
+  error: string | null;
+  isLoading: boolean;
+  onRetry: () => void;
   onBack: () => void;
   showBack: boolean;
 };
 
-export function InstallScriptStep({ data, onBack, showBack }: Props) {
+export function InstallScriptStep({
+  result,
+  error,
+  isLoading,
+  onRetry,
+  onBack,
+  showBack,
+}: Props) {
   const [copied, setCopied] = useState(false);
-  const embedKey = slugifyEmbedKey(data.companyName);
-  const snippet = buildEmbedSnippet(embedKey);
+
+  const embedKey = result?.embedKey ?? "";
+  const snippet = result?.embedSnippet ?? "";
 
   async function handleCopy() {
+    if (!snippet) return;
     try {
       await navigator.clipboard.writeText(snippet);
       setCopied(true);
@@ -28,8 +39,44 @@ export function InstallScriptStep({ data, onBack, showBack }: Props) {
   }
 
   function handleFinish() {
+    if (!result) return;
     markOnboardingComplete();
-    goToBackendDashboard();
+    void goToBackendDashboard();
+  }
+
+  if (isLoading) {
+    return (
+      <OnboardingShell
+        title="Install script"
+        description="Creating your workspace…"
+        showBack={showBack}
+        onBack={onBack}
+      >
+        <p className="text-sm text-muted-foreground">Please wait a moment.</p>
+      </OnboardingShell>
+    );
+  }
+
+  if (error || !result) {
+    return (
+      <OnboardingShell
+        title="Install script"
+        description="We could not create your workspace. Check that the backend is running, then try again."
+        showBack={showBack}
+        onBack={onBack}
+        footerExtra={
+          <button
+            type="button"
+            onClick={onRetry}
+            className="h-12 px-6 text-sm font-medium bg-primary text-[var(--primary-foreground)] hover:opacity-90 transition-opacity sm:ml-auto"
+          >
+            Retry
+          </button>
+        }
+      >
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </OnboardingShell>
+    );
   }
 
   return (
@@ -57,7 +104,7 @@ export function InstallScriptStep({ data, onBack, showBack }: Props) {
           </p>
           <button
             type="button"
-            onClick={handleCopy}
+            onClick={() => void handleCopy()}
             className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
           >
             {copied ? (

@@ -10,7 +10,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/dashboard";
+  const redirect = searchParams.get("redirect") ?? "/onboard";
 
   return (
     <motion.div
@@ -18,7 +18,7 @@ export function LoginPage() {
       animate={{ opacity: 1 }}
       className="brand-theme fixed inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-background text-foreground lg:grid lg:grid-cols-2"
     >
-      <div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
+      <motion.div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
         <motion.div
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
@@ -36,7 +36,7 @@ export function LoginPage() {
             <AnimatedThemeToggler variant="circle" duration={450} />
           </motion.div>
 
-          <motion.div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-10 sm:px-10 lg:px-14">
+          <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-10 sm:px-10 lg:px-14">
             <motion.div className="mx-auto w-full max-w-[420px]">
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                 PresenceIQ
@@ -48,7 +48,7 @@ export function LoginPage() {
                 Operator dashboard and live session intelligence.
               </p>
 
-              <div className="mt-9 flex flex-col gap-4">
+              <motion.div className="mt-9 flex flex-col gap-4">
                 {!clerkEnabled ? (
                   <p className="text-sm text-muted-foreground">
                     Set <code className="text-foreground">VITE_CLERK_PUBLISHABLE_KEY</code> in{" "}
@@ -59,7 +59,10 @@ export function LoginPage() {
                     routing="path"
                     path="/login"
                     signUpUrl="/register"
+                    forceRedirectUrl={redirect}
                     fallbackRedirectUrl={redirect}
+                    signUpForceRedirectUrl={redirect}
+                    signUpFallbackRedirectUrl={redirect}
                   />
                 )}
                 <p className="text-center text-sm text-muted-foreground">
@@ -68,11 +71,11 @@ export function LoginPage() {
                     Create one
                   </Link>
                 </p>
-              </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
 
       <AuthSidePanel />
     </motion.div>
