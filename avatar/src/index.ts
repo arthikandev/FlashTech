@@ -9,8 +9,10 @@ import {
   createBeyondPresenceClient,
   defaultSessionPayload,
 } from "./beyondpresence/client";
+import { resolveAvatarContainer, type InitOptions } from "./types";
 
 const CONTAINER_ID = "presenceiq-avatar";
+let bootstrapAttached = false;
 let lastPipeline: PipelineData | null = null;
 let lastVisitorId: string | null = null;
 let lastBusinessId: string | null = null;
@@ -103,12 +105,36 @@ async function onPresenceIQReady(event: Event): Promise<void> {
 }
 
 function bootstrap(): void {
+  if (bootstrapAttached) return;
+  bootstrapAttached = true;
   window.addEventListener("presenceiq:ready", (e) => {
     void onPresenceIQReady(e);
   });
   console.log("[PresenceIQ] Avatar integration loaded", getConfig());
 }
 
+/** Demo sites call this with `avatarContainer` (see frontend/sites/shared/boot.ts). */
+export function initPresenceIQAvatar(options: InitOptions): void {
+  const el = resolveAvatarContainer(options);
+  if (!el) {
+    console.error(
+      "[PresenceIQ] initPresenceIQAvatar requires container or avatarContainer"
+    );
+    return;
+  }
+  if (!el.id) el.id = CONTAINER_ID;
+
+  window.__PRESENCEIQ_CONFIG__ = {
+    ...window.__PRESENCEIQ_CONFIG__,
+    ...(options.backendUrl ? { backendUrl: options.backendUrl.replace(/\/$/, "") } : {}),
+    ...(options.webhookSecret
+      ? { bpWebhookSecret: options.webhookSecret }
+      : {}),
+  };
+
+  bootstrap();
+}
+
 bootstrap();
 
-export { bootstrap, onPresenceIQReady };
+export { bootstrap, onPresenceIQReady, initPresenceIQAvatar };
