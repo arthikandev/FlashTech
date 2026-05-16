@@ -13,7 +13,7 @@ export function WordsPullUp({ text, className = "", showAsterisk = false }: Prop
   const words = text.split(" ");
 
   return (
-    <h1 ref={ref} className={className} style={{ color: "#E1E0CC" }}>
+    <h1 ref={ref} className={`text-foreground ${className}`}>
       {words.map((word, i) => {
         const isLast = i === words.length - 1;
 

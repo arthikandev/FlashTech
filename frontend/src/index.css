@@ -1,8 +1,99 @@
 @import "tailwindcss";
 
+/* Light theme (default class on html when .dark is absent) */
+:root {
+  --background: #f5f4ec;
+  --foreground: #1a1914;
+  --primary: #5a5642;
+  --primary-foreground: #f5f4ec;
+  --secondary: #e8e6dc;
+  --muted: #eeede6;
+  --muted-foreground: #6b695c;
+  --destructive: #dc2626;
+  --border: #d8d6ca;
+  --card: #ffffff;
+  --card-elevated: #f0efe8;
+  --nav-pill: rgba(255, 255, 255, 0.92);
+  --hero-overlay-from: rgba(0, 0, 0, 0.15);
+  --hero-overlay-to: rgba(0, 0, 0, 0.35);
+}
+
+/* Dark theme — cinematic PresenceIQ */
+.dark {
+  --background: #000000;
+  --foreground: #e1e0cc;
+  --primary: #dedbc8;
+  --primary-foreground: #1a1914;
+  --secondary: #212121;
+  --muted: #101010;
+  --muted-foreground: #9ca3af;
+  --destructive: #ef4444;
+  --border: #212121;
+  --card: #101010;
+  --card-elevated: #212121;
+  --nav-pill: #000000;
+  --hero-overlay-from: rgba(0, 0, 0, 0.3);
+  --hero-overlay-to: rgba(0, 0, 0, 0.6);
+}
+
 @theme {
-  --color-primary: #dedbc8;
+  --color-primary: var(--primary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-card: var(--card);
   --font-serif: "Instrument Serif", serif;
+
+  --animate-shimmer-slide: shimmer-slide var(--speed, 3s) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed, 3s) * 2) infinite linear;
+  --animate-rippling: rippling var(--duration, 600ms) ease-out;
+  --animate-vertical-marquee: vertical-marquee var(--marquee-duration, 32s) linear infinite;
+
+  @keyframes vertical-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes shimmer-slide {
+    to {
+      transform: translate(calc(100cqw - 100%), 0);
+    }
+  }
+
+  @keyframes spin-around {
+    0% {
+      transform: translateZ(0) rotate(0);
+    }
+    15%,
+    35% {
+      transform: translateZ(0) rotate(90deg);
+    }
+    65%,
+    85% {
+      transform: translateZ(0) rotate(270deg);
+    }
+    100% {
+      transform: translateZ(0) rotate(360deg);
+    }
+  }
+
+  @keyframes rippling {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
 }
 
 * {
@@ -20,14 +111,36 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light dark;
 }
 
 body {
-  @apply bg-black text-[#e1e0cc] antialiased;
+  background-color: var(--background);
+  color: var(--foreground);
+  @apply antialiased transition-colors duration-300;
 }
 
 .font-serif {
   font-family: "Instrument Serif", serif;
+}
+
+.bg-background {
+  background-color: var(--background);
+}
+.bg-card {
+  background-color: var(--card);
+}
+.bg-card-elevated {
+  background-color: var(--card-elevated);
+}
+.text-foreground {
+  color: var(--foreground);
+}
+.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+.border-border {
+  border-color: var(--border);
 }
 
 .noise-overlay {
@@ -36,4 +149,19 @@ body {
 
 .bg-noise {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Animated theme toggler — View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from);
 }
