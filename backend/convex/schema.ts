@@ -60,6 +60,7 @@ export default defineSchema({
     crmId: v.optional(v.string()),
     crmData: v.optional(crmData),
     language: v.string(),
+    referrer: v.optional(v.string()),
     lastSeenAt: v.number(),
     createdAt: v.number(),
   })
@@ -124,4 +125,13 @@ export default defineSchema({
     isActive: v.boolean(),
     lastFiredAt: v.optional(v.number()),
   }).index("by_business", ["businessId"]),
+
+  businessMembers: defineTable({
+    clerkUserId: v.string(),
+    businessId: v.id("businesses"),
+    role: v.union(v.literal("admin"), v.literal("viewer")),
+    createdAt: v.number(),
+  })
+    .index("by_clerk_user", ["clerkUserId"])
+    .index("by_user_and_business", ["clerkUserId", "businessId"]),
 });

@@ -1,12 +1,17 @@
 import { mutation } from "./_generated/server";
+import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
 const DEMO_FINGERPRINT = "demo-sarangan-fp";
 const SLACK_WEBHOOK_PLACEHOLDER = "https://your-n8n.app/webhook/hot-lead-slack";
 
 export const seedDemo = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    clerkUserId: v.optional(v.string()),
+    /** Beyond Presence agent ID for seylan-demo — from https://app.bey.chat */
+    bpAgentId: v.optional(v.string()),
+  },
+  handler: async (ctx, { clerkUserId, bpAgentId }) => {
     const now = Date.now();
     const day = 24 * 60 * 60 * 1000;
 
@@ -14,14 +19,22 @@ export const seedDemo = mutation({
       name: string;
       industry: "bank" | "saas" | "hotel";
       embedKey: string;
-      avatarConfig: { personaTone: string; defaultLanguage: string };
+      avatarConfig: {
+        personaTone: string;
+        defaultLanguage: string;
+        bpAgentId?: string;
+      };
       knowledgeChunks: Array<{ id: string; text: string }>;
     }> = [
       {
         name: "Seylan Bank",
         industry: "bank" as const,
         embedKey: "seylan-demo",
-        avatarConfig: { personaTone: "formal", defaultLanguage: "en" },
+        avatarConfig: {
+          personaTone: "formal",
+          defaultLanguage: "en",
+          ...(bpAgentId ? { bpAgentId } : {}),
+        },
         knowledgeChunks: [
           { id: "gold", text: "Gold plan: priority support, 2% cashback on bills." },
           {
@@ -60,6 +73,14 @@ export const seedDemo = mutation({
 
       if (existing) {
         businessIds[b.embedKey] = existing._id;
+        if (b.embedKey === "seylan-demo" && bpAgentId) {
+          await ctx.db.patch(existing._id, {
+            avatarConfig: {
+              ...existing.avatarConfig,
+              bpAgentId,
+            },
+          });
+        }
         continue;
       }
 
@@ -130,9 +151,33 @@ export const seedDemo = mutation({
       });
     }
 
+    let membership: { membershipId: Id<"businessMembers">; created: boolean } | null =
+      null;
+    if (clerkUserId) {
+      const existingMember = await ctx.db
+        .query("businessMembers")
+        .withIndex("by_user_and_business", (q) =>
+          q.eq("clerkUserId", clerkUserId).eq("businessId", seylanId)
+        )
+        .unique();
+
+      if (existingMember) {
+        membership = { membershipId: existingMember._id, created: false };
+      } else {
+        const membershipId = await ctx.db.insert("businessMembers", {
+          clerkUserId,
+          businessId: seylanId,
+          role: "admin",
+          createdAt: now,
+        });
+        membership = { membershipId, created: true };
+      }
+    }
+
     return {
       businesses: Object.keys(businessIds),
       demoFingerprint: DEMO_FINGERPRINT,
+      membership,
     };
   },
 });

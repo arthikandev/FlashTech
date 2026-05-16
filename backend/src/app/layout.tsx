@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { AppHeader } from "./app-header";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "PresenceIQ Backend",
@@ -13,7 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ fontFamily: "system-ui, sans-serif", margin: 0, padding: 24 }}>
-        {children}
+        <Providers>
+          <AppHeader />
+          {children}
+        </Providers>
       </body>
     </html>
   );
