@@ -35,6 +35,11 @@ jobs:
 
       - run: npm ci
 
+      # Rollup 4 optional platform packages are sometimes skipped after npm cache restore (npm/cli#4828).
+      - name: Ensure Rollup Linux native binding
+        if: runner.os == 'Linux'
+        run: npm install --no-save "@rollup/rollup-linux-x64-gnu@$(node -p "require('rollup/package.json').version")"
+
       - name: Build
         env:
           VITE_BACKEND_URL: ${{ secrets.PRESENCEIQ_BACKEND_URL }}
