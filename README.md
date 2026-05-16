@@ -10,7 +10,7 @@ Cursor Colombo 24H Buildathon 2026 · BeyondPresence Track
 
 | Person | Role | Folder | Development plan |
 |--------|------|--------|-------------------|
-| Person 1 | Avatar & AI Engineer | [`avatar/`](avatar/) | [avatar/DEVELOPMENT_PLAN.md](avatar/DEVELOPMENT_PLAN.md) |
+| Person 1 | DevOps & Avatar | [`avatar/`](avatar/) · [`devops/`](devops/) | [dev.md](dev.md) |
 | Person 2 | Backend & Automation | [`backend/`](backend/) | [backend/DEVELOPMENT_PLAN.md](backend/DEVELOPMENT_PLAN.md) |
 | Person 3 | Frontend & Demo Lead | [`frontend/`](frontend/) | [frontend/DEVELOPMENT_PLAN.md](frontend/DEVELOPMENT_PLAN.md) |
 

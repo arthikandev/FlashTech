@@ -1,7 +1,11 @@
 /**
- * Person 1 — copy this pattern into your BeyondPresence integration.
+ * Legacy reference — see src/index.ts for the implemented integration.
  */
-const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:3000";
+const BACKEND_URL =
+  (typeof window !== "undefined" &&
+    (window as Window & { __PRESENCEIQ_CONFIG__?: { backendUrl?: string } })
+      .__PRESENCEIQ_CONFIG__?.backendUrl) ||
+  "http://localhost:3000";
 
 window.addEventListener("presenceiq:ready", async (event: Event) => {
   const { visitorId, businessId } = (event as CustomEvent).detail;

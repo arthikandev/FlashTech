@@ -1,7 +1,8 @@
 # Avatar & AI Engineer — Development Plan
 
-**Owner**: Person 1  
+**Owner**: Person 1 (DevOps + Avatar)  
 **Branch**: `feature/avatar-person1`  
+**Tracker**: [../dev.md](../dev.md)  
 **Tools**: BeyondPresence, OpenAI BYO-LLM, ElevenLabs
 
 ## Milestones
@@ -17,23 +18,24 @@
 - [ ] Create base agent (bank persona — formal tone)
 - [ ] Test iframe embed — avatar speaks generic greeting
 - [ ] OpenAI account — test BYO-LLM inside BP
-- [ ] ElevenLabs account — list voice IDs (en, si, ta)
+- [ ] ElevenLabs account — list voice IDs in `src/beyondpresence/voices.ts`
+- [x] Scaffold: `package.json`, `src/`, `demo/test-page.html`, `npm run build`
 
 ## Phase 2 — Pre-conversation integration (4–10h)
 
-- [ ] Listen for `presenceiq:ready` on demo site
-- [ ] Call `POST {BACKEND_URL}/api/pipeline` with visitorId
-- [ ] Build `buildSystemPrompt(data)` from intelligence payload
-- [ ] Inject dynamic context into BeyondPresence before show
-- [ ] Select ElevenLabs voice from `visitor.language` + `business.industry`
-- [ ] **Deferred trigger** — avatar hidden until pipeline returns
-- [ ] Verify total time visitor land → first speech < 2s
+- [x] Listen for `presenceiq:ready` — `src/index.ts`
+- [x] Call `POST {BACKEND_URL}/api/pipeline` — `src/pipeline.ts`
+- [x] Build `buildSystemPrompt(data)` from intelligence payload
+- [x] Inject context via `beyondpresence/client.ts` (SDK or mock)
+- [x] Voice map from `visitor.language` — `voices.ts`
+- [x] **Deferred trigger** — hidden until pipeline returns
+- [ ] Verify total time visitor land → first speech < 2s on prod
 
 ## Phase 3 — In-call & post-call (10–15h)
 
-- [ ] OpenAI BYO-LLM powers real-time avatar responses
-- [ ] On session end → `POST /api/webhooks/beyondpresence/session`
-- [ ] Include transcript, outcome, sentimentArc, actionItems
+- [ ] OpenAI BYO-LLM powers real-time avatar responses (BP dashboard)
+- [x] On session end → `POST /api/webhooks/beyondpresence/session` — `src/webhook.ts`
+- [x] Include transcript, outcome, sentimentArc, actionItems
 
 ## Phase 4 — Demo polish (15–24h)
 
@@ -46,9 +48,12 @@
 - [ ] Production `BACKEND_URL` confirmed
 - [ ] `BP_WEBHOOK_SECRET` shared (must match `backend/.env.local` — see `docs/ENV.md`)
 
-## Starter code
+## Implementation
 
-See [`avatar/src/beyondpresence/integration.example.ts`](src/beyondpresence/integration.example.ts) for `presenceiq:ready` + pipeline call pattern.
+- [`src/index.ts`](src/index.ts) — main integration
+- [`demo/test-page.html`](demo/test-page.html) — local E2E
+- [`README.md`](README.md) — setup
+- Legacy reference: [`src/beyondpresence/integration.example.ts`](src/beyondpresence/integration.example.ts)
 
 ## Blockers / notes
 

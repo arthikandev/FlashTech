@@ -6,7 +6,7 @@
 
 | Person | Role | Folder | Branch |
 |--------|------|--------|--------|
-| Person 1 | Avatar & AI | `avatar/` | `feature/avatar-person1` |
+| Person 1 | DevOps & Avatar | `avatar/` · `devops/` | `feature/avatar-person1` |
 | Person 2 | Backend & Automation | `backend/` | `feature/backend-person2` |
 | Person 3 | Frontend & Demo | `frontend/` | `feature/frontend-person3` |
 
@@ -37,7 +37,7 @@
 | Step | Lead |
 |------|------|
 | 1–2 Open site + reload | P3 |
-| 3 Avatar speaks | P1 + P2 |
-| 4 Slack alert | P2 (n8n) |
+| 3 Avatar speaks | P1 (avatar) + P2 (pipeline) |
+| 4 Slack alert | P1 (n8n deploy) + P2 (triggers) |
 | 5 Dashboard | P3 |
 | 6 Close pitch | P3 |
