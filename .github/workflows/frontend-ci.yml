@@ -32,17 +32,11 @@ jobs:
         with:
           node-version: "20"
 
-      - run: npm ci
-
-      # Optional platform binaries are sometimes omitted after npm cache restore (npm/cli#4828).
-      - name: Ensure Linux native bindings
-        if: runner.os == 'Linux'
+      # Lockfile was generated on macOS; npm ci can skip Linux optional native binaries (npm/cli#4828).
+      - name: Install dependencies
         run: |
-          ROLLUP_V=$(node -e "console.log(JSON.parse(require('fs').readFileSync('node_modules/rollup/package.json','utf8')).version)")
-          LIGHTNING_V=$(node -e "console.log(JSON.parse(require('fs').readFileSync('node_modules/lightningcss/package.json','utf8')).version)")
-          npm install --no-save \
-            "@rollup/rollup-linux-x64-gnu@${ROLLUP_V}" \
-            "lightningcss-linux-x64-gnu@${LIGHTNING_V}"
+          rm -rf node_modules
+          npm install --no-audit --no-fund
 
       - name: Build
         env:
