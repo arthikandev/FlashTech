@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Marquee } from "@/registry/magicui/marquee";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 import { cn } from "@/lib/utils";
 
 type Review = {
@@ -96,6 +97,8 @@ function ReviewCard({
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function TestimonialsSection() {
+  const { t } = useLandingLocale();
+
   return (
     <section
       id="testimonials"
@@ -111,9 +114,9 @@ export function TestimonialsSection() {
         viewport={{ once: true, margin: "-80px" }}
       >
         <SectionHeading
-          eyebrow="Testimonials"
-          title="What teams say"
-          subtitle="Enterprise pilots using PresenceIQ embed and live dashboard."
+          eyebrow={t("testimonials.eyebrow")}
+          title={t("testimonials.title")}
+          subtitle={t("testimonials.subtitle")}
         />
       </motion.div>
 

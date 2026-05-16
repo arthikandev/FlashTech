@@ -12,6 +12,7 @@ import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FEATURES_VIDEO_SRC } from "@/lib/previewVideo";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 const cardEase = [0.22, 1, 0.36, 1] as const;
 
@@ -47,6 +48,7 @@ function ChecklistCard({
   icon: Icon,
   items,
   linkTo,
+  learnMoreLabel,
   className = "",
 }: {
   index: number;
@@ -55,6 +57,7 @@ function ChecklistCard({
   icon: LucideIcon;
   items: string[];
   linkTo: string;
+  learnMoreLabel: string;
   className?: string;
 }) {
   return (
@@ -83,7 +86,7 @@ function ChecklistCard({
           to={linkTo}
           className="inline-flex items-center gap-1 text-primary text-xs sm:text-sm mt-4 hover:opacity-80"
         >
-          Learn more
+          {learnMoreLabel}
           <ArrowRight className="w-3.5 h-3.5 -rotate-45" />
         </Link>
       </div>
@@ -92,14 +95,16 @@ function ChecklistCard({
 }
 
 export function FeaturesSection() {
+  const { t } = useLandingLocale();
+
   return (
     <section id="features" className="section-pad relative bg-black px-4">
       <div className="bg-noise absolute inset-0 opacity-[0.15] pointer-events-none" />
       <div className="relative max-w-6xl mx-auto">
         <SectionHeading
-          eyebrow="Product"
-          title="Embed, score, and ship in one stack"
-          subtitle="One script on your site, a live command centre for sessions, and branded demos that prove return-visitor intelligence."
+          eyebrow={t("features.eyebrow")}
+          title={t("features.title")}
+          subtitle={t("features.subtitle")}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 auto-rows-fr">
@@ -114,51 +119,46 @@ export function FeaturesSection() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" aria-hidden />
             <p className="absolute bottom-5 left-5 right-5 text-[#E1E0CC] text-base sm:text-lg font-medium z-10">
-              Your visitor&apos;s story starts here.
+              {t("features.videoCaption")}
             </p>
           </FeatureCard>
 
           <ChecklistCard
             index={1}
             number="01"
-            title="Embed SDK"
+            title={t("features.c1.title")}
             icon={Code2}
             linkTo="/demos/seylan"
             className="lg:col-span-5"
+            learnMoreLabel={t("features.learnMore")}
             items={[
-              "Fingerprint visitors on page load",
-              "presenceiq:ready with visitor & session IDs",
-              "Multi-site keys: Seylan, CloudMetrics, Coral",
-              "One script tag — no frontend API code",
+              t("features.c1.i0"),
+              t("features.c1.i1"),
+              t("features.c1.i2"),
+              t("features.c1.i3"),
             ]}
           />
 
           <ChecklistCard
             index={2}
             number="02"
-            title="Live dashboard"
+            title={t("features.c2.title")}
             icon={LayoutDashboard}
             linkTo="/dashboard"
             className="lg:col-span-5"
-            items={[
-              "Real-time sessions via Convex",
-              "Intent scores and personalised openers",
-              "Session detail with transcript & actions",
-            ]}
+            learnMoreLabel={t("features.learnMore")}
+            items={[t("features.c2.i0"), t("features.c2.i1"), t("features.c2.i2")]}
           />
 
           <ChecklistCard
             index={3}
             number="03"
-            title="Demo sites"
+            title={t("features.c3.title")}
             icon={Presentation}
             linkTo="/demos/seylan"
             className="lg:col-span-12"
-            items={[
-              "Three branded enterprise demos",
-              "Reload shows return visitors instantly",
-              "Second-screen ready for investor pitch",
-            ]}
+            learnMoreLabel={t("features.learnMore")}
+            items={[t("features.c3.i0"), t("features.c3.i1"), t("features.c3.i2")]}
           />
         </div>
       </div>

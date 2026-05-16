@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import NumberFlow from "@number-flow/react";
 import { Check, X } from "lucide-react";
@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Sparkles } from "@/components/ui/sparkles";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { VerticalCutReveal } from "@/components/ui/vertical-cut-reveal";
+import { useLandingLocale } from "@/landing/i18n/LandingLocaleProvider";
+import type { MessageKey } from "@/landing/i18n/messages";
 import { cn } from "@/lib/utils";
 
 type PlanFeature = { text: string; included: boolean };
@@ -25,60 +27,62 @@ type Plan = {
   popular?: boolean;
 };
 
-const PLANS: Plan[] = [
-  {
-    id: "starter",
-    name: "Starter",
-    monthly: 0,
-    annual: 0,
-    description: "For teams validating pre-conversation intelligence.",
-    features: [
-      { text: "500 visitors / month", included: true },
-      { text: "1 business workspace", included: true },
-      { text: "Intent scoring + personalised opener", included: true },
-      { text: "Embed script + dashboard (demo mode)", included: true },
-      { text: "Beyond Presence agent sync", included: false },
-      { text: "Slack hot-lead alerts", included: false },
-    ],
-    cta: "Start free",
-    ctaTo: "/onboard",
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    monthly: 99,
-    annual: 79,
-    description: "For revenue teams running live avatar on production sites.",
-    features: [
-      { text: "25,000 visitors / month", included: true },
-      { text: "3 business workspaces", included: true },
-      { text: "Beyond Presence agent sync", included: true },
-      { text: "Slack hot-lead alerts + CRM push (n8n)", included: true },
-      { text: "Real-time Convex dashboard", included: true },
-      { text: "White-label avatar", included: false },
-    ],
-    cta: "Start free trial",
-    ctaTo: "/onboard",
-    popular: true,
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    monthly: null,
-    annual: null,
-    description: "Custom deployments, compliance, and dedicated support.",
-    features: [
-      { text: "Unlimited visitors", included: true },
-      { text: "White-label avatar + custom LLM", included: true },
-      { text: "SSO + audit logs", included: true },
-      { text: "SLA & dedicated success engineer", included: true },
-      { text: "Multi-region + private Convex", included: true },
-      { text: "Self-serve onboarding only", included: false },
-    ],
-    cta: "Talk to sales",
-    ctaTo: "mailto:hello@presenceiq.ai",
-  },
-];
+function buildPlans(t: (key: MessageKey) => string): Plan[] {
+  return [
+    {
+      id: "starter",
+      name: t("pricing.starter.name"),
+      monthly: 0,
+      annual: 0,
+      description: t("pricing.starter.desc"),
+      features: [
+        { text: t("pricing.starter.f0"), included: true },
+        { text: t("pricing.starter.f1"), included: true },
+        { text: t("pricing.starter.f2"), included: true },
+        { text: t("pricing.starter.f3"), included: true },
+        { text: t("pricing.starter.f4"), included: false },
+        { text: t("pricing.starter.f5"), included: false },
+      ],
+      cta: t("pricing.starter.cta"),
+      ctaTo: "/onboard",
+    },
+    {
+      id: "growth",
+      name: t("pricing.growth.name"),
+      monthly: 99,
+      annual: 79,
+      description: t("pricing.growth.desc"),
+      features: [
+        { text: t("pricing.growth.f0"), included: true },
+        { text: t("pricing.growth.f1"), included: true },
+        { text: t("pricing.growth.f2"), included: true },
+        { text: t("pricing.growth.f3"), included: true },
+        { text: t("pricing.growth.f4"), included: true },
+        { text: t("pricing.growth.f5"), included: false },
+      ],
+      cta: t("pricing.growth.cta"),
+      ctaTo: "/onboard",
+      popular: true,
+    },
+    {
+      id: "enterprise",
+      name: t("pricing.enterprise.name"),
+      monthly: null,
+      annual: null,
+      description: t("pricing.enterprise.desc"),
+      features: [
+        { text: t("pricing.enterprise.f0"), included: true },
+        { text: t("pricing.enterprise.f1"), included: true },
+        { text: t("pricing.enterprise.f2"), included: true },
+        { text: t("pricing.enterprise.f3"), included: true },
+        { text: t("pricing.enterprise.f4"), included: true },
+        { text: t("pricing.enterprise.f5"), included: false },
+      ],
+      cta: t("pricing.enterprise.cta"),
+      ctaTo: "mailto:hello@presenceiq.ai",
+    },
+  ];
+}
 
 const revealVariants = {
   visible: (i: number) => ({
@@ -94,7 +98,17 @@ const revealVariants = {
   },
 };
 
-function PricingSwitch({ onSwitch }: { onSwitch: (annual: boolean) => void }) {
+function PricingSwitch({
+  onSwitch,
+  monthlyLabel,
+  annualLabel,
+  saveLabel,
+}: {
+  onSwitch: (annual: boolean) => void;
+  monthlyLabel: string;
+  annualLabel: string;
+  saveLabel: string;
+}) {
   const [selected, setSelected] = useState<"monthly" | "annual">("monthly");
 
   const handleSwitch = (value: "monthly" | "annual") => {
@@ -103,69 +117,72 @@ function PricingSwitch({ onSwitch }: { onSwitch: (annual: boolean) => void }) {
   };
 
   return (
-    <div className="flex justify-center">
-      <div className="relative z-10 mx-auto flex w-fit rounded-full border border-[#212121] bg-[#101010] p-1">
+    <motion.div className="flex justify-center">
+      <motion.div
+        layout
+        className="relative grid grid-cols-2 rounded-full border border-[#212121] bg-[#101010] p-1"
+      >
+        <motion.div
+          layoutId="pricing-switch-pill"
+          className="absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full border border-primary/40 bg-primary shadow-sm shadow-primary/20"
+          animate={{
+            left: selected === "monthly" ? "0.25rem" : "calc(50% + 0.125rem)",
+          }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        />
         <button
           type="button"
           onClick={() => handleSwitch("monthly")}
-          className={cn(
-            "relative z-10 h-10 w-fit rounded-full px-5 py-2 text-sm font-medium transition-colors",
-            selected === "monthly" ? "text-black" : "text-gray-400",
-          )}
+          className="relative z-10 flex h-10 min-w-[7rem] items-center justify-center rounded-full px-5 py-2 text-sm font-medium"
         >
-          {selected === "monthly" && (
-            <motion.span
-              layoutId="pricing-switch"
-              className="absolute inset-0 rounded-full border border-primary/40 bg-primary shadow-sm shadow-primary/20"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          )}
-          <span className="relative">Monthly</span>
+          <span className={cn(selected === "monthly" ? "text-black" : "text-gray-400")}>
+            {monthlyLabel}
+          </span>
         </button>
         <button
           type="button"
           onClick={() => handleSwitch("annual")}
-          className={cn(
-            "relative z-10 flex h-10 w-fit shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-colors",
-            selected === "annual" ? "text-black" : "text-gray-400",
-          )}
+          className="relative z-10 flex h-10 min-w-[9.5rem] items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-medium"
         >
-          {selected === "annual" && (
-            <motion.span
-              layoutId="pricing-switch"
-              className="absolute inset-0 rounded-full border border-primary/40 bg-primary shadow-sm shadow-primary/20"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          )}
-          <span className="relative">Annual</span>
+          <span className={cn(selected === "annual" ? "text-black" : "text-gray-400")}>
+            {annualLabel}
+          </span>
           <span
             className={cn(
-              "relative rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+              "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
               selected === "annual"
                 ? "bg-black/15 text-black"
                 : "bg-primary/15 text-primary",
             )}
           >
-            Save 20%
+            {saveLabel}
           </span>
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
 function PlanPrice({
   plan,
   annual,
+  customLabel,
+  freeLabel,
+  billedYearlyLabel,
+  perMonthLabel,
 }: {
   plan: Plan;
   annual: boolean;
+  customLabel: string;
+  freeLabel: string;
+  billedYearlyLabel: string;
+  perMonthLabel: string;
 }) {
   if (plan.monthly == null) {
-    return <span className="font-serif text-4xl text-primary">Custom</span>;
+    return <span className="font-serif text-4xl text-primary">{customLabel}</span>;
   }
   if (plan.monthly === 0) {
-    return <span className="font-serif text-4xl text-primary">Free</span>;
+    return <span className="font-serif text-4xl text-primary">{freeLabel}</span>;
   }
 
   const value = annual ? plan.annual! : plan.monthly;
@@ -179,7 +196,7 @@ function PlanPrice({
         className="font-serif text-4xl text-primary tabular-nums"
       />
       <span className="ml-1 text-sm text-gray-500">
-        {annual ? "/mo billed yearly" : "/month"}
+        {annual ? billedYearlyLabel : perMonthLabel}
       </span>
     </div>
   );
@@ -209,8 +226,10 @@ function PlanCta({ plan }: { plan: Plan }) {
 }
 
 export function PricingSection4() {
+  const { t } = useLandingLocale();
   const [annual, setAnnual] = useState(false);
   const pricingRef = useRef<HTMLDivElement>(null);
+  const plans = useMemo(() => buildPlans(t), [t]);
 
   return (
     <motion.div
@@ -242,7 +261,7 @@ export function PricingSection4() {
 
       <article className="relative z-10 mx-auto mb-8 max-w-3xl space-y-4 px-4 pt-4 text-center md:mb-10">
         <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary/90">
-          Pricing
+          {t("pricing.eyebrow")}
         </p>
         <h2 className="font-serif text-3xl text-[#E1E0CC] sm:text-4xl md:text-5xl">
           <VerticalCutReveal
@@ -253,7 +272,7 @@ export function PricingSection4() {
             containerClassName="justify-center"
             transition={{ type: "spring", stiffness: 250, damping: 40 }}
           >
-            Scale from pilot to enterprise
+            {t("pricing.title")}
           </VerticalCutReveal>
         </h2>
         <TimelineContent
@@ -263,19 +282,24 @@ export function PricingSection4() {
           customVariants={revealVariants}
           className="text-sm text-gray-500 sm:text-base"
         >
-          Pre-conversation intelligence that pays for itself on the first hot lead.
+          {t("pricing.subtitle")}
         </TimelineContent>
         <TimelineContent
           animationNum={1}
           timelineRef={pricingRef}
           customVariants={revealVariants}
         >
-          <PricingSwitch onSwitch={setAnnual} />
+          <PricingSwitch
+            onSwitch={setAnnual}
+            monthlyLabel={t("pricing.monthly")}
+            annualLabel={t("pricing.annual")}
+            saveLabel={t("pricing.save20")}
+          />
         </TimelineContent>
       </article>
 
       <div className="relative z-10 mx-auto grid max-w-5xl grid-cols-1 gap-4 px-4 py-4 pb-8 md:grid-cols-3">
-        {PLANS.map((plan, index) => (
+        {plans.map((plan, index) => (
           <TimelineContent
             key={plan.id}
             animationNum={2 + index}
@@ -292,14 +316,21 @@ export function PricingSection4() {
             >
               {plan.popular && (
                 <div className="bg-primary px-4 py-2 text-center text-[10px] font-medium uppercase tracking-widest text-black">
-                  Most popular
+                  {t("pricing.mostPopular")}
                 </div>
               )}
               <CardHeader className="text-left">
                 <h3 className="text-lg font-medium text-[#E1E0CC]">{plan.name}</h3>
                 <p className="mt-1 text-xs text-gray-500">{plan.description}</p>
                 <div className="mt-4">
-                  <PlanPrice plan={plan} annual={annual} />
+                  <PlanPrice
+                    plan={plan}
+                    annual={annual}
+                    customLabel={t("pricing.custom")}
+                    freeLabel={t("pricing.free")}
+                    billedYearlyLabel={t("pricing.billedYearly")}
+                    perMonthLabel={t("pricing.perMonth")}
+                  />
                 </div>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col pt-0">

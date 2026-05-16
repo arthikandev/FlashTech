@@ -110,7 +110,7 @@ export function HeroSection() {
             type="button"
             className="lg:hidden flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-[#E1E0CC]"
             onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
+            aria-label={t("hero.menuAria")}
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -139,9 +139,7 @@ export function HeroSection() {
                 transition={{ delay: 0.4, duration: 0.7, ease }}
               >
                 <p className="text-sm sm:text-base text-[#E1E0CC]/95 leading-relaxed">
-                  Know every visitor before your AI speaks. Pre-conversation intelligence scores
-                  intent, syncs CRM context, and personalises your Beyond Presence avatar in under
-                  2 seconds.
+                  {t("hero.tagline")}
                 </p>
                 <div className="mt-6">
                   <Link

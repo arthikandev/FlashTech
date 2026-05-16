@@ -4,19 +4,14 @@ import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { AboutIntelligenceFlow } from "../components/AboutIntelligenceFlow";
 import { AnimatedLetter } from "../components/AnimatedLetter";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const OUTCOMES = [
-  "Faster conversion — personalised openers from visit one",
-  "Lower bounce — avatar speaks with CRM context immediately",
-  "Higher CSAT — visitors feel recognised, not interrogated",
-] as const;
-
-const bodyText =
-  "PresenceIQ is pre-conversation customer intelligence for enterprise AI avatars. When someone lands on your site, we fingerprint the visitor, fetch CRM via n8n, score intent with GPT-4o, and inject context into Beyond Presence — all before the avatar speaks.";
+const OUTCOME_KEYS = ["about.outcome0", "about.outcome1", "about.outcome2"] as const;
 
 export function AboutSection() {
+  const { t } = useLandingLocale();
   const listRef = useRef<HTMLUListElement>(null);
   const listInView = useInView(listRef, { once: true, margin: "-80px" });
 
@@ -31,22 +26,22 @@ export function AboutSection() {
       >
         <div className="lg:col-span-5">
           <p className="mb-4 text-[10px] uppercase tracking-[0.2em] bg-gradient-to-r from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent">
-            Our story
+            {t("about.eyebrow")}
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[#E1E0CC] leading-[1.1]">
-            We read the visitor before the avatar speaks.
+            {t("about.title")}
           </h2>
           <ul ref={listRef} className="mt-8 space-y-4">
-            {OUTCOMES.map((item, i) => (
+            {OUTCOME_KEYS.map((key, i) => (
               <motion.li
-                key={item}
+                key={key}
                 className="flex items-start gap-3 text-sm text-gray-400"
                 initial={{ opacity: 0, x: -12 }}
                 animate={listInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -12 }}
                 transition={{ duration: 0.45, delay: i * 0.08, ease }}
               >
                 <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                {item}
+                {t(key)}
               </motion.li>
             ))}
           </ul>
@@ -54,7 +49,7 @@ export function AboutSection() {
             to="/onboard"
             className="mt-8 inline-flex items-center gap-2 text-sm text-primary hover:opacity-80 transition-opacity"
           >
-            Start building
+            {t("about.cta")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -78,7 +73,7 @@ export function AboutSection() {
             transition={{ duration: 0.5, delay: 0.2, ease }}
           >
             <AnimatedLetter
-              text={bodyText}
+              text={t("about.body")}
               className="text-sm sm:text-base text-gray-400 leading-relaxed"
             />
           </motion.div>

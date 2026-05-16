@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatedCounter } from "../components/AnimatedCounter";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 type FeedItem = { id: string; tag: string; message: string };
 
@@ -46,6 +47,7 @@ function BrowserChrome({ children }: { children: ReactNode }) {
 }
 
 export function DashboardPreviewSection() {
+  const { t } = useLandingLocale();
   const [feed, setFeed] = useState<FeedItem[]>(INITIAL_FEED);
   const [eventIndex, setEventIndex] = useState(0);
 
@@ -65,9 +67,9 @@ export function DashboardPreviewSection() {
     <section id="preview" className="section-pad bg-[#101010] px-4 border-y border-[#212121]">
       <div className="max-w-6xl mx-auto">
         <SectionHeading
-          eyebrow="Live product preview"
-          title="Your command centre for every visitor"
-          subtitle="Real-time sessions, intent heatmaps, and AI intelligence feed — the same dashboard your team uses after embed"
+          eyebrow={t("dashboard.eyebrow")}
+          title={t("dashboard.title")}
+          subtitle={t("dashboard.subtitle")}
         />
 
         <motion.div

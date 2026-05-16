@@ -1,42 +1,21 @@
+import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Bot, MessageSquare, Sparkles, Users, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/utils";
+import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const COMPARISONS: Array<{
-  icon: LucideIcon;
-  without: string;
-  with: string;
-}> = [
-  {
-    icon: Bot,
-    without: "Avatar that reacts to what you say",
-    with: "Avatar that already knows who you are",
-  },
-  {
-    icon: MessageSquare,
-    without: "Generic: Hi, how can I help you?",
-    with: "Welcome back Sarangan — shall we pick up where you left off?",
-  },
-  {
-    icon: Sparkles,
-    without: "Same system prompt for all visitors",
-    with: "Dynamic prompt built per visitor from live intelligence",
-  },
-  {
-    icon: Users,
-    without: "Single use case, single industry",
-    with: "Six enterprise industries — one unified platform",
-  },
-  {
-    icon: Zap,
-    without: "Chatbot with a face",
-    with: "Conversation intelligence layer for enterprise",
-  },
-];
+const COMPARISON_ICONS = [Bot, MessageSquare, Sparkles, Users, Zap] as const;
+const COMPARISON_KEY_PAIRS = [
+  ["insight.c0.without", "insight.c0.with"],
+  ["insight.c1.without", "insight.c1.with"],
+  ["insight.c2.without", "insight.c2.with"],
+  ["insight.c3.without", "insight.c3.with"],
+  ["insight.c4.without", "insight.c4.with"],
+] as const;
 
 const gridVariants = {
   hidden: {},
@@ -59,11 +38,15 @@ function ComparisonCard({
   icon: Icon,
   without,
   with: withText,
+  withoutLabel,
+  withLabel,
   index,
 }: {
   icon: LucideIcon;
   without: string;
   with: string;
+  withoutLabel: string;
+  withLabel: string;
   index: number;
 }) {
   const reducesMotion = useReducedMotion();
@@ -90,7 +73,7 @@ function ComparisonCard({
       <div className="relative bg-black/60 p-4 sm:p-5">
         <motion.div className="mb-3 flex items-center gap-2">
           <Icon className="h-4 w-4 text-gray-600 transition-colors duration-300 group-hover:text-gray-500" />
-          <span className="text-[10px] uppercase tracking-widest text-gray-600">Without</span>
+          <span className="text-[10px] uppercase tracking-widest text-gray-600">{withoutLabel}</span>
         </motion.div>
         <p className="text-sm leading-relaxed text-gray-500">{without}</p>
       </div>
@@ -123,7 +106,7 @@ function ComparisonCard({
             <Icon className="h-4 w-4 text-[#dedbc8]" aria-hidden />
           </motion.span>
           <span className="text-[10px] uppercase tracking-widest text-[#dedbc8]">
-            With PresenceIQ
+            {withLabel}
           </span>
         </div>
         <p className="relative text-sm leading-relaxed text-[#E1E0CC]">{withText}</p>
@@ -133,6 +116,17 @@ function ComparisonCard({
 }
 
 export function InsightSection() {
+  const { t } = useLandingLocale();
+  const comparisons = useMemo(
+    () =>
+      COMPARISON_KEY_PAIRS.map(([withoutKey, withKey], i) => ({
+        icon: COMPARISON_ICONS[i],
+        without: t(withoutKey),
+        with: t(withKey),
+      })),
+    [t],
+  );
+
   return (
     <section id="insight" className="section-pad border-y border-[#212121] bg-[#101010] px-4">
       <div className="mx-auto max-w-6xl">
@@ -143,9 +137,9 @@ export function InsightSection() {
           transition={{ duration: 0.55, ease }}
         >
           <SectionHeading
-            eyebrow="The core insight"
-            title="What makes PresenceIQ 10/10"
-            subtitle="Every other team builds reactive chatbots. PresenceIQ builds pre-conversation intelligence."
+            eyebrow={t("insight.eyebrow")}
+            title={t("insight.title")}
+            subtitle={t("insight.subtitle")}
           />
         </motion.div>
 
@@ -156,12 +150,14 @@ export function InsightSection() {
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
         >
-          {COMPARISONS.map((row, i) => (
+          {comparisons.map((row, i) => (
             <ComparisonCard
               key={row.without}
               icon={row.icon}
               without={row.without}
               with={row.with}
+              withoutLabel={t("insight.without")}
+              withLabel={t("insight.with")}
               index={i}
             />
           ))}

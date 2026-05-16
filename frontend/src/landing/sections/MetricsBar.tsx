@@ -1,10 +1,12 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { MetricsPartnerStrip } from "@/landing/components/MetricsPartnerStrip";
+import { useLandingLocale } from "@/landing/i18n/LandingLocaleProvider";
 import { PREVIEW_VIDEO_SRC } from "@/lib/previewVideo";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function MetricsBar() {
+  const { t } = useLandingLocale();
   const reducesMotion = useReducedMotion();
 
   return (
@@ -37,11 +39,10 @@ export function MetricsBar() {
           transition={{ duration: 0.55, ease }}
         >
           <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
-            Trusted stack
+            {t("metrics.trustedStack")}
           </p>
           <p className="mx-auto mt-4 max-w-2xl font-serif text-lg leading-snug tracking-tight text-[#E1E0CC] sm:text-xl md:text-2xl">
-            Production-grade partners powering real-time inference, workflows, speech, and live
-            video.
+            {t("metrics.subtitle")}
           </p>
         </motion.div>
 
@@ -53,7 +54,7 @@ export function MetricsBar() {
           className="pt-2 md:pt-4"
         >
           <p className="mb-7 text-center text-xs font-medium uppercase tracking-[0.2em] bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent sm:mb-8 sm:text-sm">
-            Powered by
+            {t("metrics.poweredBy")}
           </p>
           <MetricsPartnerStrip reducedMotion={!!reducesMotion} />
         </motion.div>
