@@ -329,10 +329,10 @@ export function CinematicFooter() {
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 mt-20 w-full max-w-5xl mx-auto">
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 sm:px-6 mt-16 sm:mt-20 w-full max-w-5xl mx-auto">
             <h2
               ref={headingRef}
-              className="text-5xl md:text-8xl font-black footer-text-glow tracking-tighter mb-12 text-center"
+              className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black footer-text-glow tracking-tighter mb-8 sm:mb-12 text-center"
             >
               Ready to begin?
             </h2>
@@ -341,14 +341,14 @@ export function CinematicFooter() {
                 <MagneticButton
                   as={Link}
                   to="/demos/seylan"
-                  className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base"
+                  className="footer-glass-pill w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-full text-foreground font-bold text-sm md:text-base text-center"
                 >
                   See live demo
                 </MagneticButton>
                 <MagneticButton
                   as={Link}
                   to="/dashboard"
-                  className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base"
+                  className="footer-glass-pill w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-full text-foreground font-bold text-sm md:text-base text-center"
                 >
                   Open dashboard
                 </MagneticButton>

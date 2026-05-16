@@ -113,7 +113,7 @@ export function PricingCards({
     <section
       id="pricing"
       className={cn(
-        "pricing-section relative w-full overflow-hidden isolate py-24 md:py-32 bg-background text-foreground",
+        "pricing-section relative w-full overflow-hidden isolate py-16 sm:py-24 md:py-32 bg-background text-foreground",
         ready && "is-ready"
       )}
     >

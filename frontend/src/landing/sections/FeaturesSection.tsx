@@ -89,7 +89,7 @@ function ChecklistCard({
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="relative min-h-screen bg-background px-4 py-20 md:py-28 transition-colors">
+    <section id="features" className="relative min-h-0 md:min-h-screen bg-background px-3 sm:px-4 py-16 sm:py-20 md:py-28 transition-colors">
       <div className="bg-noise absolute inset-0 opacity-[0.15] pointer-events-none" />
       <div className="relative max-w-7xl mx-auto">
         <div className="text-center mb-12 md:mb-16">

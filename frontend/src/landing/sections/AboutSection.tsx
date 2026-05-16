@@ -6,8 +6,8 @@ const bodyText =
 
 export function AboutSection() {
   return (
-    <section id="about" className="bg-background px-4 py-20 md:py-28 lg:py-32 transition-colors">
-      <div className="max-w-6xl mx-auto bg-card border border-border rounded-2xl md:rounded-3xl px-6 py-14 md:px-16 md:py-20 text-center">
+    <section id="about" className="bg-background px-3 sm:px-4 py-16 sm:py-20 md:py-28 lg:py-32 transition-colors">
+      <div className="max-w-6xl mx-auto bg-card border border-border rounded-xl sm:rounded-2xl md:rounded-3xl px-4 sm:px-6 py-10 sm:py-14 md:px-16 md:py-20 text-center">
         <p className="text-primary text-[10px] sm:text-xs uppercase tracking-widest mb-8">
           Pre-conversation intelligence
         </p>

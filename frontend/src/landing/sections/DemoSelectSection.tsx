@@ -48,7 +48,7 @@ export function DemoSelectSection() {
   return (
     <section
       id="demos"
-      className="relative bg-background px-4 py-20 md:py-28 transition-colors overflow-hidden"
+      className="relative bg-background px-3 sm:px-4 py-16 sm:py-20 md:py-28 transition-colors overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_50%_at_50%_0%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_55%)]" />
 
@@ -63,7 +63,7 @@ export function DemoSelectSection() {
           <p className="text-primary text-xs uppercase tracking-[0.2em] mb-4">
             Choose your demo
           </p>
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium text-foreground tracking-tight">
+          <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl font-medium text-foreground tracking-tight px-2">
             Select an enterprise vertical
           </h2>
           <p className="text-muted-foreground text-base mt-3 max-w-lg mx-auto">
@@ -162,7 +162,7 @@ export function DemoSelectSection() {
           </div>
           <Link
             to={active.to}
-            className="inline-flex items-center gap-2 bg-primary text-[var(--primary-foreground)] font-semibold text-sm pl-5 pr-1.5 py-1.5 hover:gap-3 transition-all shrink-0"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-[var(--primary-foreground)] font-semibold text-sm pl-5 pr-1.5 py-1.5 hover:gap-3 transition-all shrink-0"
           >
             Open {active.label}
             <span className="flex items-center justify-center bg-foreground w-9 h-9">

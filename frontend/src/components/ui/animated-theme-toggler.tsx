@@ -206,26 +206,30 @@ export const AnimatedThemeToggler = ({
       flushSync(applyTheme);
     });
 
-    if (typeof transition?.finished?.finally === "function") {
-      transition.finished.finally(cleanup);
-    } else {
-      cleanup();
-    }
+    const whenTransitionDone =
+      transition?.finished != null ? transition.finished : Promise.resolve();
 
-    const ready = transition?.ready;
-    if (ready && typeof ready.then === "function") {
-      ready.then(() => {
-        document.documentElement.animate(
-          { clipPath },
-          {
-            duration,
-            easing: shape === "star" ? "linear" : "ease-in-out",
-            fill: "forwards",
-            pseudoElement: "::view-transition-new(root)",
-          }
-        );
-      });
-    }
+    const whenClipAnimationDone =
+      transition?.ready != null
+        ? transition.ready.then(() => {
+            const animation = document.documentElement.animate(
+              { clipPath },
+              {
+                duration,
+                easing: shape === "star" ? "linear" : "ease-in-out",
+                fill: "forwards",
+                pseudoElement: "::view-transition-new(root)",
+              }
+            );
+            return animation.finished;
+          })
+        : Promise.resolve();
+
+    Promise.all([whenTransitionDone, whenClipAnimationDone])
+      .catch(() => {
+        /* View transition or clip animation may abort (e.g. rapid toggles). */
+      })
+      .finally(cleanup);
   }, [shape, fromCenter, duration, isDark]);
 
   return (

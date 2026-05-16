@@ -36,7 +36,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-background text-foreground grid lg:grid-cols-2">
+    <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-background text-foreground flex flex-col lg:grid lg:grid-cols-2">
       <div className="relative flex flex-col h-full min-h-0 border-r border-border bg-card-elevated">
         <div className="noise-overlay pointer-events-none absolute inset-0 opacity-25 mix-blend-overlay" />
 
