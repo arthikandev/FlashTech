@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  notes        Note[]
+  quizAttempts QuizAttempt[]
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String   @db.Text
+  summary   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcards   Flashcard[]
+  quizAttempts QuizAttempt[]
+
+  @@index([userId])
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  noteId    String
+  question  String
+  answer    String   @db.Text
+  createdAt DateTime @default(now())
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+}
+
+model QuizAttempt {
+  id      String   @id @default(cuid())
+  userId  String
+  noteId  String
+  score   Int
+  total   Int
+  takenAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  note Note @relation(fields: [noteId], references: [id])
+
+  @@index([userId])
+  @@index([noteId])
+}
