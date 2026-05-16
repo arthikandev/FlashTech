@@ -18,7 +18,7 @@ export function LoginPage() {
       animate={{ opacity: 1 }}
       className="brand-theme fixed inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-background text-foreground lg:grid lg:grid-cols-2"
     >
-      <motion.div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
+      <div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
         <motion.div
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
@@ -48,7 +48,7 @@ export function LoginPage() {
                 Operator dashboard and live session intelligence.
               </p>
 
-              <motion.div className="mt-9 flex flex-col gap-4">
+              <div className="mt-9 flex flex-col gap-4">
                 {!clerkEnabled ? (
                   <p className="text-sm text-muted-foreground">
                     Set <code className="text-foreground">VITE_CLERK_PUBLISHABLE_KEY</code> in{" "}
@@ -71,11 +71,11 @@ export function LoginPage() {
                     Create one
                   </Link>
                 </p>
-              </motion.div>
+              </div>
             </motion.div>
-          </motion.div>
+          </div>
         </motion.div>
-      </motion.div>
+      </div>
 
       <AuthSidePanel />
     </motion.div>
