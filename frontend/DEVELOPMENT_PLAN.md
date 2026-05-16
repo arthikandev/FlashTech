@@ -1,47 +1,133 @@
 # Frontend & Demo Lead — Development Plan
 
-**Owner**: Person 3  
-**Branch**: `feature/frontend-person3`  
-**Tools**: React/Vite, Convex React client, Tailwind
+**Owner:** Person 3  
+**Branch:** `feature/frontend-person3`  
+**Tools:** React, Vite, TypeScript, Tailwind, Convex React client  
+**Guide:** [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)
 
-## Milestones
+---
 
-- [ ] Hour 4 — Seylan Bank demo site with embed placeholder
-- [ ] Hour 10 — Embed live; page reload shows visitor in dashboard
-- [ ] Hour 15 — Live dashboard with intent scores (reactive)
-- [ ] Hour 24 — 3 demo sites + pitch deck + 10 rehearsals
+## Team checkpoints (your column)
 
-## Phase 1 — Foundation (0–4h)
+Aligned with [docs/DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) — do not edit that file; update checkboxes here.
 
-- [ ] Scaffold `frontend/` (Vite + React recommended)
-- [ ] Build fake Seylan Bank landing page (pricing page prominent)
-- [ ] Add embed script tag — see `frontend/.env.example` and `docs/ENV.md`
-- [ ] Seed fake CRM JSON — `frontend/public/fake-crm.json`
-- [ ] Second screen layout for Slack demo
+| Hour | Checkpoint | Done |
+|------|------------|------|
+| 4 | Embed + visitor on Seylan demo | [ ] |
+| 10 | Reload shows visitor in dashboard (Sarangan E2E) | [ ] |
+| 15 | Live dashboard with intent scores (reactive) | [ ] |
+| 20 | Full demo script ready | [ ] |
+| 24 | 3 demo sites + pitch + 10 rehearsals | [ ] |
 
-## Phase 2 — Demo sites (4–10h)
+---
 
-- [ ] Seylan Bank — `embedKey: seylan-demo`
-- [ ] CloudMetrics SaaS — `embedKey: cloudmetrics-demo`
-- [ ] Coral Resort Hotel — `embedKey: coral-demo`
+## Repo layout (frontend only)
 
-## Phase 3 — Live dashboard (10–18h)
+```
+frontend/
+  README.md
+  DEVELOPMENT_GUIDE.md
+  DEVELOPMENT_PLAN.md          ← this file
+  .env.example / .env.local
+  package.json
+  vite.config.ts
+  tailwind.config.js
+  index.html
+  src/
+    main.tsx
+    App.tsx
+    index.css
+    lib/convex.tsx             # ConvexProvider
+    convex/
+      api.ts                   # Client query refs (paths match backend)
+      types.ts                 # Response shapes for dashboard
+    components/
+      EmbedScript.tsx
+      Layout.tsx
+    dashboard/
+      LiveSessions.tsx
+      SessionDetail.tsx
+      DashboardPage.tsx
+    demos/
+      SeylanPage.tsx
+      CloudMetricsPage.tsx
+      CoralPage.tsx
+      DemoLayout.tsx
+  public/
+    fake-crm.json
+```
 
-- [ ] Convex provider — `VITE_CONVEX_URL` from Person 2
-- [ ] `listLiveSessions` — real-time session table
-- [ ] `getSessionDetail` — transcript, intent arc, action items
+Convex queries: `src/convex/api.ts` (client shim). ID types: `backend/convex/_generated/dataModel` (types only).
 
-## Depends on Person 2
+---
 
-- [x] API contract + query names in `docs/API_CONTRACT.md`
-- [ ] Vercel backend URL for embed `src`
-- [ ] Convex deployment URL
+## Phase 0 — Setup (0–1h)
+
+- [x] `README.md` + `DEVELOPMENT_GUIDE.md`
+- [x] Scaffold Vite + React + TypeScript + Tailwind
+- [x] `ConvexProvider` + `VITE_CONVEX_URL`
+- [x] React Router: home, dashboard, three demos
+- [ ] Copy `.env.example` → `.env.local` on your machine
+
+---
+
+## Phase 1 — Foundation (1–4h) → Hour 4
+
+- [x] Fake Seylan Bank page (pricing prominent)
+- [x] `EmbedScript` using `VITE_BACKEND_URL`
+- [x] `public/fake-crm.json` (seed CRM)
+- [ ] Second-screen layout polish (dashboard full-width for demo)
+- [ ] Verify `presenceiq:ready` with backend running
+
+---
+
+## Phase 2 — Demo sites (4–10h) → Hour 10
+
+- [x] Seylan — `embedKey: seylan-demo`
+- [x] CloudMetrics — `embedKey: cloudmetrics-demo`
+- [x] Coral — `embedKey: coral-demo`
+- [ ] Reload test: same browser → dashboard updates without refresh
+- [ ] Record demo URLs in README live table
+
+---
+
+## Phase 3 — Live dashboard (10–18h) → Hour 15
+
+- [x] `businesses.getByEmbedKey` → `businessId` selector
+- [x] `intelligence.listLiveSessions` — session table
+- [x] `intelligence.getSessionDetail` — detail panel
+- [ ] Intent scores visible after P1+P2 pipeline run
+- [ ] UI polish: intent badge, opener, recommended action
+
+---
+
+## Phase 4 — Demo polish (18–24h) → Hour 20–24
+
+- [ ] Pitch deck assets in `frontend/` (or linked deck)
+- [ ] Rehearsal script (steps 1–2, 5–6)
+- [ ] Frontend deploy (Vercel/Netlify) — env: `VITE_BACKEND_URL`, `VITE_CONVEX_URL`
+- [ ] 10 rehearsals logged
+- [ ] Live URLs filled in README
+
+---
+
+## Depends on Person 2 (request via Slack; no backend edits)
+
+- [x] API contract + query names — [`docs/API_CONTRACT.md`](../docs/API_CONTRACT.md)
+- [ ] Production `VITE_BACKEND_URL` (Vercel backend URL for embed `src`)
+- [ ] Confirmed `VITE_CONVEX_URL` (dev + prod after `convex deploy`)
+
+---
 
 ## Embed snippet
 
 ```html
 <script src="http://localhost:3000/api/embed/seylan-demo" async></script>
 ```
+
+In React, use `EmbedScript` with `embedKey="seylan-demo"` and `import.meta.env.VITE_BACKEND_URL`.
+
+---
 
 ## Blockers / notes
 
