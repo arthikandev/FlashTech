@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "setup": "node ../scripts/setup-local-env.mjs",
+    "convex:sync": "cd ../backend && npx convex dev --once",
     "dev": "vite --mode development",
     "dev:deployed": "vite --mode production",
     "build:avatar": "bash scripts/avatar-bundle-or-skip.sh",

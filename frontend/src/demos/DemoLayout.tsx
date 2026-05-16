@@ -6,18 +6,26 @@ import { DemoAvatarStatus } from "@/components/DemoAvatarStatus";
 import { EmbedScript } from "@/components/EmbedScript";
 
 type Props = {
+  /** Shown above the title (defaults to “Enterprise demo”). */
+  industryLabel?: string;
   title: string;
   subtitle: string;
   embedKey: string;
   children: ReactNode;
 };
 
-export function DemoLayout({ title, subtitle, embedKey, children }: Props) {
+export function DemoLayout({
+  industryLabel = "Enterprise demo",
+  title,
+  subtitle,
+  embedKey,
+  children,
+}: Props) {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-primary text-xs uppercase tracking-widest">Enterprise demo</p>
+          <p className="text-primary text-xs uppercase tracking-widest">{industryLabel}</p>
           <h1 className="text-2xl sm:text-3xl font-serif text-[#E1E0CC] mt-1">{title}</h1>
           <p className="text-gray-500 text-sm mt-1">{subtitle}</p>
         </div>
