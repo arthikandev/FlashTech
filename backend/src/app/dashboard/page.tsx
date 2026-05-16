@@ -61,10 +61,13 @@ export default function DashboardPage() {
   const authReady = clerkLoaded && !convexAuthLoading;
   const signedIn = Boolean(isSignedIn && isAuthenticated);
 
-  const demoSessions = useQuery(
+  const demoSessionsPage = useQuery(
     api.intelligence.listLiveSessionsDemo,
-    authReady && !signedIn ? { embedKey: SEYLAN_EMBED_KEY } : "skip"
+    authReady && !signedIn
+      ? { embedKey: SEYLAN_EMBED_KEY, paginationOpts: { numItems: 50, cursor: null } }
+      : "skip"
   );
+  const demoSessions = demoSessionsPage?.page;
 
   const memberships = useQuery(
     api.businessMembers.listForCurrentUser,
@@ -82,10 +85,13 @@ export default function DashboardPage() {
   const activeBusinessId: Id<"businesses"> | undefined =
     memberships?.[0]?.business?._id ?? seylanBusiness?._id;
 
-  const sessions = useQuery(
+  const sessionsPage = useQuery(
     api.intelligence.listLiveSessions,
-    signedIn && activeBusinessId ? { businessId: activeBusinessId } : "skip"
+    signedIn && activeBusinessId
+      ? { businessId: activeBusinessId, paginationOpts: { numItems: 50, cursor: null } }
+      : "skip"
   );
+  const sessions = sessionsPage?.page;
 
   async function handleLinkSeylan() {
     if (!seylanBusiness?._id) return;

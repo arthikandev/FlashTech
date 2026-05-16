@@ -1,0 +1,28 @@
+export const enMessages = {
+  "nav.ourStory": "Our story",
+  "nav.pipeline": "Pipeline",
+  "nav.preview": "Preview",
+  "nav.pricing": "Pricing",
+  "nav.product": "Product",
+  "nav.demos": "Demos",
+  "nav.dashboard": "Dashboard",
+  "auth.signIn": "Sign in",
+  "auth.getStarted": "Get started",
+  "auth.seeLiveDemo": "See live demo",
+  "lang.en": "EN",
+  "lang.ta": "தமிழ்",
+  "footer.columns.company": "Company",
+  "footer.columns.product": "Product",
+  "footer.about": "About",
+  "footer.contact": "Contact",
+  "footer.terms": "Terms",
+  "footer.privacy": "Privacy",
+  "footer.dashboard": "Dashboard",
+  "footer.demos": "Demos",
+  "footer.onboard": "Onboard",
+  "footer.embedSdk": "Embed SDK",
+  "footer.pricing": "Pricing",
+  "footer.apiDocs": "API docs",
+} as const;
+
+export type MessageKey = keyof typeof enMessages;

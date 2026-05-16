@@ -1,30 +1,44 @@
 import { useDashboardContext } from "../context/DashboardContext";
+import { AnalyticsScopeNote } from "../components/AnalyticsScopeNote";
+import { DashboardPageHeader } from "../components/DashboardPageHeader";
+import { KpiGrid } from "../sections/KpiGrid";
 import { ConversationAnalytics } from "../sections/ConversationAnalytics";
 import { IntentHeatmap } from "../sections/IntentHeatmap";
+import { useAnalyticsSessions } from "@/hooks/useAnalyticsSessions";
 
 export function AnalyticsPage() {
-  const { sessions, detail } = useDashboardContext();
+  const {
+    dashboardStats,
+    detail,
+    embedKey,
+    businessId,
+    canLoadMoreSessions,
+    hasMembershipForEmbed,
+  } = useDashboardContext();
 
-  return <AnalyticsContent sessions={sessions} detail={detail} />;
-}
+  const { sessions: analyticsSessions, loading: analyticsLoading } = useAnalyticsSessions({
+    embedKey,
+    businessId,
+    useAuthQueries: hasMembershipForEmbed,
+  });
 
-function AnalyticsContent({
-  sessions,
-  detail,
-}: {
-  sessions: ReturnType<typeof useDashboardContext>["sessions"];
-  detail: ReturnType<typeof useDashboardContext>["detail"];
-}) {
+  const chartSessions = analyticsLoading ? undefined : analyticsSessions;
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-lg font-semibold text-dash-ink">Analytics</h1>
-        <p className="text-xs text-dash-muted">
-          Conversation volume, intent distribution, and engagement heatmap
-        </p>
-      </div>
-      <ConversationAnalytics sessions={sessions} detail={detail} />
-      <IntentHeatmap sessions={sessions} />
+      <DashboardPageHeader
+        title="Analytics"
+        subtitle="Conversation volume, intent distribution, and engagement heatmap"
+      />
+      <KpiGrid sessions={chartSessions} stats={dashboardStats} />
+      <AnalyticsScopeNote
+        stats={dashboardStats}
+        loadedCount={analyticsSessions?.length ?? 0}
+        canLoadMore={canLoadMoreSessions}
+        chartSample
+      />
+      <ConversationAnalytics sessions={chartSessions} detail={detail} />
+      <IntentHeatmap sessions={chartSessions} />
     </div>
   );
 }

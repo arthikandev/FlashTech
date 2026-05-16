@@ -1,7 +1,13 @@
+import { useAuth } from "@clerk/clerk-react";
+import { useMutation } from "convex/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
+import { api, clerkEnabled } from "@/convex/api";
+import { fireConfettiFireworks } from "@/lib/confettiFireworks";
+import { setLastEmbedKey } from "@/lib/postAuth";
 import { showError, showSuccess, showPromise } from "@/lib/toast";
+import { markOnboardingComplete } from "./storage";
 
 type OnboardResult = {
   businessId: string;
@@ -23,6 +29,8 @@ const DEMO_EMBED_KEYS = new Set(["seylan-demo", "cloudmetrics-demo", "coral-demo
 
 export function BusinessWizard() {
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+  const onboardBusiness = useMutation(api.businesses.onboardBusiness);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [industry, setIndustry] = useState("bank");
@@ -40,6 +48,8 @@ export function BusinessWizard() {
       setRedirectIn((n) => {
         if (n <= 1) {
           clearInterval(t);
+          markOnboardingComplete();
+          setLastEmbedKey(result.embedKey);
           navigate(`/dashboard?embedKey=${encodeURIComponent(result.embedKey)}`);
           return 0;
         }
@@ -55,6 +65,35 @@ export function BusinessWizard() {
     setResult(null);
 
     try {
+      if (clerkEnabled && isSignedIn) {
+        const data = await showPromise(
+          onboardBusiness({
+            name,
+            industry: industry as "bank" | "saas" | "hotel" | "hospital" | "ecommerce" | "hr",
+            personaTone,
+            bpAgentId: bpAgentId.trim() || undefined,
+          }),
+          {
+            loading: "Creating your workspace…",
+            success: "Business created successfully",
+            error: "Onboarding failed",
+          }
+        );
+        const row = data as { businessId: string; embedKey: string };
+        setResult({
+          businessId: row.businessId,
+          embedKey: row.embedKey,
+          embedSnippet: fixSnippet("", row.embedKey),
+          embedUrl: `${backendUrl}/api/embed/${row.embedKey}`,
+        });
+        setStep(4);
+        fireConfettiFireworks();
+        if (bpAgentId.trim()) {
+          showSuccess("Beyond Presence agent linked to your tenant");
+        }
+        return;
+      }
+
       const json = await showPromise(
         fetch(`${backendUrl}/api/businesses/onboard`, {
           method: "POST",
@@ -88,6 +127,7 @@ export function BusinessWizard() {
         embedUrl: data.embedUrl ?? `${backendUrl}/api/embed/${data.embedKey}`,
       });
       setStep(4);
+      fireConfettiFireworks();
       if (bpAgentId.trim()) {
         showSuccess("Beyond Presence agent linked to your tenant");
       }

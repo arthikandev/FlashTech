@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
+import { BEYOND_PRESENCE_VIDEO_SRC } from "@/lib/previewVideo";
 
 const bullets = [
   "Hyper-realistic video avatar powered by Beyond Presence",
@@ -63,7 +64,11 @@ export function BeyondPresenceLiveSection() {
                 Beyond Presence
               </span>
             </div>
-            <BeyondPresenceFrame height={560} className="rounded-lg" />
+            <BeyondPresenceFrame
+              height={560}
+              className="rounded-lg"
+              videoSrc={BEYOND_PRESENCE_VIDEO_SRC}
+            />
           </div>
         </div>
       </div>

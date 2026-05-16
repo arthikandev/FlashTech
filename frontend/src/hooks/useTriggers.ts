@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/api";
+import { useConvexAuth, useQuery } from "convex/react";
+import { api, clerkEnabled } from "@/convex/api";
 import type { Id } from "@/convex/ids";
 
 export type TriggerRow = {
@@ -13,11 +13,30 @@ export type TriggerRow = {
   lastFiredAt?: number;
 };
 
-export function useTriggers(businessId: Id<"businesses"> | undefined) {
-  const triggers = useQuery(
+type Options = {
+  embedKey: string;
+  useAuthQueries: boolean;
+};
+
+export function useTriggers(
+  businessId: Id<"businesses"> | undefined,
+  { embedKey, useAuthQueries }: Options
+) {
+  const { isAuthenticated, isLoading: convexAuthLoading } = useConvexAuth();
+  const convexReady = !clerkEnabled || (isAuthenticated && !convexAuthLoading);
+  const useAuth = useAuthQueries && convexReady;
+
+  const authTriggers = useQuery(
     api.triggers.listByBusiness,
-    businessId ? { businessId } : "skip"
+    useAuth && businessId ? { businessId } : "skip"
   ) as TriggerRow[] | undefined;
+
+  const previewTriggers = useQuery(
+    api.triggers.listByBusinessDemo,
+    !useAuth && embedKey ? { embedKey } : "skip"
+  ) as TriggerRow[] | undefined;
+
+  const triggers = useAuth ? authTriggers : previewTriggers;
 
   return { triggers, loading: triggers === undefined };
 }

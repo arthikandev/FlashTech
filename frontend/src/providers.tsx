@@ -1,9 +1,11 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
+import { ConfettiAuthListener } from "@/components/ConfettiAuthListener";
 import { ConvexProvider } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
 import { useMemo, type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const convexUrlRaw = import.meta.env.VITE_CONVEX_URL as string | undefined;
 const clerkKeyRaw = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
@@ -41,7 +43,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   }
 
   const content = (
-    <>
+    <TooltipProvider>
       {children}
       <Toaster
         theme="dark"
@@ -54,7 +56,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
           },
         }}
       />
-    </>
+    </TooltipProvider>
   );
 
   if (!clerkKey) {
@@ -63,6 +65,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <ClerkProvider publishableKey={clerkKey}>
+      <ConfettiAuthListener />
       <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
         {content}
       </ConvexProviderWithClerk>

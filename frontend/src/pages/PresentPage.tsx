@@ -5,7 +5,7 @@ import { SlackMock } from "@/dashboard/SlackMock";
 /** Split-screen presenter layout for live pitch (step 4 + 5). */
 export function PresentPage() {
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="brand-theme min-h-screen bg-black flex flex-col">
       <header className="border-b border-[#212121] px-4 py-3 flex items-center justify-between">
         <span className="font-serif text-primary">PresenceIQ · Presenter</span>
         <div className="flex gap-4 text-xs text-gray-500">

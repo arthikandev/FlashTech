@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { requireBusinessMember } from "./lib/auth";
 
@@ -77,63 +78,121 @@ function formatPageTrail(
     .join(" → ");
 }
 
+async function visitorToLiveSession(ctx: QueryCtx, visitor: Doc<"visitors">) {
+  const intel = await ctx.db
+    .query("intelligence")
+    .withIndex("by_visitor", (q) => q.eq("visitorId", visitor._id))
+    .order("desc")
+    .take(1);
+  const conversation = await ctx.db
+    .query("conversations")
+    .withIndex("by_visitor", (q) => q.eq("visitorId", visitor._id))
+    .order("desc")
+    .take(1);
+  const crm = visitor.crmData;
+  return {
+    visitorId: visitor._id,
+    fingerprint: visitor.fingerprint,
+    name: crm?.name,
+    intentScore: intel[0]?.intentScore,
+    personalisedOpener: intel[0]?.personalisedOpener,
+    recommendedAction: intel[0]?.recommendedAction,
+    signals: intel[0]?.signals,
+    returnCount: visitor.returnCount,
+    lastSeenAt: visitor.lastSeenAt,
+    language: visitor.language,
+    pageTrail: formatPageTrail(visitor.pageHistory),
+    crmAccountType: crm?.accountType,
+    crmChurnRisk: crm?.churnRisk,
+    hasConversation: conversation.length > 0,
+    conversationOutcome: conversation[0]?.outcome,
+    conversationDuration: conversation[0]?.duration,
+  };
+}
+
 async function listSessionsForBusiness(ctx: QueryCtx, businessId: Id<"businesses">) {
   const visitors = await ctx.db
     .query("visitors")
-    .withIndex("by_business", (q) => q.eq("businessId", businessId))
+    .withIndex("by_business_lastSeen", (q) => q.eq("businessId", businessId))
     .order("desc")
     .take(50);
 
-  const sessions = await Promise.all(
-    visitors.map(async (visitor) => {
-      const intel = await ctx.db
-        .query("intelligence")
-        .withIndex("by_visitor", (q) => q.eq("visitorId", visitor._id))
-        .order("desc")
-        .take(1);
-      const conversation = await ctx.db
-        .query("conversations")
-        .withIndex("by_visitor", (q) => q.eq("visitorId", visitor._id))
-        .order("desc")
-        .take(1);
-      const crm = visitor.crmData;
-      return {
-        visitorId: visitor._id,
-        fingerprint: visitor.fingerprint,
-        name: crm?.name,
-        intentScore: intel[0]?.intentScore,
-        personalisedOpener: intel[0]?.personalisedOpener,
-        recommendedAction: intel[0]?.recommendedAction,
-        signals: intel[0]?.signals,
-        returnCount: visitor.returnCount,
-        lastSeenAt: visitor.lastSeenAt,
-        language: visitor.language,
-        pageTrail: formatPageTrail(visitor.pageHistory),
-        crmAccountType: crm?.accountType,
-        crmChurnRisk: crm?.churnRisk,
-        hasConversation: conversation.length > 0,
-        conversationOutcome: conversation[0]?.outcome,
-        conversationDuration: conversation[0]?.duration,
-      };
-    })
-  );
-
+  const sessions = await Promise.all(visitors.map((v) => visitorToLiveSession(ctx, v)));
   return sessions.sort((a, b) => b.lastSeenAt - a.lastSeenAt);
 }
 
+async function paginateSessionsForBusiness(
+  ctx: QueryCtx,
+  businessId: Id<"businesses">,
+  paginationOpts: { numItems: number; cursor: string | null }
+) {
+  const page = await ctx.db
+    .query("visitors")
+    .withIndex("by_business_lastSeen", (q) => q.eq("businessId", businessId))
+    .order("desc")
+    .paginate(paginationOpts);
+
+  const sessions = await Promise.all(page.page.map((v) => visitorToLiveSession(ctx, v)));
+
+  return {
+    ...page,
+    page: sessions,
+  };
+}
+
+/** Supports paginated clients and legacy `{ embedKey }` / `{ businessId }` callers. */
+async function resolveSessionsPage(
+  ctx: QueryCtx,
+  businessId: Id<"businesses">,
+  paginationOpts?: { numItems: number; cursor: string | null }
+) {
+  if (paginationOpts !== undefined) {
+    return paginateSessionsForBusiness(ctx, businessId, paginationOpts);
+  }
+  const sessions = await listSessionsForBusiness(ctx, businessId);
+  return {
+    page: sessions,
+    isDone: true,
+    continueCursor: "",
+  };
+}
+
 export const listLiveSessionsDemo = query({
-  args: { embedKey: v.string() },
-  handler: async (ctx, { embedKey }) => {
+  args: {
+    embedKey: v.string(),
+    paginationOpts: v.optional(paginationOptsValidator),
+  },
+  handler: async (ctx, { embedKey, paginationOpts }) => {
     const business = await businessForPreviewEmbed(ctx, embedKey);
-    return listSessionsForBusiness(ctx, business._id);
+    return resolveSessionsPage(ctx, business._id, paginationOpts);
   },
 });
 
 export const listLiveSessions = query({
+  args: {
+    businessId: v.id("businesses"),
+    paginationOpts: v.optional(paginationOptsValidator),
+  },
+  handler: async (ctx, { businessId, paginationOpts }) => {
+    await requireBusinessMember(ctx, businessId);
+    return resolveSessionsPage(ctx, businessId, paginationOpts);
+  },
+});
+
+/** Up to 50 recent visitors for charts — not paginated. */
+export const listAnalyticsSessions = query({
   args: { businessId: v.id("businesses") },
   handler: async (ctx, { businessId }) => {
     await requireBusinessMember(ctx, businessId);
     return listSessionsForBusiness(ctx, businessId);
+  },
+});
+
+export const listAnalyticsSessionsDemo = query({
+  args: { embedKey: v.string() },
+  handler: async (ctx, { embedKey }) => {
+    const business = await businessForPreviewEmbed(ctx, embedKey);
+    return listSessionsForBusiness(ctx, business._id);
   },
 });
 
@@ -207,5 +266,79 @@ export const listByBusiness = query({
       .withIndex("by_business", (q) => q.eq("businessId", businessId))
       .order("desc")
       .take(100);
+  },
+});
+
+const HOT_LEAD_THRESHOLD = 80;
+
+export const dashboardStats = query({
+  args: { businessId: v.id("businesses") },
+  handler: async (ctx, { businessId }) => {
+    await requireBusinessMember(ctx, businessId);
+    const sessions = await listSessionsForBusiness(ctx, businessId);
+
+    const withScore = sessions.filter((s) => s.intentScore != null);
+    const avgIntent =
+      withScore.length > 0
+        ? Math.round(
+            withScore.reduce((a, s) => a + (s.intentScore ?? 0), 0) / withScore.length
+          )
+        : null;
+    const conversations = sessions.filter((s) => s.hasConversation).length;
+    const hotLeadRate =
+      sessions.length > 0
+        ? Math.round(
+            (sessions.filter((s) => (s.intentScore ?? 0) >= HOT_LEAD_THRESHOLD).length /
+              sessions.length) *
+              100
+          )
+        : null;
+    const converted = sessions.filter((s) => s.conversationOutcome === "converted").length;
+    const conversionRate =
+      conversations > 0 ? Math.round((converted / conversations) * 100) : null;
+
+    return {
+      liveVisitors: sessions.length,
+      conversations,
+      hotLeadRate,
+      avgIntent,
+      conversionRate,
+    };
+  },
+});
+
+export const dashboardStatsDemo = query({
+  args: { embedKey: v.string() },
+  handler: async (ctx, { embedKey }) => {
+    const business = await businessForPreviewEmbed(ctx, embedKey);
+    const sessions = await listSessionsForBusiness(ctx, business._id);
+
+    const withScore = sessions.filter((s) => s.intentScore != null);
+    const avgIntent =
+      withScore.length > 0
+        ? Math.round(
+            withScore.reduce((a, s) => a + (s.intentScore ?? 0), 0) / withScore.length
+          )
+        : null;
+    const conversations = sessions.filter((s) => s.hasConversation).length;
+    const hotLeadRate =
+      sessions.length > 0
+        ? Math.round(
+            (sessions.filter((s) => (s.intentScore ?? 0) >= HOT_LEAD_THRESHOLD).length /
+              sessions.length) *
+              100
+          )
+        : null;
+    const converted = sessions.filter((s) => s.conversationOutcome === "converted").length;
+    const conversionRate =
+      conversations > 0 ? Math.round((converted / conversations) * 100) : null;
+
+    return {
+      liveVisitors: sessions.length,
+      conversations,
+      hotLeadRate,
+      avgIntent,
+      conversionRate,
+    };
   },
 });

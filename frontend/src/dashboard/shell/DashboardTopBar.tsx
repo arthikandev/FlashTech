@@ -1,6 +1,18 @@
 import { SignInButton, UserButton } from "@clerk/clerk-react";
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import type { ReactNode } from "react";
+import { useDeferredValue, useMemo, useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { clerkEnabled } from "@/convex/api";
 import { useDashboardContext } from "../context/DashboardContext";
 import { getPageTitle } from "./navConfig";
@@ -8,20 +20,23 @@ import { getPageTitle } from "./navConfig";
 type Props = {
   search: string;
   onSearchChange: (v: string) => void;
-  onOpenSidebar: () => void;
   onOpenNotifications: () => void;
   signedIn: boolean;
+  sidebarTrigger?: ReactNode;
 };
 
 export function DashboardTopBar({
   search,
   onSearchChange,
-  onOpenSidebar,
   onOpenNotifications,
   signedIn,
+  sidebarTrigger,
 }: Props) {
   const { pathname } = useLocation();
   const pageTitle = getPageTitle(pathname);
+  const [localSearch, setLocalSearch] = useState(search);
+  const deferredSearch = useDeferredValue(localSearch);
+
   const {
     embedKey,
     embedOptions,
@@ -32,103 +47,96 @@ export function DashboardTopBar({
     needsMembership,
   } = useDashboardContext();
 
+  useEffect(() => {
+    const t = window.setTimeout(() => onSearchChange(deferredSearch), 300);
+    return () => window.clearTimeout(t);
+  }, [deferredSearch, onSearchChange]);
+
+  const workspaceOptions = useMemo(() => embedOptions, [embedOptions]);
+
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-dash-border bg-dash-sidebar/95 px-4 backdrop-blur-sm lg:px-6">
-      <button
-        type="button"
-        onClick={onOpenSidebar}
-        className="rounded-md p-2 text-dash-muted hover:bg-dash-hover hover:text-dash-ink lg:hidden"
-        aria-label="Open menu"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
-      <div className="hidden sm:block min-w-0">
-        <p className="dash-label">Dashboard</p>
-        <p className="text-sm font-medium text-dash-ink">{pageTitle}</p>
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-sidebar/95 px-4 backdrop-blur-sm lg:px-6">
+      {sidebarTrigger}
+      <div className="hidden min-w-0 sm:block">
+        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+          Dashboard
+        </p>
+        <p className="text-sm font-medium">{pageTitle}</p>
       </div>
 
-      <label className="hidden md:flex items-center gap-2 text-xs text-dash-muted">
-        <span className="sr-only">Workspace</span>
-        <select
-          value={embedKey}
-          onChange={(e) => onEmbedKeyChange(e.target.value)}
-          className="rounded-md border border-dash-border bg-dash-surface px-2 py-1.5 text-xs text-dash-ink focus:border-dash-accent focus:outline-none"
-        >
-          {embedOptions.map((b) => (
-            <option key={b.key} value={b.key}>
-              {b.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select value={embedKey} onValueChange={(v) => v && onEmbedKeyChange(v)}>
+        <SelectTrigger className="hidden h-8 w-[140px] text-xs md:flex">
+          <SelectValue placeholder="Workspace" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {workspaceOptions.map((b) => (
+              <SelectItem key={b.key} value={b.key}>
+                {b.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      <div className="flex flex-1 max-w-md mx-auto">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dash-muted" />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search sessions…"
-            className="w-full rounded-md border border-dash-border bg-dash-surface py-2 pl-9 pr-3 text-sm text-dash-ink placeholder:text-dash-muted focus:border-dash-accent focus:outline-none"
-          />
-        </div>
+      <div className="relative mx-auto flex max-w-md flex-1">
+        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="search"
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
+          placeholder="Search sessions…"
+          className="h-9 pl-9"
+        />
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="hidden sm:flex items-center gap-1.5 text-[10px] text-dash-positive">
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="hidden items-center gap-1.5 text-[10px] text-chart-2 sm:flex">
           <span className="live-dot" />
           Live
         </span>
 
         {signedIn && needsMembership && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={linkToCurrentBusiness}
             disabled={linking}
-            className="hidden sm:inline rounded-md border border-dash-accent/40 px-2 py-1 text-[10px] text-dash-accent hover:bg-dash-accent/10"
+            className="hidden text-xs sm:inline-flex"
           >
             {linking ? "Linking…" : "Link workspace"}
-          </button>
+          </Button>
         )}
 
-        <button
-          type="button"
-          onClick={onOpenNotifications}
-          className="rounded-md p-2 text-dash-muted hover:bg-dash-hover hover:text-dash-ink"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
+        <Button type="button" variant="ghost" size="icon" onClick={onOpenNotifications} aria-label="Notifications">
+          <Bell />
+        </Button>
 
         <Link
           to="/dashboard/settings"
-          className="hidden sm:inline rounded-md px-2 py-1 text-[10px] text-dash-muted hover:text-dash-ink"
+          className="hidden rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground sm:inline"
         >
           Settings
         </Link>
 
         {clerkEnabled && !signedIn ? (
           <SignInButton mode="modal">
-            <button
-              type="button"
-              className="rounded-md border border-dash-accent/40 px-3 py-1.5 text-xs text-dash-accent"
-            >
+            <Button type="button" variant="outline" size="sm">
               Sign in
-            </button>
+            </Button>
           </SignInButton>
         ) : clerkEnabled ? (
           <UserButton afterSignOutUrl="/" />
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-dash-accent/20 text-xs font-bold text-dash-accent">
+          <span className="flex size-8 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
             PIQ
           </span>
         )}
       </div>
 
       {linkError ? (
-        <p className="absolute left-4 right-4 top-full mt-1 text-xs text-rose-400" role="alert">
+        <p className="absolute top-full right-4 left-4 mt-1 text-xs text-destructive" role="alert">
           {linkError}
         </p>
       ) : null}

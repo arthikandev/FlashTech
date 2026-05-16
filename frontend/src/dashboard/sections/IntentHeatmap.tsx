@@ -27,7 +27,7 @@ function bucketReturn(n: number): number {
 }
 
 function cellColor(intentIdx: number, count: number): string {
-  if (count === 0) return "bg-[#101010]";
+  if (count === 0) return "bg-muted/30";
   if (intentIdx === 0) return "bg-blue-500/30";
   if (intentIdx === 1) return "bg-violet-500/35";
   if (intentIdx === 2) return "bg-emerald-500/40";
@@ -86,7 +86,7 @@ export function IntentHeatmap({ sessions }: Props) {
         align="left"
         compact
       />
-      <div className="mt-2 rounded-xl border border-[#212121] glass-panel p-6">
+      <div className="mt-2 rounded-xl border border-border bg-card p-6">
         <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-2 text-xs">
           <div />
           {RETURN_BUCKETS.map((b) => (
@@ -103,7 +103,7 @@ export function IntentHeatmap({ sessions }: Props) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: (i * 3 + j) * 0.05 }}
-                  className={`aspect-square rounded-lg border border-[#212121]/50 flex items-center justify-center font-medium ${cellColor(i, count)}`}
+                  className={`flex aspect-square items-center justify-center rounded-lg border border-border/50 font-medium ${cellColor(i, count)}`}
                   style={{ opacity: 0.4 + (count / max) * 0.6 }}
                   title={`${count} visitors`}
                 >

@@ -37,6 +37,7 @@ export const MOBILE_TABS: NavItem[] = [
   { label: "Analytics", href: "/dashboard/analytics" },
   { label: "Workflow", href: "/dashboard/workflow" },
   { label: "Avatar", href: "/dashboard/avatar" },
+  { label: "Settings", href: "/dashboard/settings" },
 ];
 
 export const PAGE_TITLES: Record<string, string> = {

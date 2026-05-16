@@ -11,9 +11,10 @@ import type { Id } from "@/convex/ids";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useTriggers } from "@/hooks/useTriggers";
 import { showError } from "@/lib/toast";
+import { filterSessions, sortSessionsByIntent } from "@/lib/dashboard/sessionFilters";
 import { useAiFeedEvents, type FeedEvent } from "../hooks/useAiFeedEvents";
 import type { TriggerRow } from "@/hooks/useTriggers";
-import type { Business, LiveSession, SessionDetailResult } from "@/convex/types";
+import type { Business, DashboardStats, LiveSession, SessionDetailResult } from "@/convex/types";
 
 const DEFAULT_EMBED_KEY = "seylan-demo";
 
@@ -33,6 +34,8 @@ export type DashboardContextValue = {
   business: Business | null | undefined;
   businessId: Id<"businesses"> | undefined;
   sessions: LiveSession[] | undefined;
+  dashboardStats: DashboardStats | undefined;
+  filteredSessions: LiveSession[] | undefined;
   detail: SessionDetailResult | null | undefined;
   selectedVisitorId: Id<"visitors"> | null;
   setSelectedVisitorId: (id: Id<"visitors"> | null) => void;
@@ -47,8 +50,12 @@ export type DashboardContextValue = {
   linkError: string | null;
   linkToCurrentBusiness: () => void;
   needsMembership: boolean;
+  hasMembershipForEmbed: boolean;
   previewOnly: boolean;
   sessionsError: string | null;
+  canLoadMoreSessions: boolean;
+  sessionsLoadingMore: boolean;
+  loadMoreSessions: (numItems: number) => void;
 };
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -74,6 +81,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     clerkEnabled,
     business,
     sessions,
+    dashboardStats,
     detail,
     embedOptions,
     linking,
@@ -82,15 +90,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     needsMembership,
     previewOnly,
     sessionsError,
+    canLoadMoreSessions,
+    sessionsLoadingMore,
+    loadMoreSessions,
+    hasMembershipForEmbed,
   } = useDashboardData(embedKey, selectedVisitorId);
 
   useEffect(() => {
     if (sessionsError) showError(sessionsError);
   }, [sessionsError]);
 
+  const filteredSessions = useMemo(() => {
+    if (!sessions) return undefined;
+    return sortSessionsByIntent(filterSessions(sessions, search));
+  }, [sessions, search]);
+
   const { events: feedEvents, pulseIds } = useAiFeedEvents(sessions, detail);
   const businessId = business?._id;
-  const { triggers, loading: triggersLoading } = useTriggers(businessId);
+  const { triggers, loading: triggersLoading } = useTriggers(businessId, {
+    embedKey,
+    useAuthQueries: hasMembershipForEmbed,
+  });
 
   const workspaceLabel = useMemo(() => {
     const match = embedOptions.find((o) => o.key === embedKey);
@@ -115,6 +135,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     business,
     businessId,
     sessions,
+    dashboardStats,
+    filteredSessions,
     detail,
     selectedVisitorId,
     setSelectedVisitorId,
@@ -129,8 +151,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     linkError,
     linkToCurrentBusiness,
     needsMembership,
+    hasMembershipForEmbed,
     previewOnly,
     sessionsError,
+    canLoadMoreSessions,
+    sessionsLoadingMore,
+    loadMoreSessions,
   };
 
   return (

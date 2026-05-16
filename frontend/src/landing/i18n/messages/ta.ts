@@ -1,0 +1,28 @@
+import type { MessageKey } from "./en";
+
+export const taMessages: Record<MessageKey, string> = {
+  "nav.ourStory": "எங்கள் கதை",
+  "nav.pipeline": "பைப்லைன்",
+  "nav.preview": "முன்னோட்டம்",
+  "nav.pricing": "விலை",
+  "nav.product": "தயாரிப்பு",
+  "nav.demos": "டெமோக்கள்",
+  "nav.dashboard": "டாஷ்போர்டு",
+  "auth.signIn": "உள்நுழை",
+  "auth.getStarted": "தொடங்குங்கள்",
+  "auth.seeLiveDemo": "நேரடி டெமோ பாருங்கள்",
+  "lang.en": "EN",
+  "lang.ta": "தமிழ்",
+  "footer.columns.company": "நிறுவனம்",
+  "footer.columns.product": "தயாரிப்பு",
+  "footer.about": "பற்றி",
+  "footer.contact": "தொடர்பு",
+  "footer.terms": "விதிமுறைகள்",
+  "footer.privacy": "தனியுரிமை",
+  "footer.dashboard": "டாஷ்போர்டு",
+  "footer.demos": "டெமோக்கள்",
+  "footer.onboard": "ஆன்போர்டு",
+  "footer.embedSdk": "எம்பெட் SDK",
+  "footer.pricing": "விலை",
+  "footer.apiDocs": "API ஆவணங்கள்",
+};

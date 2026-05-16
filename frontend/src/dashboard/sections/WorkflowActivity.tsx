@@ -1,20 +1,15 @@
-import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { TriggerRow } from "@/hooks/useTriggers";
-
-const STEPS = [
-  { key: "crm", label: "CRM fetch" },
-  { key: "intent", label: "Intent scoring" },
-  { key: "bp", label: "BP agent sync" },
-  { key: "slack", label: "Slack alert" },
-  { key: "email", label: "Email follow-up" },
-] as const;
+import { computeWorkflowSteps } from "@/lib/dashboard/workflowSteps";
 
 type Props = {
   hasIntelligence: boolean;
   hasConversation: boolean;
+  hasCrmData: boolean;
+  hasBpAgent: boolean;
   triggers?: TriggerRow[];
   triggersLoading?: boolean;
 };
@@ -22,101 +17,73 @@ type Props = {
 export function WorkflowActivity({
   hasIntelligence,
   hasConversation,
+  hasCrmData,
+  hasBpAgent,
   triggers,
   triggersLoading,
 }: Props) {
-  const firedSlack = triggers?.some(
-    (t) => t.action === "slack_alert" && t.lastFiredAt != null
-  );
-  const firedCrm = triggers?.some(
-    (t) => t.action === "crm_push" && t.lastFiredAt != null
-  );
-
-  const stepDone: Record<string, boolean> = {
-    crm: hasIntelligence,
-    intent: hasIntelligence,
-    bp: hasIntelligence,
-    slack: firedSlack ?? (hasIntelligence && (triggers?.length ?? 0) > 0),
-    email: firedCrm ?? hasConversation,
-  };
-
-  const completedCount = STEPS.filter((s) => stepDone[s.key]).length;
+  const steps = computeWorkflowSteps({
+    hasIntelligence,
+    hasConversation,
+    hasCrmData,
+    hasBpAgent,
+    triggers,
+  });
+  const completedCount = steps.filter((s) => s.done).length;
 
   return (
-    <section id="workflow">
-      <SectionHeading
-        title="AI Workflow Activity"
-        subtitle="n8n automation pipeline status"
-        align="left"
-        compact
-      />
-      {triggersLoading ? (
-        <LoadingState variant="inline" label="Loading workflow triggers…" />
-      ) : (
-        <div className="rounded-xl border border-[#212121] glass-panel p-6 overflow-x-auto">
-          <motion.div className="flex items-center gap-2 min-w-[600px]">
-            {STEPS.map((step, i) => {
-              const done = stepDone[step.key];
-              const trigger = triggers?.find((t) =>
-                step.key === "slack"
-                  ? t.action === "slack_alert"
-                  : step.key === "email"
-                    ? t.action === "crm_push" || t.action === "email_sequence"
-                    : false
-              );
-              return (
-                <div key={step.key} className="flex items-center flex-1 min-w-0">
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: i * 0.08 }}
-                    className="flex flex-col items-center flex-1"
-                  >
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Pipeline status</CardTitle>
+        <CardDescription>End-to-end automation from visitor to n8n</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {triggersLoading ? (
+          <Skeleton className="h-24 w-full" />
+        ) : (
+          <>
+            <div className="flex min-w-[560px] items-center gap-2 overflow-x-auto">
+              {steps.map((step, i) => (
+                <div key={step.key} className="flex min-w-0 flex-1 items-center">
+                  <div className="flex flex-1 flex-col items-center">
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
-                        done
-                          ? "border-primary bg-primary/20 text-primary shadow-[0_0_20px_rgba(222,219,200,0.2)]"
-                          : "border-[#212121] bg-[#101010] text-gray-600"
+                      className={`flex size-10 items-center justify-center rounded-full border-2 ${
+                        step.done
+                          ? "border-primary bg-primary/20 text-primary"
+                          : "border-border bg-muted text-muted-foreground"
                       }`}
                     >
-                      {done ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <span className="text-xs">{i + 1}</span>
-                      )}
+                      {step.done ? <Check /> : <span className="text-xs">{i + 1}</span>}
                     </div>
                     <p
-                      className={`mt-2 text-[10px] text-center uppercase tracking-wide ${
-                        done ? "text-[#E1E0CC]" : "text-gray-600"
+                      className={`mt-2 text-center text-[10px] uppercase tracking-wide ${
+                        step.done ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {step.label}
                     </p>
-                    {trigger?.lastFiredAt ? (
-                      <p className="text-[9px] text-gray-600 mt-0.5">
-                        Last fired {new Date(trigger.lastFiredAt).toLocaleTimeString()}
-                      </p>
+                    {step.detail ? (
+                      <Badge variant="secondary" className="mt-1 text-[9px]">
+                        {step.detail}
+                      </Badge>
                     ) : null}
-                  </motion.div>
-                  {i < STEPS.length - 1 && (
+                  </div>
+                  {i < steps.length - 1 && (
                     <div
-                      className={`h-0.5 flex-1 mx-1 rounded ${
-                        stepDone[STEPS[i + 1].key] || done
-                          ? "bg-primary/50"
-                          : "bg-[#212121]"
+                      className={`mx-1 h-0.5 flex-1 rounded ${
+                        steps[i + 1]?.done || step.done ? "bg-primary/50" : "bg-border"
                       }`}
                     />
                   )}
                 </div>
-              );
-            })}
-          </motion.div>
-          <p className="mt-4 text-xs text-gray-600">
-            {completedCount}/{STEPS.length} pipeline steps active · Beyond Presence sync on
-            intelligence
-          </p>
-        </div>
-      )}
-    </section>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              {completedCount}/{steps.length} pipeline steps active
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -1,19 +1,17 @@
 import { motion, useInView } from "framer-motion";
 import type { ReactNode } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Code2,
+  LayoutDashboard,
+  Presentation,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { WordsPullUpMultiStyle } from "../components/WordsPullUpMultiStyle";
-
-const FEATURE_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_133058_0504132a-0cf3-4450-a370-8ea3b05c95d4.mp4";
-
-const ICON_EMBED =
-  "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260405_171918_4a5edc79-d78f-4637-ac8b-53c43c220606.png&w=1280&q=85";
-const ICON_DASHBOARD =
-  "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260405_171741_ed9845ab-f5b2-4018-8ce7-07cc01823522.png&w=1280&q=85";
-const ICON_DEMOS =
-  "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260405_171809_f56666dc-c099-4778-ad82-9ad4f209567b.png&w=1280&q=85";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { FEATURES_VIDEO_SRC } from "@/lib/previewVideo";
 
 const cardEase = [0.22, 1, 0.36, 1] as const;
 
@@ -46,7 +44,7 @@ function ChecklistCard({
   index,
   number,
   title,
-  icon,
+  icon: Icon,
   items,
   linkTo,
   className = "",
@@ -54,7 +52,7 @@ function ChecklistCard({
   index: number;
   number: string;
   title: string;
-  icon: string;
+  icon: LucideIcon;
   items: string[];
   linkTo: string;
   className?: string;
@@ -62,15 +60,17 @@ function ChecklistCard({
   return (
     <FeatureCard index={index} className={className}>
       <div className="p-5 sm:p-6 flex flex-col h-full bg-[#101010]">
-        <img
-          src={icon}
-          alt=""
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover mb-4"
-        />
-        <p className="text-[#E1E0CC] text-sm sm:text-base font-medium mb-4">
-          <span className="text-gray-500 mr-2">{number}</span>
-          {title}
-        </p>
+        <div className="flex items-start gap-4 mb-5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Icon className="h-6 w-6 text-primary" />
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-[10px] uppercase tracking-widest text-gray-600">{number}</p>
+            <h3 className="text-[#E1E0CC] text-base sm:text-lg font-medium leading-snug">
+              {title}
+            </h3>
+          </div>
+        </div>
         <ul className="space-y-3 flex-1">
           {items.map((item) => (
             <li key={item} className="flex gap-2 text-xs sm:text-sm text-gray-400">
@@ -96,33 +96,23 @@ export function FeaturesSection() {
     <section id="features" className="section-pad relative bg-black px-4">
       <div className="bg-noise absolute inset-0 opacity-[0.15] pointer-events-none" />
       <div className="relative max-w-6xl mx-auto">
-        <div className="text-center mb-12 md:mb-16 max-w-4xl mx-auto">
-          <WordsPullUpMultiStyle
-            className="flex flex-col gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-normal"
-            segments={[
-              {
-                text: "Enterprise-grade intelligence for every visitor.",
-                className: "text-primary",
-              },
-              {
-                text: "Embed, score intent, and demo in real time.",
-                className: "text-gray-500",
-              },
-            ]}
-          />
-        </div>
+        <SectionHeading
+          eyebrow="Product"
+          title="Embed, score, and ship in one stack"
+          subtitle="One script on your site, a live command centre for sessions, and branded demos that prove return-visitor intelligence."
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 auto-rows-fr">
           <FeatureCard index={0} className="lg:col-span-7 lg:row-span-2 min-h-[320px] lg:min-h-[480px]">
             <video
               className="absolute inset-0 h-full w-full object-cover"
-              src={FEATURE_VIDEO}
+              src={FEATURES_VIDEO_SRC}
               autoPlay
               loop
               muted
               playsInline
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" aria-hidden />
             <p className="absolute bottom-5 left-5 right-5 text-[#E1E0CC] text-base sm:text-lg font-medium z-10">
               Your visitor&apos;s story starts here.
             </p>
@@ -132,7 +122,7 @@ export function FeaturesSection() {
             index={1}
             number="01"
             title="Embed SDK"
-            icon={ICON_EMBED}
+            icon={Code2}
             linkTo="/demos/seylan"
             className="lg:col-span-5"
             items={[
@@ -147,7 +137,7 @@ export function FeaturesSection() {
             index={2}
             number="02"
             title="Live dashboard"
-            icon={ICON_DASHBOARD}
+            icon={LayoutDashboard}
             linkTo="/dashboard"
             className="lg:col-span-5"
             items={[
@@ -161,7 +151,7 @@ export function FeaturesSection() {
             index={3}
             number="03"
             title="Demo sites"
-            icon={ICON_DEMOS}
+            icon={Presentation}
             linkTo="/demos/seylan"
             className="lg:col-span-12"
             items={[
