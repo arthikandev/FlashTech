@@ -1,0 +1,35 @@
+{
+  "name": "PresenceIQ CRM Fetch",
+  "description": "Inbound webhook: enrich visitor from CRM, then POST back to /api/webhooks/crm-ingest",
+  "trigger": {
+    "type": "webhook",
+    "path": "presenceiq-crm-fetch",
+    "method": "POST"
+  },
+  "steps": [
+    {
+      "id": "lookup",
+      "type": "httpRequest",
+      "note": "Replace with your CRM lookup using fingerprint/crmId from body"
+    },
+    {
+      "id": "ingest",
+      "type": "httpRequest",
+      "method": "POST",
+      "url": "{{PRESENCEIQ_BACKEND_URL}}/api/webhooks/crm-ingest",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-Webhook-Secret": "{{INBOUND_WEBHOOK_SECRET}}"
+      },
+      "body": {
+        "visitorId": "={{ $json.visitorId }}",
+        "crmId": "={{ $json.crmId }}",
+        "crmData": {
+          "name": "={{ $json.name }}",
+          "notes": "={{ $json.notes }}"
+        }
+      }
+    }
+  ],
+  "env": ["PRESENCEIQ_BACKEND_URL", "INBOUND_WEBHOOK_SECRET"]
+}

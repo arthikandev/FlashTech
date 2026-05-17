@@ -1,0 +1,16 @@
+{
+  "name": "PresenceIQ CRM Push",
+  "description": "Post-call: receives transcript summary from BP session webhook chain",
+  "trigger": {
+    "type": "webhook",
+    "path": "presenceiq-crm-push",
+    "method": "POST"
+  },
+  "steps": [
+    {
+      "id": "crmUpdate",
+      "type": "httpRequest",
+      "note": "Push enriched lead with intentScore, transcript summary, actionItems to your CRM"
+    }
+  ]
+}

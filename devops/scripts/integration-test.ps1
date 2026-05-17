@@ -1,9 +1,11 @@
 ﻿# PresenceIQ hour-20 integration tests (PowerShell)
 param(
   [string]$BackendUrl = $env:BACKEND_URL,
-  [string]$N8nSecret = $env:N8N_WEBHOOK_SECRET,
+  [string]$InboundSecret = "",
   [string]$BpSecret = $env:BP_WEBHOOK_SECRET
 )
+if (-not $InboundSecret) { $InboundSecret = $env:INBOUND_WEBHOOK_SECRET }
+if (-not $InboundSecret) { $InboundSecret = $env:N8N_WEBHOOK_SECRET }
 if (-not $BackendUrl) { Write-Error "Set BACKEND_URL"; exit 1 }
 $BackendUrl = $BackendUrl.TrimEnd("/")
 $passed = 0; $failed = 0
@@ -25,10 +27,10 @@ Test-Step "4. POST /api/pipeline" {
   $r = Invoke-RestMethod -Uri "$BackendUrl/api/pipeline" -Method Post -Body $body -ContentType "application/json"
   if (-not $r.success) { throw "fail" }
 }
-if ($N8nSecret) {
-  Test-Step "5. POST /api/webhooks/n8n/crm" {
+if ($InboundSecret) {
+  Test-Step "5. POST /api/webhooks/crm-ingest" {
     $body = "{`"visitorId`":`"$visitorId`",`"crmId`":`"CRM-001`",`"crmData`":{`"name`":`"Sarangan`",`"email`":`"t@t.com`",`"accountType`":`"prospect`",`"churnRisk`":`"low`",`"notes`":`"test`"}}"
-    Invoke-RestMethod -Uri "$BackendUrl/api/webhooks/n8n/crm" -Method Post -Body $body -ContentType "application/json" -Headers @{"X-Webhook-Secret"=$N8nSecret} | Out-Null
+    Invoke-RestMethod -Uri "$BackendUrl/api/webhooks/crm-ingest" -Method Post -Body $body -ContentType "application/json" -Headers @{"X-Webhook-Secret"=$InboundSecret} | Out-Null
   }
 }
 if ($BpSecret -and $visitorId) {

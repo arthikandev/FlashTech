@@ -99,7 +99,11 @@ export const api = {
         personaTone?: string;
         defaultLanguage?: string;
         bpAgentId?: string;
+        useNativeBpAgent?: boolean;
         webhookUrls?: {
+          crmFetch?: string;
+          crmPush?: string;
+          slackHotLead?: string;
           n8nCrmFetch?: string;
           n8nCrmPush?: string;
           n8nSlack?: string;
@@ -107,6 +111,21 @@ export const api = {
       },
       unknown
     >("businesses:updateBusiness"),
+    setBpAgentForEmbedKey: mutationRef<
+      { embedKey: string; bpAgentId: string; useNativeBpAgent?: boolean },
+      unknown
+    >("businesses:setBpAgentForEmbedKey"),
+    updateKnowledgeChunks: mutationRef<
+      {
+        businessId: string;
+        knowledgeChunks: Array<{
+          id: string;
+          text: string;
+          embeddingId?: string;
+        }>;
+      },
+      unknown
+    >("businesses:updateKnowledgeChunks"),
   },
   businessMembers: {
     listForCurrentUser: queryRef<Record<string, never>, unknown>(
@@ -116,6 +135,69 @@ export const api = {
       { businessId: string; role?: "admin" | "viewer" },
       unknown
     >("businessMembers:linkCurrentUser"),
+  },
+  usage: {
+    getBalance: queryRef<{ businessId: string }, unknown>("usage:getBalance"),
+    getBalanceByEmbedKey: queryRef<{ embedKey: string }, unknown>(
+      "usage:getBalanceByEmbedKey"
+    ),
+  },
+  clients: {
+    createAccount: mutationRef<
+      {
+        businessName: string;
+        industry: string;
+        website?: string;
+        embedKey?: string;
+      },
+      unknown
+    >("clients:createAccount"),
+    getForCurrentUser: queryRef<Record<string, never>, unknown>(
+      "clients:getForCurrentUser"
+    ),
+    getByBusinessId: queryRef<{ businessId: string }, unknown>(
+      "clients:getByBusinessId"
+    ),
+    finalizeOnboarding: mutationRef<
+      {
+        businessId: string;
+        personaTone?: string;
+        defaultLanguage?: string;
+        bpAgentId?: string;
+        useNativeBpAgent?: boolean;
+        webhookUrls?: {
+          crmFetch?: string;
+          crmPush?: string;
+          slackHotLead?: string;
+          n8nCrmFetch?: string;
+          n8nCrmPush?: string;
+          n8nSlack?: string;
+        };
+      },
+      unknown
+    >("clients:finalizeOnboarding"),
+    backfillFromBusinesses: mutationRef<Record<string, never>, unknown>(
+      "clients:backfillFromBusinesses"
+    ),
+  },
+  categories: {
+    list: queryRef<Record<string, never>, unknown>("categories:list"),
+    listWithClientCounts: queryRef<Record<string, never>, unknown>(
+      "categories:listWithClientCounts"
+    ),
+    getByCode: queryRef<{ code: string }, unknown>("categories:getByCode"),
+    getForEmbedKey: queryRef<{ embedKey: string }, unknown>(
+      "categories:getForEmbedKey"
+    ),
+    listClientsByCategory: queryRef<{ code: string }, unknown>(
+      "categories:listClientsByCategory"
+    ),
+    seedCategories: mutationRef<Record<string, never>, unknown>(
+      "categories:seedCategories"
+    ),
+    backfillBusinessCategoryCodes: mutationRef<Record<string, never>, unknown>(
+      "categories:backfillBusinessCategoryCodes"
+    ),
   },
 };
 

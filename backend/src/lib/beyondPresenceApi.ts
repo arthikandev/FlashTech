@@ -102,6 +102,7 @@ export async function listAgents(): Promise<BpAgentSummary[]> {
 export function buildAgentSystemPrompt(args: {
   businessName: string;
   personaTone: string;
+  voiceToneHint?: string;
   visitorName?: string | null;
   language?: string | null;
   intentScore: number;
@@ -111,9 +112,12 @@ export function buildAgentSystemPrompt(args: {
 }): string {
   const visitorLabel = args.visitorName ?? "guest";
   const language = args.language ?? "en";
+  const delivery = args.voiceToneHint
+    ? `${args.personaTone}, ${args.voiceToneHint}`
+    : args.personaTone;
 
   const lines = [
-    `You are a ${args.personaTone} assistant for ${args.businessName}.`,
+    `You are a ${delivery} assistant for ${args.businessName}.`,
     `Visitor: ${visitorLabel} (${language}).`,
     `Intent: ${args.intentScore}/100. Action: ${args.recommendedAction}.`,
     `Open with exactly: "${args.personalisedOpener}"`,
@@ -148,6 +152,7 @@ export async function syncAgentFromIntelligence(args: {
   bpAgentId?: string | null;
   businessName: string;
   personaTone: string;
+  voiceToneHint?: string;
   visitorName?: string | null;
   language?: string | null;
   intentScore: number;

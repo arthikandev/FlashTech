@@ -35,7 +35,7 @@ export function WorkflowActivity({
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Pipeline status</CardTitle>
-        <CardDescription>End-to-end automation from visitor to n8n</CardDescription>
+        <CardDescription>End-to-end automation from visitor webhooks</CardDescription>
       </CardHeader>
       <CardContent>
         {triggersLoading ? (

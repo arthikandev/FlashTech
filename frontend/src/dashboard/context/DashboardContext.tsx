@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useSearchParams } from "react-router-dom";
 import type { Id } from "@/convex/ids";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useTriggers } from "@/hooks/useTriggers";
@@ -18,15 +17,8 @@ import type { Industry } from "@/onboarding/types";
 import { filterSessions, sortSessionsByIntent } from "@/lib/dashboard/sessionFilters";
 import { useAiFeedEvents, type FeedEvent } from "../hooks/useAiFeedEvents";
 import type { TriggerRow } from "@/hooks/useTriggers";
-import type { Business, DashboardStats, LiveSession, SessionDetailResult } from "@/convex/types";
-
-const DEFAULT_EMBED_KEY = "seylan-demo";
-
-function resolveEmbedKey(param: string | null): string {
-  const key = param?.trim();
-  if (key && /^[a-z0-9-]+$/.test(key)) return key;
-  return DEFAULT_EMBED_KEY;
-}
+import type { DashboardStats, LiveSession, SessionDetailResult } from "@/convex/types";
+import { useTenant } from "@/tenant/TenantContext";
 
 export type DashboardContextValue = {
   authReady: boolean;
@@ -35,7 +27,7 @@ export type DashboardContextValue = {
   embedKey: string;
   embedOptions: Array<{ key: string; label: string }>;
   onEmbedKeyChange: (key: string) => void;
-  business: Business | null | undefined;
+  business: ReturnType<typeof useTenant>["business"];
   businessId: Id<"businesses"> | undefined;
   sessions: LiveSession[] | undefined;
   dashboardStats: DashboardStats | undefined;
@@ -67,29 +59,18 @@ export type DashboardContextValue = {
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [embedKey, setEmbedKey] = useState(() =>
-    resolveEmbedKey(searchParams.get("embedKey"))
-  );
+  const tenant = useTenant();
+  const { embedKey } = tenant;
+
   const [selectedVisitorId, setSelectedVisitorId] = useState<Id<"visitors"> | null>(
     null
   );
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const fromUrl = resolveEmbedKey(searchParams.get("embedKey"));
-    setEmbedKey((prev) => (prev === fromUrl ? prev : fromUrl));
-  }, [searchParams]);
-
   const {
-    authReady,
-    signedIn,
-    clerkEnabled,
-    business,
     sessions,
     dashboardStats,
     detail,
-    embedOptions,
     linking,
     linkError,
     linkToCurrentBusiness,
@@ -100,7 +81,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     sessionsLoadingMore,
     loadMoreSessions,
     hasMembershipForEmbed,
-  } = useDashboardData(embedKey, selectedVisitorId);
+  } = useDashboardData(selectedVisitorId);
 
   useEffect(() => {
     if (sessionsError) showError(sessionsError);
@@ -112,41 +93,31 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, [sessions, search]);
 
   const { events: feedEvents, pulseIds } = useAiFeedEvents(sessions, detail);
-  const businessId = business?._id;
+  const businessId = tenant.businessId;
   const { triggers, loading: triggersLoading } = useTriggers(businessId, {
     embedKey,
     useAuthQueries: hasMembershipForEmbed,
   });
 
-  const workspaceLabel = useMemo(() => {
-    const match = embedOptions.find((o) => o.key === embedKey);
-    return match?.label ?? business?.name ?? "Workspace";
-  }, [embedOptions, embedKey, business?.name]);
-
   const industry = useMemo((): Industry | "" => {
-    const fromBusiness = business?.industry as Industry | undefined;
+    const fromBusiness = tenant.business?.industry as Industry | undefined;
     if (fromBusiness) return fromBusiness;
     return getSelectedIndustry() || loadDraft().industry || "";
-  }, [business?.industry]);
+  }, [tenant.business?.industry]);
 
   const category = useMemo(() => getCategoryByIndustry(industry), [industry]);
 
-  function handleEmbedKeyChange(key: string) {
-    setEmbedKey(key);
-    setSelectedVisitorId(null);
-    const next = new URLSearchParams(searchParams);
-    next.set("embedKey", key);
-    setSearchParams(next, { replace: true });
-  }
-
   const value: DashboardContextValue = {
-    authReady,
-    signedIn,
-    clerkEnabled,
-    embedKey,
-    embedOptions,
-    onEmbedKeyChange: handleEmbedKeyChange,
-    business,
+    authReady: tenant.authReady,
+    signedIn: tenant.signedIn,
+    clerkEnabled: tenant.clerkEnabled,
+    embedKey: tenant.embedKey,
+    embedOptions: tenant.embedOptions,
+    onEmbedKeyChange: (key) => {
+      tenant.onEmbedKeyChange(key);
+      setSelectedVisitorId(null);
+    },
+    business: tenant.business,
     businessId,
     sessions,
     dashboardStats,
@@ -160,7 +131,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     pulseIds,
     triggers,
     triggersLoading,
-    workspaceLabel,
+    workspaceLabel: tenant.workspaceLabel,
     linking,
     linkError,
     linkToCurrentBusiness,

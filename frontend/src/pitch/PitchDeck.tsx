@@ -9,12 +9,12 @@ const SLIDES = [
   },
   {
     title: "Live demo",
-    body: "Reload Seylan Bank pricing. In under 2 seconds the avatar says: Welcome back Sarangan — I see you have been comparing our Gold and Platinum plans. n8n fires a Slack hot-lead alert. The dashboard updates with transcript and intent arc.",
+    body: "Reload Seylan Bank pricing. In under 2 seconds the avatar says: Welcome back Sarangan — I see you have been comparing our Gold and Platinum plans. Your automation endpoints can raise a Slack hot-lead alert. The dashboard updates with transcript and intent arc.",
     cta: { label: "Open Seylan demo", to: "/demos/seylan" },
   },
   {
     title: "How it works",
-    body: "7-step pipeline: Visitor fingerprint → n8n CRM fetch → OpenAI intent score → ElevenLabs voice → Beyond Presence dynamic context → personalised opener. Each sponsor tool plays a distinct, essential role.",
+    body: "7-step pipeline: Visitor fingerprint → CRM fetch via HTTPS webhooks → OpenAI intent score → ElevenLabs voice → Beyond Presence dynamic context → personalised opener. Each sponsor tool plays a distinct, essential role.",
     cta: { label: "See pipeline", to: "/#pipeline" },
   },
   {

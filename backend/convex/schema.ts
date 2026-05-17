@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { businessWebhookUrls } from "./lib/webhookUrls";
 
 const industry = v.union(
   v.literal("bank"),
@@ -9,6 +10,30 @@ const industry = v.union(
   v.literal("ecommerce"),
   v.literal("hr")
 );
+
+const categoryCode = v.union(
+  v.literal("BANKING_FINANCIAL"),
+  v.literal("SAAS_SOFTWARE"),
+  v.literal("HOTELS_TOURISM"),
+  v.literal("HEALTHCARE"),
+  v.literal("ECOMMERCE_RETAIL"),
+  v.literal("HR_RECRUITMENT")
+);
+
+const planTier = v.union(
+  v.literal("starter"),
+  v.literal("growth"),
+  v.literal("enterprise")
+);
+
+const openAiModel = v.union(v.literal("gpt-4o-mini"), v.literal("gpt-4o"));
+
+const businessCredits = v.object({
+  intelligenceCallsRemaining: v.number(),
+  intelligenceCallsLimit: v.number(),
+  periodStart: v.number(),
+  periodEnd: v.number(),
+});
 
 const crmData = v.object({
   name: v.optional(v.string()),
@@ -20,14 +45,29 @@ const crmData = v.object({
 });
 
 export default defineSchema({
+  categories: defineTable({
+    code: categoryCode,
+    industryKey: industry,
+    name: v.string(),
+    tag: v.string(),
+    coreMetric: v.string(),
+    dashboardFocus: v.string(),
+    exampleClients: v.array(v.string()),
+    sortOrder: v.number(),
+    updatedAt: v.number(),
+  }).index("by_code", ["code"]),
+
   businesses: defineTable({
     name: v.string(),
     industry,
+    categoryCode: v.optional(categoryCode),
     embedKey: v.string(),
     avatarConfig: v.object({
       bpAgentId: v.optional(v.string()),
       personaTone: v.optional(v.string()),
       defaultLanguage: v.optional(v.string()),
+      /** When true, pipeline does not PATCH system_prompt/greeting on the BP agent. */
+      useNativeBpAgent: v.optional(v.boolean()),
     }),
     knowledgeChunks: v.array(
       v.object({
@@ -36,13 +76,22 @@ export default defineSchema({
         embeddingId: v.optional(v.string()),
       })
     ),
-    webhookUrls: v.object({
-      n8nCrmFetch: v.optional(v.string()),
-      n8nCrmPush: v.optional(v.string()),
-      n8nSlack: v.optional(v.string()),
-    }),
+    webhookUrls: businessWebhookUrls,
+    planTier: v.optional(planTier),
+    credits: v.optional(businessCredits),
+    openAiModel: v.optional(openAiModel),
     createdAt: v.number(),
-  }).index("by_embedKey", ["embedKey"]),
+  })
+    .index("by_embedKey", ["embedKey"])
+    .index("by_categoryCode", ["categoryCode"]),
+
+  usageEvents: defineTable({
+    businessId: v.id("businesses"),
+    type: v.union(v.literal("intelligence_call"), v.literal("post_call_analysis")),
+    model: v.string(),
+    tokensEstimate: v.optional(v.number()),
+    createdAt: v.number(),
+  }).index("by_business", ["businessId"]),
 
   visitors: defineTable({
     fingerprint: v.string(),
@@ -135,4 +184,30 @@ export default defineSchema({
   })
     .index("by_clerk_user", ["clerkUserId"])
     .index("by_user_and_business", ["clerkUserId", "businessId"]),
+
+  clients: defineTable({
+    categoryId: v.id("categories"),
+    categoryCode: categoryCode,
+    businessId: v.id("businesses"),
+    businessName: v.string(),
+    website: v.optional(v.string()),
+    ownerClerkUserId: v.string(),
+    contactEmail: v.optional(v.string()),
+    verification: v.object({
+      status: v.union(
+        v.literal("pending"),
+        v.literal("approved"),
+        v.literal("rejected")
+      ),
+      badgeLabel: v.optional(v.string()),
+    }),
+    subscription: v.object({
+      tier: planTier,
+    }),
+    onboardingComplete: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_owner", ["ownerClerkUserId"])
+    .index("by_business", ["businessId"])
+    .index("by_categoryCode", ["categoryCode"]),
 });

@@ -1,0 +1,16 @@
+{
+  "name": "PresenceIQ Churn Risk",
+  "description": "When visitor churnRisk is high, trigger retention email sequence",
+  "trigger": {
+    "type": "webhook",
+    "path": "presenceiq-churn",
+    "method": "POST"
+  },
+  "steps": [
+    {
+      "id": "email",
+      "type": "email",
+      "note": "Send personalised retention sequence within 60s"
+    }
+  ]
+}

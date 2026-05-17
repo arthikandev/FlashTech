@@ -32,7 +32,7 @@ const STEPS: Array<{
   {
     step: 2,
     action: "CRM record fetched",
-    tool: "n8n",
+    tool: "Your automation",
     output: "Name, account type, churn risk",
     latency: "400ms",
     icon: Workflow,

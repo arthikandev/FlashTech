@@ -52,6 +52,7 @@ Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 
 ## API docs
 
+- [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) — functional and non-functional requirements
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md)
 - [docs/BEYOND_PRESENCE.md](docs/BEYOND_PRESENCE.md) — Beyond Presence setup
 - [docs/API_PROVIDERS.md](docs/API_PROVIDERS.md) — OpenAI, BP, Seylan, n8n, Convex, Clerk

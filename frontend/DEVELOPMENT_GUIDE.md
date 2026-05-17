@@ -16,7 +16,7 @@
 | Demo leadership | Second screen for pitch; demo script steps 1–2 and 5–6 ([team plan](../docs/DEVELOPMENT_PLAN.md) — link only) |
 | Frontend deploy | Co-own hosting (Vercel or Netlify); record live URLs in [README.md](./README.md) |
 
-You do **not** build REST APIs, Convex schema, OpenAI, n8n, or BeyondPresence webhooks.
+You do **not** build REST APIs, Convex schema, OpenAI, automation webhooks, or BeyondPresence webhooks.
 
 ---
 
@@ -146,9 +146,9 @@ When Person 2 adds new queries, add matching entries to `src/convex/api.ts`. Kee
 
 | File | Purpose |
 |------|---------|
-| [`public/fake-crm.json`](./public/fake-crm.json) | Demo CRM record `CRM-001` (Sarangan); matches backend seed and n8n lookup shape |
+| [`public/fake-crm.json`](./public/fake-crm.json) | Demo CRM record `CRM-001` (Sarangan); matches backend seed and webhook CRM shape |
 
-The embed SDK does not fetch this file; n8n/backend use it in the pipeline. Keep it for demo narrative consistency.
+The embed SDK does not fetch this file; backend/automation tooling uses it for the pipeline narrative consistency.
 
 ---
 
@@ -179,7 +179,7 @@ The embed SDK does not fetch this file; n8n/backend use it in the pipeline. Keep
 
 - `backend/src/app/api/*` routes, Convex schema/mutations, OpenAI calls
 - `avatar/` BeyondPresence integration
-- `devops/n8n/*` workflows
+- [`devops/AUTOMATION_WEBHOOKS.md`](../devops/AUTOMATION_WEBHOOKS.md)
 - Edits to shared `docs/*` (request changes via Person 2 / team lead)
 
 ---

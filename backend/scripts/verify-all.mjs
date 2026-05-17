@@ -2,7 +2,7 @@
 /**
  * Verifies all backend layers: env, build, optional Convex sync.
  * Run: npm run verify:all
- * Full (n8n URLs required): npm run verify:full
+ * Full (outbound webhooks required): npm run verify:full
  */
 import { spawnSync } from "child_process";
 import { existsSync } from "fs";
@@ -10,8 +10,11 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import {
   loadEnvVars,
-  isN8nUrlValid,
-  N8N_REQUIRED_KEYS,
+  isAutomationWebhookUrlValid,
+  webhookCrmFetchUrl,
+  webhookSlackHotLeadUrl,
+  webhookCrmPushUrl,
+  webhookChurnRiskUrl,
 } from "./lib/env-parse.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -30,9 +33,7 @@ function run(cmd, args, opts = {}) {
 
 const layers = [
   {
-    name: fullMode
-      ? "Env full (.env.local + n8n webhooks)"
-      : "Env (.env.local + check:env)",
+    name: fullMode ? "Env full (.env.local + webhook URLs)" : "Env (.env.local + check:env)",
     key: fullMode ? "envFull" : "env",
     skip: false,
   },
@@ -43,18 +44,16 @@ const layers = [
     cmd: ["npx", ["convex", "dev", "--once"]],
   },
   {
-    name: "n8n webhook smoke test",
-    key: "n8n",
-    cmd: ["node", ["scripts/validate-n8n-webhooks.mjs"]],
+    name: "Outbound automation webhook smoke tests",
+    key: "webhooks",
+    cmd: ["node", ["scripts/validate-automation-webhooks.mjs"]],
     skip: !fullMode,
   },
 ];
 
-const results = { env: false, envFull: false, build: false, convex: false, n8n: false };
+const results = { env: false, envFull: false, build: false, convex: false, webhooks: false };
 
-console.log(
-  `\nPresenceIQ — verify all backend layers${fullMode ? " (full)" : ""}\n`
-);
+console.log(`\nPresenceIQ — verify all backend layers${fullMode ? " (full)" : ""}\n`);
 
 if (!existsSync(resolve(root, ".env.local"))) {
   console.log("✗  .env.local missing — run: cp .env.example .env.local\n");
@@ -80,38 +79,30 @@ if (hasConvex) {
 }
 
 if (fullMode) {
-  results.n8n = run("node", ["scripts/validate-n8n-webhooks.mjs"]);
+  results.webhooks = run("node", ["scripts/validate-automation-webhooks.mjs"]);
 } else {
-  results.n8n = true;
+  results.webhooks = true;
 }
 
 function printIntegrationSummary() {
   const vars = loadEnvVars();
   if (!vars) return;
 
+  const churn = webhookChurnRiskUrl(vars);
   console.log("\nIntegration summary:\n");
-  const n8nRows = N8N_REQUIRED_KEYS.map((k) => [
-    k.replace("N8N_WEBHOOK_", "").toLowerCase(),
-    isN8nUrlValid(vars[k]) ? "configured" : "missing",
-  ]);
-  const churn = vars.N8N_WEBHOOK_CHURN?.trim();
-  if (churn) {
-    n8nRows.push(["churn", isN8nUrlValid(churn) ? "configured" : "invalid"]);
-  }
-
   console.log("  Integration          Status");
   console.log("  ───────────────────  ──────────");
   console.log(
-    `  n8n CRM fetch        ${isN8nUrlValid(vars.N8N_WEBHOOK_CRM_FETCH) ? "configured" : "missing"}`
+    `  CRM fetch trigger    ${isAutomationWebhookUrlValid(webhookCrmFetchUrl(vars)) ? "configured" : "missing"}`
   );
   console.log(
-    `  n8n Slack            ${isN8nUrlValid(vars.N8N_WEBHOOK_SLACK) ? "configured" : "missing"}`
+    `  Slack hot-lead       ${isAutomationWebhookUrlValid(webhookSlackHotLeadUrl(vars)) ? "configured" : "missing"}`
   );
   console.log(
-    `  n8n CRM push         ${isN8nUrlValid(vars.N8N_WEBHOOK_CRM_PUSH) ? "configured" : "missing"}`
+    `  CRM push             ${isAutomationWebhookUrlValid(webhookCrmPushUrl(vars)) ? "configured" : "missing"}`
   );
   console.log(
-    `  n8n churn (opt)      ${churn ? (isN8nUrlValid(churn) ? "configured" : "invalid") : "not set"}`
+    `  Churn workflow (opt) ${churn ? (isAutomationWebhookUrlValid(churn) ? "configured" : "invalid") : "not set"}`
   );
   console.log(
     `  Seylan sandbox       ${vars.SEYLAN_API_KEY?.trim() ? "configured" : "missing"}`
@@ -135,12 +126,19 @@ for (const layer of layers) {
 }
 
 const allOk = fullMode
-  ? results.envFull && results.build && results.convex && results.n8n
+  ? results.envFull && results.build && results.convex && results.webhooks
   : results.env && results.build && results.convex;
 
 console.log(
   allOk
-    ? `\nAll layers passed${fullMode ? " (full stack including n8n)" : ""}.\n`
+    ? `\nAll layers passed${fullMode ? " (full stack including outbound webhooks)" : ""}.\n`
     : "\nFix failed layers — see SETUP.md\n"
 );
+
+if (results.build) {
+  console.log(
+    "  ℹ  If `npm run dev` was running during verify, restart with: npm run dev:clean\n"
+  );
+}
+
 process.exit(allOk ? 0 : 1);

@@ -1,6 +1,12 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireBusinessMember, requireIdentity } from "./lib/auth";
+import {
+  categoryCodeFromIndustry,
+  type IndustryKey,
+} from "./lib/categoriesData";
+import { CANONICAL_BP_AGENT_ID } from "./lib/bpAgentDefaults";
+import { businessWebhookUrls } from "./lib/webhookUrls";
 
 const industry = v.union(
   v.literal("bank"),
@@ -50,9 +56,12 @@ export const createBusiness = mutation({
     const embedKey = await uniqueEmbedKey(ctx, baseKey || "business");
 
     const bpAgentId = args.bpAgentId?.trim();
+    const now = Date.now();
+    const monthMs = 30 * 24 * 60 * 60 * 1000;
     const businessId = await ctx.db.insert("businesses", {
       name: args.name,
       industry: args.industry,
+      categoryCode: categoryCodeFromIndustry(args.industry as IndustryKey),
       embedKey,
       avatarConfig: {
         personaTone: args.personaTone ?? "professional",
@@ -61,7 +70,15 @@ export const createBusiness = mutation({
       },
       knowledgeChunks: [],
       webhookUrls: {},
-      createdAt: Date.now(),
+      planTier: "starter",
+      openAiModel: "gpt-4o-mini",
+      credits: {
+        intelligenceCallsRemaining: 500,
+        intelligenceCallsLimit: 500,
+        periodStart: now,
+        periodEnd: now + monthMs,
+      },
+      createdAt: now,
     });
 
     return { businessId, embedKey };
@@ -85,12 +102,6 @@ export const getById = query({
   },
 });
 
-const webhookUrls = v.object({
-  n8nCrmFetch: v.optional(v.string()),
-  n8nCrmPush: v.optional(v.string()),
-  n8nSlack: v.optional(v.string()),
-});
-
 export const onboardBusiness = mutation({
   args: {
     name: v.string(),
@@ -106,9 +117,12 @@ export const onboardBusiness = mutation({
     const embedKey = await uniqueEmbedKey(ctx, baseKey || "business");
     const bpAgentId = args.bpAgentId?.trim();
 
+    const now = Date.now();
+    const monthMs = 30 * 24 * 60 * 60 * 1000;
     const businessId = await ctx.db.insert("businesses", {
       name: args.name,
       industry: args.industry,
+      categoryCode: categoryCodeFromIndustry(args.industry as IndustryKey),
       embedKey,
       avatarConfig: {
         personaTone: args.personaTone ?? "professional",
@@ -117,14 +131,22 @@ export const onboardBusiness = mutation({
       },
       knowledgeChunks: [],
       webhookUrls: {},
-      createdAt: Date.now(),
+      planTier: "starter",
+      openAiModel: "gpt-4o-mini",
+      credits: {
+        intelligenceCallsRemaining: 500,
+        intelligenceCallsLimit: 500,
+        periodStart: now,
+        periodEnd: now + monthMs,
+      },
+      createdAt: now,
     });
 
     await ctx.db.insert("businessMembers", {
       clerkUserId: identity.subject,
       businessId,
       role: "admin",
-      createdAt: Date.now(),
+      createdAt: now,
     });
 
     return { businessId, embedKey };
@@ -139,7 +161,8 @@ export const updateBusiness = mutation({
     personaTone: v.optional(v.string()),
     defaultLanguage: v.optional(v.string()),
     bpAgentId: v.optional(v.string()),
-    webhookUrls: v.optional(webhookUrls),
+    useNativeBpAgent: v.optional(v.boolean()),
+    webhookUrls: v.optional(businessWebhookUrls),
   },
   handler: async (ctx, args) => {
     const { membership } = await requireBusinessMember(ctx, args.businessId);
@@ -160,14 +183,95 @@ export const updateBusiness = mutation({
       if (trimmed) avatarConfig.bpAgentId = trimmed;
       else delete avatarConfig.bpAgentId;
     }
+    if (args.useNativeBpAgent !== undefined) {
+      avatarConfig.useNativeBpAgent = args.useNativeBpAgent;
+    }
 
     await ctx.db.patch(args.businessId, {
       ...(args.name !== undefined ? { name: args.name } : {}),
-      ...(args.industry !== undefined ? { industry: args.industry } : {}),
+      ...(args.industry !== undefined
+        ? {
+            industry: args.industry,
+            categoryCode: categoryCodeFromIndustry(args.industry as IndustryKey),
+          }
+        : {}),
       avatarConfig,
       ...(args.webhookUrls !== undefined
         ? { webhookUrls: { ...business.webhookUrls, ...args.webhookUrls } }
         : {}),
+    });
+
+    return { ok: true as const };
+  },
+});
+
+/** Ops: set BP agent + native mode for a workspace by embed key. */
+export const setBpAgentForEmbedKey = mutation({
+  args: {
+    embedKey: v.string(),
+    bpAgentId: v.string(),
+    useNativeBpAgent: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { embedKey, bpAgentId, useNativeBpAgent }) => {
+    const business = await ctx.db
+      .query("businesses")
+      .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
+      .unique();
+    if (!business) {
+      throw new Error(`Unknown embedKey: ${embedKey}`);
+    }
+    const trimmed = bpAgentId.trim();
+    if (!trimmed) {
+      throw new Error("bpAgentId is required");
+    }
+    await ctx.db.patch(business._id, {
+      avatarConfig: {
+        ...business.avatarConfig,
+        bpAgentId: trimmed,
+        ...(useNativeBpAgent !== undefined ? { useNativeBpAgent } : {}),
+      },
+    });
+    return { businessId: business._id, embedKey: business.embedKey };
+  },
+});
+
+const knowledgeChunk = v.object({
+  id: v.string(),
+  text: v.string(),
+  embeddingId: v.optional(v.string()),
+});
+
+/** Replace workspace knowledge; first save from empty sets default BP agent if unset. */
+export const updateKnowledgeChunks = mutation({
+  args: {
+    businessId: v.id("businesses"),
+    knowledgeChunks: v.array(knowledgeChunk),
+  },
+  handler: async (ctx, args) => {
+    const { membership } = await requireBusinessMember(ctx, args.businessId);
+    if (membership.role !== "admin") {
+      throw new Error("Forbidden: admin role required");
+    }
+
+    const business = await ctx.db.get(args.businessId);
+    if (!business) {
+      throw new Error("Business not found");
+    }
+
+    const wasEmpty = business.knowledgeChunks.length === 0;
+    const nowHasChunks = args.knowledgeChunks.length > 0;
+    const avatarConfig = { ...business.avatarConfig };
+    if (
+      wasEmpty &&
+      nowHasChunks &&
+      !business.avatarConfig.bpAgentId?.trim()
+    ) {
+      avatarConfig.bpAgentId = CANONICAL_BP_AGENT_ID;
+    }
+
+    await ctx.db.patch(args.businessId, {
+      knowledgeChunks: args.knowledgeChunks,
+      avatarConfig,
     });
 
     return { ok: true as const };

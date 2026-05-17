@@ -1,17 +1,21 @@
 import { useMutation } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { AppShell } from "@/app-shell/AppShell";
 import { api, clerkEnabled } from "@/convex/api";
+import { useCurrentClient } from "@/hooks/useCurrentClient";
 import { StepProgress } from "./components/StepProgress";
 import {
   clearOnboardResult,
   loadOnboardResult,
   saveOnboardResult,
 } from "./storage";
-import { submitOnboardingToApi } from "./submitOnboarding";
+import {
+  buildFinalizeOnboardingArgs,
+  onboardResultFromFinalize,
+  submitOnboardingToApi,
+} from "./submitOnboarding";
+import type { OnboardingData } from "./types";
 import { useOnboarding } from "./useOnboarding";
 import { AiRulesStep } from "./steps/AiRulesStep";
 import { AvatarSetupStep } from "./steps/AvatarSetupStep";
@@ -47,9 +51,20 @@ export function OnboardingPage() {
   } = useOnboarding();
 
   const linkCurrentUser = useMutation(api.businessMembers.linkCurrentUser);
+  const finalizeOnboarding = useMutation(api.clients.finalizeOnboarding);
+  const { client, business } = useCurrentClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [onboardResult, setOnboardResult] = useState(() => loadOnboardResult());
+
+  useEffect(() => {
+    if (!client || !business) return;
+    update({
+      companyName: client.businessName || business.name,
+      industry: business.industry as OnboardingData["industry"],
+      website: "",
+    });
+  }, [client, business, update]);
 
   const persistTenant = useCallback(
     async (options?: { force?: boolean }) => {
@@ -68,6 +83,20 @@ export function OnboardingPage() {
       setSubmitError(null);
 
       try {
+        if (client && business) {
+          const finalized = (await finalizeOnboarding(
+            buildFinalizeOnboardingArgs(data, business._id)
+          )) as { businessId: string; embedKey: string; categoryCode?: string };
+          const result = onboardResultFromFinalize(
+            finalized.businessId,
+            finalized.embedKey,
+            finalized.categoryCode ?? client.categoryCode
+          );
+          saveOnboardResult(result);
+          setOnboardResult(result);
+          return result;
+        }
+
         const result = await submitOnboardingToApi(data);
         saveOnboardResult(result);
         setOnboardResult(result);
@@ -89,7 +118,7 @@ export function OnboardingPage() {
         setIsSubmitting(false);
       }
     },
-    [data, linkCurrentUser]
+    [data, linkCurrentUser, finalizeOnboarding, client, business]
   );
 
   const handleAiRulesContinue = useCallback(async () => {
@@ -119,34 +148,13 @@ export function OnboardingPage() {
   }, [step.id, onboardResult, isSubmitting, submitError, persistTenant]);
 
   return (
-    <div className="brand-theme min-h-[100dvh] bg-background text-foreground flex flex-col">
-      <div className="noise-overlay pointer-events-none fixed inset-0 opacity-20 mix-blend-overlay" />
-
-      <header className="relative z-10 flex items-center justify-between px-4 sm:px-8 pt-6 pb-4 max-w-3xl mx-auto w-full">
-        <Link
-          to="/login"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Link>
-        <AnimatedThemeToggler variant="circle" duration={450} />
-      </header>
-
-      <main className="relative z-10 flex-1 px-4 sm:px-8 pb-10 max-w-3xl mx-auto w-full">
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">
-            PresenceIQ
-          </p>
-          <h1 className="font-serif text-3xl sm:text-4xl tracking-tight text-foreground">
-            Set up PresenceIQ
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Step {stepIndex + 1} of {steps.length}
-          </p>
-        </div>
-
-        <div className="mb-10">
+    <AppShell
+      backTo="/login"
+      title="Set up PresenceIQ"
+      subtitle="Configure your workspace, avatar, and embed in a few steps."
+      stepLabel={`Step ${stepIndex + 1} of ${steps.length}`}
+    >
+      <div className="mb-10">
           <StepProgress steps={steps} currentIndex={stepIndex} />
         </div>
 
@@ -166,8 +174,9 @@ export function OnboardingPage() {
                   data={data}
                   update={update}
                   onBack={goBack}
-                  onContinue={goNext}
+                  onContinue={client ? goNext : goNext}
                   showBack={!isFirst}
+                  readOnly={Boolean(client)}
                 />
               )}
               {step.id === "crm" && (
@@ -212,8 +221,7 @@ export function OnboardingPage() {
             </motion.div>
           </AnimatePresence>
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }
 

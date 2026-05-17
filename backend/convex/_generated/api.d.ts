@@ -10,11 +10,17 @@
 
 import type * as businessMembers from "../businessMembers.js";
 import type * as businesses from "../businesses.js";
+import type * as categories from "../categories.js";
+import type * as clients from "../clients.js";
 import type * as conversations from "../conversations.js";
 import type * as intelligence from "../intelligence.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_bpAgentDefaults from "../lib/bpAgentDefaults.js";
+import type * as lib_categoriesData from "../lib/categoriesData.js";
+import type * as lib_webhookUrls from "../lib/webhookUrls.js";
 import type * as seed from "../seed.js";
 import type * as triggers from "../triggers.js";
+import type * as usage from "../usage.js";
 import type * as visitors from "../visitors.js";
 
 import type {
@@ -26,11 +32,17 @@ import type {
 declare const fullApi: ApiFromModules<{
   businessMembers: typeof businessMembers;
   businesses: typeof businesses;
+  categories: typeof categories;
+  clients: typeof clients;
   conversations: typeof conversations;
   intelligence: typeof intelligence;
   "lib/auth": typeof lib_auth;
+  "lib/bpAgentDefaults": typeof lib_bpAgentDefaults;
+  "lib/categoriesData": typeof lib_categoriesData;
+  "lib/webhookUrls": typeof lib_webhookUrls;
   seed: typeof seed;
   triggers: typeof triggers;
+  usage: typeof usage;
   visitors: typeof visitors;
 }>;
 

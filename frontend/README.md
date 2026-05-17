@@ -60,5 +60,5 @@ Backend and Convex URLs are owned by Person 2; use their values in `.env.local` 
 
 - `backend/` — APIs, Convex schema, embed SDK source
 - `avatar/` — BeyondPresence
-- `devops/` — deploy scripts, n8n
+- `devops/` — deploy scripts, automation webhook notes
 - `docs/` — shared team docs (read and link only)

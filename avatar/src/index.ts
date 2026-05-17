@@ -27,7 +27,11 @@ let lastVisitorId: string | null = null;
 let lastBusinessId: string | null = null;
 /** Incremented on each presenceiq:ready so stale overlapping handlers do not clobber context. */
 let readyGeneration = 0;
-/** Visitor/business/pipeline frozen when the avatar is shown for the active BP call. */
+/**
+ * Visitor/business/pipeline frozen when the avatar is shown for the active BP call.
+ * One embed instance should run one visible call at a time; a new presenceiq:ready clears
+ * this so a late session-end from a prior call does not reuse stale visible context.
+ */
 let activeCallContext: {
   visitorId: string;
   businessId: string;
@@ -109,6 +113,7 @@ async function onPresenceIQReady(event: Event): Promise<void> {
     visitorId?: string;
     businessId?: string;
     sessionId?: string;
+    operatorMessage?: string;
   };
 
   const visitorId = detail.visitorId;
@@ -119,6 +124,7 @@ async function onPresenceIQReady(event: Event): Promise<void> {
   }
 
   const gen = ++readyGeneration;
+  activeCallContext = null;
   setLatestReadyContext(gen, visitorId, businessId);
 
   const config = getConfig();
@@ -152,7 +158,8 @@ async function onPresenceIQReady(event: Event): Promise<void> {
     config.backendUrl,
     visitorId,
     businessId,
-    config.waitForCrmMs ?? 200
+    config.waitForCrmMs ?? 200,
+    detail.operatorMessage
   );
 
   const avatarWarmPromise = warmAvatarWithRetry(client, defaultContext);
@@ -250,6 +257,9 @@ function replayReadyIfMissed(): void {
           visitorId: last.visitorId,
           businessId: last.businessId,
           sessionId: last.sessionId,
+          ...(last.operatorMessage?.trim()
+            ? { operatorMessage: last.operatorMessage.trim() }
+            : {}),
         },
       })
     );

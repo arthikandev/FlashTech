@@ -1,14 +1,13 @@
 import { getBackendBaseUrl } from "@/lib/backendUrl";
+import { INDUSTRY_CATEGORIES } from "@/lib/categories/industryCategories";
 import type { Industry } from "./types";
 
-export const INDUSTRIES: { value: Industry; label: string }[] = [
-  { value: "bank", label: "Banking & finance" },
-  { value: "saas", label: "SaaS" },
-  { value: "hotel", label: "Hospitality" },
-  { value: "hospital", label: "Healthcare" },
-  { value: "ecommerce", label: "E-commerce" },
-  { value: "hr", label: "HR & recruiting" },
-];
+export const INDUSTRIES: { value: Industry; label: string; tag: string }[] =
+  INDUSTRY_CATEGORIES.map((c) => ({
+    value: c.industryKey,
+    label: c.name,
+    tag: c.tag,
+  }));
 
 export const CRM_OPTIONS = [
   { id: "hubspot" as const, label: "HubSpot", description: "Sync contacts & deals" },

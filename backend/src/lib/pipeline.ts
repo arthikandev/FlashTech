@@ -2,6 +2,13 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { api, getConvexClient } from "./convex";
 import { scoreIntent } from "./openai";
 import type { IntelligenceResult } from "./types";
+import type { BusinessWebhookUrls } from "./webhookUrlsResolve";
+import {
+  pickChurnRiskWebhookUrl,
+  pickTenantCrmFetchUrl,
+  pickTenantCrmPushUrl,
+  pickTenantSlackHotLeadUrl,
+} from "./webhookUrlsResolve";
 
 export type PipelineContext = {
   intelligence: IntelligenceResult;
@@ -38,7 +45,8 @@ export function saveIntelligenceAsync(
 
 export async function runIntentPipeline(
   visitorId: Id<"visitors">,
-  businessId: Id<"businesses">
+  businessId: Id<"businesses">,
+  options?: { operatorMessage?: string; model?: string }
 ): Promise<PipelineContext> {
   const convex = getConvexClient();
 
@@ -61,6 +69,8 @@ export async function runIntentPipeline(
     crmNotes: visitor.crmData?.notes,
     churnRisk: visitor.crmData?.churnRisk,
     fingerprint: visitor.fingerprint,
+    operatorMessage: options?.operatorMessage,
+    model: options?.model,
   });
 
   saveIntelligenceAsync(visitorId, businessId, intelligence);
@@ -83,14 +93,39 @@ export async function waitForCrmData(
   }
 }
 
-export async function triggerN8nCrmFetch(payload: {
-  visitorId: string;
-  businessId: string;
-  fingerprint: string;
-  crmId?: string;
-  returnCount: number;
-}): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_CRM_FETCH;
+export function resolveAutomationCrmFetchUrl(
+  tenant?: BusinessWebhookUrls | null
+): string | undefined {
+  return pickTenantCrmFetchUrl(tenant ?? undefined);
+}
+
+export function resolveAutomationSlackHotLeadUrl(
+  tenant?: BusinessWebhookUrls | null
+): string | undefined {
+  return pickTenantSlackHotLeadUrl(tenant ?? undefined);
+}
+
+export function resolveAutomationCrmPushUrl(
+  tenant?: BusinessWebhookUrls | null
+): string | undefined {
+  return pickTenantCrmPushUrl(tenant ?? undefined);
+}
+
+export function resolveAutomationChurnUrl(): string | undefined {
+  return pickChurnRiskWebhookUrl();
+}
+
+export async function triggerCrmFetchAutomation(
+  payload: {
+    visitorId: string;
+    businessId: string;
+    fingerprint: string;
+    crmId?: string;
+    returnCount: number;
+  },
+  tenantUrls?: BusinessWebhookUrls | null
+): Promise<void> {
+  const url = resolveAutomationCrmFetchUrl(tenantUrls);
   if (!url) return;
 
   try {
@@ -100,12 +135,15 @@ export async function triggerN8nCrmFetch(payload: {
       body: JSON.stringify(payload),
     });
   } catch (err) {
-    console.error("[n8n] CRM fetch trigger failed", err);
+    console.error("[automation] CRM fetch trigger failed", err);
   }
 }
 
-export async function fireSlackWebhook(payload: Record<string, unknown>): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_SLACK;
+export async function fireSlackWebhook(
+  payload: Record<string, unknown>,
+  tenantUrls?: BusinessWebhookUrls | null
+): Promise<void> {
+  const url = resolveAutomationSlackHotLeadUrl(tenantUrls);
   if (!url) return;
 
   try {
@@ -115,12 +153,15 @@ export async function fireSlackWebhook(payload: Record<string, unknown>): Promis
       body: JSON.stringify(payload),
     });
   } catch (err) {
-    console.error("[n8n] Slack webhook failed", err);
+    console.error("[automation] Slack hot-lead webhook failed", err);
   }
 }
 
-export async function forwardCrmPush(payload: Record<string, unknown>): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_CRM_PUSH;
+export async function forwardCrmPush(
+  payload: Record<string, unknown>,
+  tenantUrls?: BusinessWebhookUrls | null
+): Promise<void> {
+  const url = resolveAutomationCrmPushUrl(tenantUrls);
   if (!url) return;
 
   try {
@@ -130,14 +171,14 @@ export async function forwardCrmPush(payload: Record<string, unknown>): Promise<
       body: JSON.stringify(payload),
     });
   } catch (err) {
-    console.error("[n8n] CRM push failed", err);
+    console.error("[automation] CRM push failed", err);
   }
 }
 
 export async function fireChurnWebhook(
   payload: Record<string, unknown>
 ): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_CHURN;
+  const url = resolveAutomationChurnUrl();
   if (!url) return;
 
   try {
@@ -147,7 +188,7 @@ export async function fireChurnWebhook(
       body: JSON.stringify(payload),
     });
   } catch (err) {
-    console.error("[n8n] Churn webhook failed", err);
+    console.error("[automation] Churn workflow webhook failed", err);
   }
 }
 

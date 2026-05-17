@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "convex/react";
 import { AvatarBoot } from "@/components/AvatarBoot";
 import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
 import { DemoAvatarStatus } from "@/components/DemoAvatarStatus";
 import { EmbedScript } from "@/components/EmbedScript";
+import { api } from "@/convex/api";
+import type { Business } from "@/convex/types";
+import { resolveBpAgentId } from "@/hooks/useBpAgentId";
 
 type Props = {
   /** Shown above the title (defaults to “Enterprise demo”). */
@@ -21,6 +25,12 @@ export function DemoLayout({
   embedKey,
   children,
 }: Props) {
+  const business = useQuery(api.businesses.getByEmbedKey, { embedKey }) as
+    | Business
+    | null
+    | undefined;
+  const bpAgentId = resolveBpAgentId(business);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -30,8 +40,11 @@ export function DemoLayout({
           <p className="text-gray-500 text-sm mt-1">{subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-3 text-sm">
-          <Link to="/dashboard" className="text-primary hover:underline">
-            Dashboard →
+          <Link
+            to={`/canvas?embedKey=${encodeURIComponent(embedKey)}`}
+            className="text-primary hover:underline"
+          >
+            Open workspace →
           </Link>
           <Link to="/present" className="text-gray-500 hover:text-[#E1E0CC]">
             Presenter view
@@ -53,7 +66,7 @@ export function DemoLayout({
               Talk to your AI advisor — intent-scored and personalised for this visitor.
             </p>
             <DemoAvatarStatus />
-            <BeyondPresenceFrame height={520} className="mt-3" />
+            <BeyondPresenceFrame agentId={bpAgentId} height={520} className="mt-3" />
           </div>
         </aside>
       </div>

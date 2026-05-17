@@ -13,6 +13,7 @@ export function WorkflowPage() {
     business,
     signedIn,
     needsMembership,
+    embedKey,
   } = useDashboardContext();
 
   const canEdit = signedIn && !needsMembership;
@@ -21,9 +22,9 @@ export function WorkflowPage() {
     <div className="flex flex-col gap-6">
       <DashboardPageHeader
         title="Workflow"
-        subtitle="n8n automation triggers and pipeline status"
+        subtitle="Webhook automation triggers and pipeline status"
         actions={
-          <Link to="/dashboard/settings" className="text-xs text-primary hover:underline">
+          <Link to={`/canvas/settings?embedKey=${encodeURIComponent(embedKey)}`} className="text-xs text-primary hover:underline">
             Configure webhooks →
           </Link>
         }

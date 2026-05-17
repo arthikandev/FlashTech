@@ -6,6 +6,7 @@ import { PostAuthRedirect } from "@/components/PostAuthRedirect";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
+import { AuthSignedInRedirect } from "./AuthSignedInRedirect";
 import { authClerkAppearance } from "./clerkAppearance";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -22,6 +23,7 @@ export function LoginPage() {
       animate={{ opacity: 1 }}
       className="brand-theme fixed inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-background text-foreground lg:grid lg:grid-cols-2"
     >
+      <AuthSignedInRedirect />
       <motion.div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
         <motion.div
           initial={{ opacity: 0, x: -12 }}
@@ -83,10 +85,10 @@ export function LoginPage() {
                         routing="path"
                         path="/login"
                         signUpUrl="/register"
-                      forceRedirectUrl={redirectParam ?? "/auth/callback"}
-                      fallbackRedirectUrl={redirectParam ?? "/auth/callback"}
-                      signUpForceRedirectUrl={redirectParam ?? "/auth/callback"}
-                      signUpFallbackRedirectUrl={redirectParam ?? "/auth/callback"}
+                        forceRedirectUrl={redirectParam ?? "/auth/callback"}
+                        fallbackRedirectUrl={redirectParam ?? "/auth/callback"}
+                        signUpForceRedirectUrl={redirectParam ?? "/auth/callback"}
+                        signUpFallbackRedirectUrl={redirectParam ?? "/auth/callback"}
                         appearance={authClerkAppearance}
                       />
                     </motion.div>

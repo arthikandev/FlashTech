@@ -24,9 +24,9 @@ npm run dev                  # terminal 2 — http://localhost:3000
 | `OPENAI_API_KEY` | Yes |
 | `NEXT_PUBLIC_APP_URL` | Yes |
 | `BEYONDPRESENCE_API_KEY` | Recommended (avatar agent sync) |
-| `N8N_WEBHOOK_SECRET` / `BP_WEBHOOK_SECRET` | Recommended |
+| `INBOUND_WEBHOOK_SECRET` / `BP_WEBHOOK_SECRET` | Recommended (webhook verification) |
 | `SEYLAN_API_*` | Recommended (hackathon sandbox CRM) |
-| `N8N_WEBHOOK_*` | Optional (else Seylan → demo mock) |
+| `WEBHOOK_*` outbound URLs | Optional (else Seylan → demo mock); legacy `N8N_WEBHOOK_*` still supported |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Dashboard (`/dashboard`) |
 | `CLERK_SECRET_KEY` | Dashboard |
 
@@ -50,7 +50,7 @@ Open `/dashboard` after sign-in. See [SETUP.md](SETUP.md).
 | Route | Description |
 |-------|-------------|
 | `/dashboard` | Live sessions (Clerk + Convex; sign-in required) |
-| `GET /api/health` | Config status for convex, openai, beyondPresence, n8n |
+| `GET /api/health` | Config status + automation integration flags |
 | `GET /api/beyondpresence/status` | Verify BP API key + list agents |
 | `GET /api/embed/seylan-demo` | Embed SDK for demo sites |
 | `POST /api/fingerprint` | Visitor fingerprint upsert |
@@ -67,11 +67,13 @@ See [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md) · [../docs/BEYOND_PRESEN
 | `npm run dev` | Start Next.js on port 3000 |
 | `npm run dev:3001` | Start Next.js when port 3000 is busy |
 | `npm run check:env` | Validate `.env.local` |
-| `npm run check:env:full` | Env + required n8n webhook URLs |
+| `npm run check:env:full` | Env + required outbound webhook URLs |
 | `npm run verify:all` | Env + build + Convex (all layers) |
-| `npm run verify:full` | Full stack + n8n URL validation + webhook ping |
-| `npm run validate:n8n` | Smoke POST to n8n webhooks |
+| `npm run verify:full` | Full stack + webhook URL validation + smoke POST |
+| `npm run validate:webhooks` | POST ping outbound webhook URLs |
 | `npm run status` | Integration summary from `.env.local` |
-| `npm run test:n8n` | E2E integration test (dev server required) |
+| `npm run test:webhooks` | E2E integration test (dev server required) |
+| `npm run validate:n8n` | Alias → `validate:webhooks` |
+| `npm run test:n8n` | Alias → `test:webhooks` |
 | `npm run seed` | Seed Seylan Bank demo data |
 | `npm run convex:dev` | Start Convex sync |

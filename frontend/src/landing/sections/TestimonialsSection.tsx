@@ -45,7 +45,7 @@ const reviews: Review[] = [
   {
     name: "David Park",
     username: "@customer_success",
-    body: "CRM context arrived before the call via n8n — the avatar greeted our prospect by name on the first line.",
+    body: "CRM context arrived before the call through our webhook automation — the avatar greeted our prospect by name on the first line.",
     img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop",
   },
 ];

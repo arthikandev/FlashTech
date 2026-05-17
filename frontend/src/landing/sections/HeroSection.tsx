@@ -97,8 +97,11 @@ export function HeroSection() {
             PresenceIQ
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 rounded-full border border-white/10 bg-black/40 backdrop-blur-xl px-6 py-2.5">
-            <LandingNavLinks />
+          <nav
+            className="hidden lg:flex min-w-0 max-w-[min(880px,calc(100vw-20rem))] items-center rounded-full border border-white/14 bg-black/45 px-4 py-2 md:px-5 md:py-2.5 shadow-[0_12px_40px_-18px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-x-auto scrollbar-hide"
+            aria-label="Main"
+          >
+            <LandingNavLinks className="flex items-center gap-3 xl:gap-5 flex-nowrap px-1" />
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">

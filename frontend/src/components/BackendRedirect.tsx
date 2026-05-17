@@ -1,15 +1,7 @@
-import { useEffect } from "react";
-import { goToBackendDashboard } from "@/lib/backendUrl";
+import { Navigate } from "react-router-dom";
+import { canvasPathFromStorage } from "@/lib/postAuth";
 
-/** Sends users to the backend app (friend's dashboard UI). */
+/** Redirect legacy backend dashboard links to in-app canvas. */
 export function BackendRedirect() {
-  useEffect(() => {
-    void goToBackendDashboard();
-  }, []);
-
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground text-sm">
-      Opening dashboard…
-    </div>
-  );
+  return <Navigate to={canvasPathFromStorage()} replace />;
 }

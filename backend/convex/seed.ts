@@ -1,9 +1,14 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
+import {
+  CATEGORY_SEED_ROWS,
+  categoryCodeFromIndustry,
+  type IndustryKey,
+} from "./lib/categoriesData";
 
 const DEMO_FINGERPRINT = "demo-sarangan-fp";
-const SLACK_WEBHOOK_PLACEHOLDER = "https://your-n8n.app/webhook/hot-lead-slack";
+const SLACK_WEBHOOK_PLACEHOLDER = "https://your-automation.example/hooks/hot-lead-slack";
 
 export const seedDemo = mutation({
   args: {
@@ -14,6 +19,37 @@ export const seedDemo = mutation({
   handler: async (ctx, { clerkUserId, bpAgentId }) => {
     const now = Date.now();
     const day = 24 * 60 * 60 * 1000;
+
+    for (const row of CATEGORY_SEED_ROWS) {
+      const existingCat = await ctx.db
+        .query("categories")
+        .withIndex("by_code", (q) => q.eq("code", row.code))
+        .unique();
+      if (existingCat) {
+        await ctx.db.patch(existingCat._id, {
+          industryKey: row.industryKey,
+          name: row.name,
+          tag: row.tag,
+          coreMetric: row.coreMetric,
+          dashboardFocus: row.dashboardFocus,
+          exampleClients: row.exampleClients,
+          sortOrder: row.sortOrder,
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.insert("categories", {
+          code: row.code,
+          industryKey: row.industryKey,
+          name: row.name,
+          tag: row.tag,
+          coreMetric: row.coreMetric,
+          dashboardFocus: row.dashboardFocus,
+          exampleClients: row.exampleClients,
+          sortOrder: row.sortOrder,
+          updatedAt: now,
+        });
+      }
+    }
 
     const businesses: Array<{
       name: string;
@@ -73,13 +109,21 @@ export const seedDemo = mutation({
 
       if (existing) {
         businessIds[b.embedKey] = existing._id;
+        const patch: {
+          avatarConfig?: typeof existing.avatarConfig;
+          categoryCode?: ReturnType<typeof categoryCodeFromIndustry>;
+        } = {};
+        if (!existing.categoryCode) {
+          patch.categoryCode = categoryCodeFromIndustry(b.industry as IndustryKey);
+        }
         if (b.embedKey === "seylan-demo" && bpAgentId) {
-          await ctx.db.patch(existing._id, {
-            avatarConfig: {
-              ...existing.avatarConfig,
-              bpAgentId,
-            },
-          });
+          patch.avatarConfig = {
+            ...existing.avatarConfig,
+            bpAgentId,
+          };
+        }
+        if (Object.keys(patch).length > 0) {
+          await ctx.db.patch(existing._id, patch);
         }
         continue;
       }
@@ -87,6 +131,7 @@ export const seedDemo = mutation({
       const id = await ctx.db.insert("businesses", {
         name: b.name,
         industry: b.industry,
+        categoryCode: categoryCodeFromIndustry(b.industry as IndustryKey),
         embedKey: b.embedKey,
         avatarConfig: b.avatarConfig,
         knowledgeChunks: b.knowledgeChunks,

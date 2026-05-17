@@ -13,6 +13,6 @@ coverage/
 .netlify/
 .vercel/
 devops/.secrets.local
-devops/n8n/.variables.local
+devops/automation-reference.env
 avatar/demo/config.js
 *.tsbuildinfo

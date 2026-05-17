@@ -35,7 +35,7 @@ export function SlackAlertCard({ detail }: Props) {
                 Intent <strong className="text-emerald-400">{score}</strong>/100 ·{" "}
                 {detail?.intelligence?.recommendedAction ?? "Follow up"}
               </p>
-              <p className="mt-1 text-[10px] text-muted-foreground">n8n hot-lead-slack · live</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Slack hot-lead webhook · live</p>
             </div>
           </div>
         ) : (

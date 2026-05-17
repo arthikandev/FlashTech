@@ -49,8 +49,9 @@ function buildUserPrompt(context: {
   pagesSummary: string;
   crmNotes?: string;
   churnRisk?: string;
+  operatorMessage?: string;
 }): string {
-  return [
+  const lines = [
     `Industry: ${context.industry}`,
     `Business: ${context.businessName}`,
     `Visitor name: ${context.visitorName ?? "unknown"}`,
@@ -60,7 +61,13 @@ function buildUserPrompt(context: {
     `Pages visited: ${context.pagesSummary}`,
     `CRM notes: ${context.crmNotes ?? "none"}`,
     `Churn risk: ${context.churnRisk ?? "unknown"}`,
-  ].join("\n");
+  ];
+  if (context.operatorMessage?.trim()) {
+    lines.push(
+      `Operator test prompt (incorporate into personalisedOpener when relevant): ${context.operatorMessage.trim()}`
+    );
+  }
+  return lines.join("\n");
 }
 
 function summarizePages(
@@ -135,9 +142,14 @@ async function callOpenAIIntent(context: {
   pageHistory: Array<{ path: string; title?: string }>;
   crmNotes?: string;
   churnRisk?: string;
+  operatorMessage?: string;
+  model?: string;
 }): Promise<IntelligenceResult> {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  if (!apiKey?.trim()) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("OPENAI_API_KEY is required in production");
+    }
     return heuristicIntentFallback({
       visitorName: context.visitorName,
       returnCount: context.returnCount,
@@ -146,8 +158,12 @@ async function callOpenAIIntent(context: {
   }
 
   const openai = new OpenAI({ apiKey });
+  const model =
+    context.model === "gpt-4o" || context.model === "gpt-4o-mini"
+      ? context.model
+      : INTENT_MODEL;
   const completion = await openai.chat.completions.create({
-    model: INTENT_MODEL,
+    model,
     temperature: 0.3,
     max_tokens: INTENT_MAX_TOKENS,
     response_format: { type: "json_object" },
@@ -165,6 +181,7 @@ async function callOpenAIIntent(context: {
           pagesSummary: summarizePages(context.pageHistory),
           crmNotes: context.crmNotes,
           churnRisk: context.churnRisk,
+          operatorMessage: context.operatorMessage,
         }),
       },
     ],
@@ -194,6 +211,8 @@ export async function scoreIntent(context: {
   crmNotes?: string;
   churnRisk?: string;
   fingerprint?: string;
+  operatorMessage?: string;
+  model?: string;
 }): Promise<IntelligenceResult> {
   if (
     context.fingerprint === "demo-sarangan-fp" ||
@@ -202,7 +221,7 @@ export async function scoreIntent(context: {
     return { ...DEMO_SARANGAN_INTELLIGENCE, computedAt: Date.now() };
   }
 
-  if (context.visitorId) {
+  if (context.visitorId && !context.operatorMessage?.trim()) {
     const cached = await getCachedIntelligence(context.visitorId);
     if (cached) return cached;
   }

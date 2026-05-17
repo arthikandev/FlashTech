@@ -5,7 +5,11 @@ import {
   fireSlackWebhook,
   fireTriggerWebhook,
   forwardCrmPush,
+  resolveAutomationChurnUrl,
+  resolveAutomationCrmPushUrl,
+  resolveAutomationSlackHotLeadUrl,
 } from "./pipeline";
+import type { BusinessWebhookUrls } from "./webhookUrlsResolve";
 
 const HOT_LEAD_THRESHOLD = 80;
 
@@ -23,6 +27,7 @@ type VisitorSnapshot = {
 type BusinessSnapshot = {
   _id: Id<"businesses">;
   name: string;
+  webhookUrls?: BusinessWebhookUrls;
 };
 
 export type FiredTrigger = {
@@ -31,7 +36,7 @@ export type FiredTrigger = {
   action: string;
 };
 
-/** After intent scoring — hot-lead Slack + optional churn n8n workflow */
+/** After intent scoring — hot-lead Slack + optional churn workflow */
 export async function runPipelineAutomation(args: {
   visitor: VisitorSnapshot;
   business: BusinessSnapshot;
@@ -44,6 +49,7 @@ export async function runPipelineAutomation(args: {
     visitorId: args.visitor._id,
     businessId: args.business._id,
     businessName: args.business.name,
+    webhookUrls: args.business.webhookUrls,
   });
 
   const churnFired = await fireChurnEmailIfNeeded({
@@ -62,19 +68,23 @@ export async function fireHotLeadIfNeeded(args: {
   visitorId: string;
   businessId: string;
   businessName?: string;
+  webhookUrls?: BusinessWebhookUrls;
 }): Promise<boolean> {
   if (args.intentScore < HOT_LEAD_THRESHOLD) return false;
-  if (!process.env.N8N_WEBHOOK_SLACK?.trim()) return false;
+  if (!resolveAutomationSlackHotLeadUrl(args.webhookUrls)) return false;
 
-  await fireSlackWebhook({
-    type: "hot_lead",
-    name: args.visitorName ?? "Unknown",
-    intentScore: args.intentScore,
-    recommendedAction: args.recommendedAction,
-    visitorId: args.visitorId,
-    businessId: args.businessId,
-    businessName: args.businessName,
-  });
+  await fireSlackWebhook(
+    {
+      type: "hot_lead",
+      name: args.visitorName ?? "Unknown",
+      intentScore: args.intentScore,
+      recommendedAction: args.recommendedAction,
+      visitorId: args.visitorId,
+      businessId: args.businessId,
+      businessName: args.businessName,
+    },
+    args.webhookUrls
+  );
 
   return true;
 }
@@ -85,7 +95,7 @@ export async function fireChurnEmailIfNeeded(args: {
   intentScore: number;
 }): Promise<boolean> {
   if (args.visitor.crmData?.churnRisk !== "high") return false;
-  if (!process.env.N8N_WEBHOOK_CHURN?.trim()) return false;
+  if (!resolveAutomationChurnUrl()) return false;
 
   await fireChurnWebhook({
     type: "churn_risk",
@@ -128,6 +138,7 @@ export async function runPostCallAutomation(args: {
     recommendedAction?: string;
   } | null;
   firedTriggers: FiredTrigger[];
+  webhookUrls?: BusinessWebhookUrls;
   session: {
     transcript: unknown[];
     outcome: string;
@@ -157,20 +168,24 @@ export async function runPostCallAutomation(args: {
     recommendedAction: args.intelligence?.recommendedAction,
     visitorId: args.visitorId,
     businessId: args.businessId,
+    webhookUrls: args.webhookUrls,
   });
 
-  void forwardCrmPush({
-    visitorId: args.visitorId,
-    businessId: args.businessId,
-    intentScore,
-    transcript: args.session.transcript,
-    outcome: args.session.outcome,
-    actionItems: args.session.actionItems,
-  });
+  void forwardCrmPush(
+    {
+      visitorId: args.visitorId,
+      businessId: args.businessId,
+      intentScore,
+      transcript: args.session.transcript,
+      outcome: args.session.outcome,
+      actionItems: args.session.actionItems,
+    },
+    args.webhookUrls
+  );
 
   return {
     firedTriggerCount,
     hotLeadFired,
-    crmPushFired: Boolean(process.env.N8N_WEBHOOK_CRM_PUSH?.trim()),
+    crmPushFired: Boolean(resolveAutomationCrmPushUrl(args.webhookUrls)),
   };
 }

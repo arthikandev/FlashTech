@@ -43,12 +43,12 @@ const TOOLS: Array<{
     docsUrl: "https://docs.convex.dev",
   },
   {
-    name: "n8n",
-    role: "Automation & CRM bridge",
+    name: "Automation webhooks",
+    role: "CRM & alerting bridge",
     description:
-      "PRE CRM fetch, POST enriched lead push, and hot-lead Slack alerts in seconds.",
+      "Bring your own HTTPS endpoints — CRM enrichment, Slack hot-leads, and post-call summaries in seconds.",
     icon: Workflow,
-    docsUrl: "https://docs.n8n.io",
+    docsUrl: "#stack",
   },
 ];
 

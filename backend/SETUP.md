@@ -19,16 +19,18 @@ Never commit `.env.local`. Only put real secrets there.
 | `CONVEX_DEPLOYMENT` | Yes | Same project → `dev:adamant-puffin-769` |
 | `OPENAI_API_KEY` | Yes | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
 | `NEXT_PUBLIC_APP_URL` | Yes | `http://localhost:3000` for local dev |
-| `N8N_WEBHOOK_SECRET` | Recommended | Any random string (`openssl rand -hex 16`) |
+| `INBOUND_WEBHOOK_SECRET` | Recommended | Random string — automation must send `X-Webhook-Secret` to `/api/webhooks/crm-ingest` |
+| `N8N_WEBHOOK_SECRET` | Legacy alias | Same value as `INBOUND_WEBHOOK_SECRET` if you still use the old name |
 | `BEYONDPRESENCE_API_KEY` | Avatar sync | [app.bey.chat/settings](https://app.bey.chat/settings) — backend only, not avatar |
 | `BP_WEBHOOK_SECRET` | Recommended | Any random string (share with Person 1) |
 | `SEYLAN_API_BASE_URL` | Recommended | Hackathon sandbox: `http://34.21.206.87:3000` |
 | `SEYLAN_API_KEY` | Recommended | Team 8 key — header `x-api-key` on every request |
 | `SEYLAN_CUSTOMER_LOOKUP_PATH` | Optional | From Seylan Web API Manual; default `/api/accounts/{accountNumber}` |
 | `SEYLAN_DEMO_ACCOUNT_NUMBER` | Optional | Default `064000012548001` for Sarangan demo |
-| `N8N_WEBHOOK_CRM_FETCH` | Optional | n8n webhook — if empty, uses **Seylan sandbox** then demo mock |
-| `N8N_WEBHOOK_CRM_PUSH` | Optional | n8n post-call webhook |
-| `N8N_WEBHOOK_SLACK` | Optional | n8n Slack hot-lead webhook |
+| `WEBHOOK_CRM_FETCH_TRIGGER` | Optional | HTTPS URL — if empty, uses **Seylan sandbox** then demo mock (legacy: `N8N_WEBHOOK_CRM_FETCH`) |
+| `WEBHOOK_CRM_PUSH` | Optional | Post-call CRM log URL (legacy: `N8N_WEBHOOK_CRM_PUSH`) |
+| `WEBHOOK_SLACK_HOT_LEAD` | Optional | Hot-lead Slack relay URL (legacy: `N8N_WEBHOOK_SLACK`) |
+| `WEBHOOK_CHURN_RISK` | Optional | Churn workflow URL (legacy: `N8N_WEBHOOK_CHURN`) |
 | `CONVEX_DEPLOY_KEY` | CI only | Convex dashboard → Deploy Key |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Dashboard | [Clerk → API keys](https://dashboard.clerk.com/last-active?path=api-keys) |
 | `CLERK_SECRET_KEY` | Dashboard | Same page (secret key) |
@@ -130,7 +132,7 @@ Person 1 embeds the agent using `bpAgentId` from the pipeline response — no AP
 
 ## 6. Seylan Bank sandbox (Team 8)
 
-CRM enrichment priority: **n8n** → **Seylan sandbox** → **demo mock**.
+CRM enrichment priority: **outbound CRM-fetch webhook** (`WEBHOOK_CRM_FETCH_TRIGGER` or per-workspace `crmFetch`) → **Seylan sandbox** → **demo mock**.
 
 Add to `.env.local` (see hackathon handout — never commit real keys to git):
 
@@ -156,65 +158,58 @@ curl -X POST http://localhost:3000/api/seylan/account-inquiry \
 
 If sandbox paths differ, set `SEYLAN_CUSTOMER_LOOKUP_PATH` from the **Seylan Web API Manual**. Fingerprint still works via demo mock when sandbox is down.
 
-## 7. n8n Cloud automation
+## 7. Outbound webhook automation
 
-Full guide: [../devops/n8n/README.md](../devops/n8n/README.md)
+Guide: [../devops/AUTOMATION_WEBHOOKS.md](../devops/AUTOMATION_WEBHOOKS.md)
 
-1. Import `devops/n8n/*.workflow.json` into [n8n Cloud](https://app.n8n.io)
-2. Set variables: `PRESENCEIQ_BACKEND_URL`, `N8N_WEBHOOK_SECRET`
-3. Activate workflows; copy Production Webhook URLs into `.env.local`:
-   - `N8N_WEBHOOK_CRM_FETCH`, `N8N_WEBHOOK_SLACK`, `N8N_WEBHOOK_CRM_PUSH`, `N8N_WEBHOOK_CHURN`
-4. Restart `npm run dev`
+1. Paste HTTPS webhook URLs into `.env.local` (`WEBHOOK_*` keys; legacy `N8N_WEBHOOK_*` still work).
+2. Set `INBOUND_WEBHOOK_SECRET` so your enrichment tool can call `POST /api/webhooks/crm-ingest` with `X-Webhook-Secret`.
+3. Restart `npm run dev`
 
 Test:
 
-From `backend/` (do not run `cd backend` again if your prompt already shows `backend %`):
-
 ```bash
-npm run test:n8n
-# or: bash ../devops/scripts/test-n8n-flow.sh
+npm run test:webhooks
+# or: bash ../devops/scripts/test-automation-flow.sh
 ```
 
-Requires `npm run dev` running in another terminal first.
-
 Automation fires on:
-- **Fingerprint** → n8n CRM fetch (when `N8N_WEBHOOK_CRM_FETCH` set)
+- **Fingerprint** → CRM-fetch webhook (when configured)
 - **Pipeline** → hot-lead Slack when intent ≥ 80
 - **Post-call webhook** → CRM push + Convex triggers
 
 ## 8. Verify all layers
 
-**Quick (CI / no n8n required):**
+**Quick (CI / no outbound webhooks required):**
 
 ```bash
 npm run verify:all
 npm run status
 ```
 
-**Full stack (n8n webhooks required in `.env.local`):**
+**Full stack (outbound webhook URLs required in `.env.local`):**
 
-1. Paste Production Webhook URLs from n8n Cloud into `.env.local` (see §7).
-2. Set n8n variables: `PRESENCEIQ_BACKEND_URL`, `N8N_WEBHOOK_SECRET` (use ngrok for local).
-3. Run:
+1. Set `WEBHOOK_CRM_FETCH_TRIGGER`, `WEBHOOK_SLACK_HOT_LEAD`, `WEBHOOK_CRM_PUSH` (or legacy `N8N_*` equivalents).
+2. Run:
 
 ```bash
 npm run check:env:full
 npm run verify:full
-npm run validate:n8n
+npm run validate:webhooks
 ```
 
 | Command | What it checks |
 |---------|----------------|
 | `npm run verify:all` | Env (required keys) + build + Convex |
-| `npm run verify:full` | Above + valid n8n URLs + webhook smoke POST |
-| `npm run check:env:full` | Env only, fails if `N8N_WEBHOOK_CRM_FETCH` / `SLACK` / `CRM_PUSH` missing |
-| `npm run validate:n8n` | POST ping to each n8n webhook URL |
+| `npm run verify:full` | Above + valid HTTPS webhook URLs + smoke POST |
+| `npm run check:env:full` | Env only, fails if required outbound webhook URLs missing |
+| `npm run validate:webhooks` | POST ping to each webhook URL |
 | `npm run status` | One-screen integration summary from `.env.local` |
-| `npm run test:n8n` | E2E API flow (dev server must be running) |
+| `npm run test:webhooks` | E2E API flow (dev server must be running) |
 
 | Layer | What it checks |
 |-------|----------------|
-| Env | `npm run check:env` — Convex, OpenAI, Beyond Presence, Clerk, Seylan, n8n URLs |
+| Env | `npm run check:env` — Convex, OpenAI, Beyond Presence, Clerk, Seylan |
 | API build | `npm run build` — all routes compile |
 | Convex | `npx convex dev --once` — functions deploy |
 
@@ -223,8 +218,8 @@ npm run validate:n8n
 | API | `curl /api/health`, embed, fingerprint, pipeline |
 | Services | Pipeline returns Sarangan opener, `pipelineMs` < 2000 |
 | Convex | `/dashboard` or Convex dashboard → Data tab |
-| Webhooks | `POST /api/webhooks/n8n/crm`, BP session with secrets |
-| Automation | n8n Executions show CRM fetch + hot-lead when score ≥ 80 |
+| Webhooks | `POST /api/webhooks/crm-ingest`, BP session with secrets |
+| Automation | Upstream executions show CRM fetch + hot-lead when score ≥ 80 |
 
 ## 9. Test endpoints
 

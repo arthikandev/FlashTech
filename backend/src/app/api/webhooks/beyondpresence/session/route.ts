@@ -178,6 +178,7 @@ export async function POST(request: NextRequest) {
       visitor,
       intelligence,
       firedTriggers: fired,
+      webhookUrls: business?.webhookUrls,
       session: {
         transcript,
         outcome,

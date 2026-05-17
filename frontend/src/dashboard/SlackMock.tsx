@@ -9,7 +9,7 @@ export function SlackMock({ embedded = false }: Props) {
     <>
       {!embedded && (
         <>
-          <Link to="/dashboard" className="text-sm text-gray-500 hover:text-[#E1E0CC]">
+          <Link to="/canvas" className="text-sm text-gray-500 hover:text-[#E1E0CC]">
             ← Dashboard
           </Link>
           <h1 className="mt-4 font-serif text-2xl text-[#E1E0CC]">#sales-alerts</h1>
@@ -35,7 +35,7 @@ export function SlackMock({ embedded = false }: Props) {
               Hot lead — Sarangan returned to Seylan Platinum pricing (intent{" "}
               <strong className="text-emerald-400">96</strong>)
             </p>
-            <p className="mt-1 text-xs text-gray-600">Just now · n8n hot-lead-slack</p>
+            <p className="mt-1 text-xs text-gray-600">Just now · hot-lead webhook</p>
           </div>
         </div>
       </div>

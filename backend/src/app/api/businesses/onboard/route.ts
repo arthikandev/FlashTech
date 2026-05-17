@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { envSlackHotLeadUrl } from "@/lib/automationEnv";
 import { api, getConvexClient } from "@/lib/convex";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
 
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       }
     );
 
-    const slackWebhook = process.env.N8N_WEBHOOK_SLACK?.trim();
+    const slackWebhook = envSlackHotLeadUrl();
     if (slackWebhook) {
       try {
         await convex.mutation(api.triggers.seedTriggers, {

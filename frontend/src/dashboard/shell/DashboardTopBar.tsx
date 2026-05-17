@@ -1,5 +1,5 @@
 import { SignInButton, UserButton } from "@clerk/clerk-react";
-import { Bell, Search } from "lucide-react";
+import { Bell, LayoutTemplate, Search } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useDeferredValue, useMemo, useState, useEffect } from "react";
@@ -114,7 +114,15 @@ export function DashboardTopBar({
         </Button>
 
         <Link
-          to="/dashboard/settings"
+          to={`/canvas?embedKey=${encodeURIComponent(embedKey)}`}
+          className="hidden items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-[10px] font-semibold text-primary hover:bg-primary/20 sm:inline-flex"
+        >
+          <LayoutTemplate className="size-3.5" />
+          Open Canvas
+        </Link>
+
+        <Link
+          to={`/canvas/settings?embedKey=${encodeURIComponent(embedKey)}`}
           className="hidden rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground sm:inline"
         >
           Settings

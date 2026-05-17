@@ -9,7 +9,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 const NODES: Array<{ label: string; icon: LucideIcon }> = [
   { label: "Visitor lands", icon: User },
   { label: "Fingerprint", icon: Fingerprint },
-  { label: "CRM via n8n", icon: Workflow },
+  { label: "CRM enrichment", icon: Workflow },
   { label: "Intent scored", icon: Sparkles },
   { label: "Avatar speaks", icon: Bot },
 ];

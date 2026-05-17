@@ -63,6 +63,35 @@ export async function probeOpenAI(): Promise<ProbeResult> {
   }
 }
 
+export async function probeElevenLabs(): Promise<ProbeResult> {
+  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  if (!apiKey) {
+    return { ok: false, latencyMs: 0, detail: "ELEVENLABS_API_KEY not set" };
+  }
+
+  const start = Date.now();
+  try {
+    const res = await Promise.race([
+      fetch("https://api.elevenlabs.io/v1/user", {
+        headers: { "xi-api-key": apiKey },
+      }),
+      rejectAfter(PROBE_TIMEOUT_MS),
+    ]);
+    const ok = res.ok;
+    return {
+      ok,
+      latencyMs: Date.now() - start,
+      detail: ok ? undefined : `HTTP ${res.status}`,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      detail: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 export async function probeBeyondPresence(): Promise<ProbeResult> {
   if (!isBeyondPresenceConfigured()) {
     return { ok: false, latencyMs: 0, detail: "BEYONDPRESENCE_API_KEY not set" };

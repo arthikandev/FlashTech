@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # PresenceIQ hour-20 integration tests (bash)
-# BACKEND_URL=http://localhost:3000 N8N_WEBHOOK_SECRET=... BP_WEBHOOK_SECRET=... ./integration-test.sh
+# BACKEND_URL=http://localhost:3000 INBOUND_WEBHOOK_SECRET=... BP_WEBHOOK_SECRET=... ./integration-test.sh
 
 set -euo pipefail
 
 BACKEND_URL="${BACKEND_URL:-}"
-N8N_WEBHOOK_SECRET="${N8N_WEBHOOK_SECRET:-}"
+INBOUND_WEBHOOK_SECRET="${INBOUND_WEBHOOK_SECRET:-${N8N_WEBHOOK_SECRET:-}}"
 BP_WEBHOOK_SECRET="${BP_WEBHOOK_SECRET:-}"
 
 if [[ -z "$BACKEND_URL" ]]; then
@@ -61,10 +61,10 @@ test_pipeline() {
   [[ -n "$ms" && "$ms" -lt 3000 ]]
 }
 
-test_n8n_crm() {
-  curl -sf -X POST "$BACKEND_URL/api/webhooks/n8n/crm" \
+test_inbound_crm() {
+  curl -sf -X POST "$BACKEND_URL/api/webhooks/crm-ingest" \
     -H "Content-Type: application/json" \
-    -H "X-Webhook-Secret: $N8N_WEBHOOK_SECRET" \
+    -H "X-Webhook-Secret: $INBOUND_WEBHOOK_SECRET" \
     -d "{\"visitorId\":\"$VISITOR_ID\",\"crmId\":\"CRM-001\",\"crmData\":{\"name\":\"Sarangan\",\"email\":\"t@t.com\",\"accountType\":\"prospect\",\"churnRisk\":\"low\",\"notes\":\"test\"}}"
 }
 
@@ -80,10 +80,10 @@ run_test "2. GET /api/embed/seylan-demo" test_embed
 run_test "3. POST /api/fingerprint" test_fingerprint
 run_test "4. POST /api/pipeline" test_pipeline
 
-if [[ -n "$N8N_WEBHOOK_SECRET" ]]; then
-  run_test "5. POST /api/webhooks/n8n/crm" test_n8n_crm
+if [[ -n "$INBOUND_WEBHOOK_SECRET" ]]; then
+  run_test "5. POST /api/webhooks/crm-ingest" test_inbound_crm
 else
-  echo "SKIP 5: N8N_WEBHOOK_SECRET not set"
+  echo "SKIP 5: INBOUND_WEBHOOK_SECRET (or N8N_WEBHOOK_SECRET) not set"
 fi
 
 if [[ -n "$BP_WEBHOOK_SECRET" ]]; then

@@ -1,5 +1,6 @@
 import { embedAgent, hideAgentContainer, showAgentContainer } from "../beyondpresence/embedAgent";
 import { selectVoiceId } from "../elevenlabs/selectVoice";
+import type { VoiceTone } from "../tone";
 import { buildSystemPrompt } from "./buildSystemPrompt";
 
 export type PresenceIQReadyConfig = {
@@ -33,6 +34,7 @@ export type PipelineResponse = {
   bpAgentId?: string | null;
   beyondPresence?: { synced: boolean; reason?: string };
   pipelineMs?: number;
+  voice?: { voiceId?: string; tone?: string; label?: string };
 };
 
 const DEFAULT_OPENER = "Hello! How can I help you today?";
@@ -112,10 +114,13 @@ export function attachPresenceIQReadyListener(
         data.visitor,
         data.business
       );
-      const voiceId = selectVoiceId(
-        data.business.industry,
-        data.visitor.language ?? "en"
-      );
+      const voiceId =
+        data.voice?.voiceId ??
+        selectVoiceId(
+          data.business.industry,
+          data.visitor.language ?? "en",
+          data.voice?.tone as VoiceTone | undefined
+        );
       console.info("[PresenceIQ] Pipeline complete", {
         pipelineMs: data.pipelineMs,
         opener: data.intelligence.personalisedOpener,

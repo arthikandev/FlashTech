@@ -1,31 +1,5 @@
 "use strict";
-var PresenceIQAvatar = (() => {
-  var __defProp = Object.defineProperty;
-  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-  var __getOwnPropNames = Object.getOwnPropertyNames;
-  var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __export = (target, all) => {
-    for (var name in all)
-      __defProp(target, name, { get: all[name], enumerable: true });
-  };
-  var __copyProps = (to, from, except, desc) => {
-    if (from && typeof from === "object" || typeof from === "function") {
-      for (let key of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(to, key) && key !== except)
-          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-    }
-    return to;
-  };
-  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-  // src/index.ts
-  var index_exports = {};
-  __export(index_exports, {
-    bootstrap: () => bootstrap,
-    initPresenceIQAvatar: () => initPresenceIQAvatar,
-    onPresenceIQReady: () => onPresenceIQReady
-  });
-
+(() => {
   // src/config.ts
   function getConfig() {
     const c = window.__PRESENCEIQ_CONFIG__ ?? {};
@@ -40,19 +14,26 @@ var PresenceIQAvatar = (() => {
   }
 
   // src/pipeline.ts
-  async function fetchPipeline(backendUrl, visitorId, businessId, waitForCrmMs = 200) {
+  async function fetchPipeline(backendUrl, visitorId, businessId, waitForCrmMs = 200, operatorMessage) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5e3);
     try {
       const res = await fetch(`${backendUrl}/api/pipeline`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorId, businessId, waitForCrmMs }),
+        body: JSON.stringify({
+          visitorId,
+          businessId,
+          waitForCrmMs,
+          ...operatorMessage?.trim() ? { operatorMessage: operatorMessage.trim() } : {}
+        }),
         signal: controller.signal
       });
       const json = await res.json();
       if (!res.ok || !json.success || !json.data) {
-        throw new Error(json.error ?? `Pipeline failed (${res.status})`);
+        throw new Error(
+          json.message ?? json.error ?? `Pipeline failed (${res.status})`
+        );
       }
       if (json.data.pipelineMs > 1800) {
         console.warn(
@@ -77,6 +58,57 @@ var PresenceIQAvatar = (() => {
       `Open with exactly: "${intelligence.personalisedOpener}"`
     ].filter(Boolean).join("\n");
   }
+
+  // src/elevenlabs/voiceCatalog.json
+  var voiceCatalog_default = {
+    version: 1,
+    syncedAt: null,
+    voices: {
+      bank: {
+        en: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam (formal EN)" },
+        si: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN fallback for SI)" },
+        ta: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN fallback for TA)" }
+      },
+      saas: {
+        en: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (friendly EN)" },
+        si: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN fallback)" },
+        ta: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN fallback)" }
+      },
+      hotel: {
+        en: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (warm EN)" },
+        si: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN fallback)" },
+        ta: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN fallback)" }
+      },
+      hospital: {
+        en: { voiceId: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (calm EN)" },
+        si: { voiceId: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (EN fallback)" },
+        ta: { voiceId: "onwK4e9ZLuTAKqWW03F9", label: "Daniel (EN fallback)" }
+      },
+      ecommerce: {
+        en: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (upbeat EN)" },
+        si: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN fallback)" },
+        ta: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN fallback)" }
+      },
+      hr: {
+        en: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam (neutral EN)" },
+        si: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN fallback)" },
+        ta: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN fallback)" }
+      }
+    },
+    toneOverrides: {
+      urgent: "pNInz6obpgDQGcFmaJgB",
+      calm: "onwK4e9ZLuTAKqWW03F9",
+      warm: "EXAVITQu4vr4xnSDxMaL",
+      professional: "pNInz6obpgDQGcFmaJgB"
+    }
+  };
+
+  // src/beyondpresence/voices.ts
+  var VOICE_BY_LANGUAGE = {
+    en: voiceCatalog_default.voices.saas.en.voiceId,
+    si: voiceCatalog_default.voices.saas.si.voiceId,
+    ta: voiceCatalog_default.voices.saas.ta.voiceId
+  };
 
   // src/webhook.ts
   async function postSessionWebhook(backendUrl, bpWebhookSecret, payload) {
@@ -307,8 +339,16 @@ var PresenceIQAvatar = (() => {
   }
 
   // src/types.ts
+  function resolveContainerRef(ref) {
+    if (ref == null) return null;
+    if (typeof ref === "string") {
+      const id = ref.trim();
+      return id ? document.getElementById(id) : null;
+    }
+    return ref;
+  }
   function resolveAvatarContainer(options) {
-    return options.container ?? options.avatarContainer ?? null;
+    return resolveContainerRef(options.container) ?? resolveContainerRef(options.avatarContainer) ?? null;
   }
 
   // src/index.ts
@@ -383,6 +423,7 @@ var PresenceIQAvatar = (() => {
       return;
     }
     const gen = ++readyGeneration;
+    activeCallContext = null;
     setLatestReadyContext(gen, visitorId, businessId);
     const config = getConfig();
     if (!client) {
@@ -412,7 +453,8 @@ var PresenceIQAvatar = (() => {
       config.backendUrl,
       visitorId,
       businessId,
-      config.waitForCrmMs ?? 200
+      config.waitForCrmMs ?? 200,
+      detail.operatorMessage
     );
     const avatarWarmPromise = warmAvatarWithRetry(client, defaultContext);
     const [pipelineSettled, avatarSettled] = await Promise.allSettled([
@@ -496,7 +538,8 @@ var PresenceIQAvatar = (() => {
           detail: {
             visitorId: last.visitorId,
             businessId: last.businessId,
-            sessionId: last.sessionId
+            sessionId: last.sessionId,
+            ...last.operatorMessage?.trim() ? { operatorMessage: last.operatorMessage.trim() } : {}
           }
         })
       );
@@ -528,5 +571,4 @@ var PresenceIQAvatar = (() => {
       initPresenceIQAvatar
     };
   }
-  return __toCommonJS(index_exports);
 })();

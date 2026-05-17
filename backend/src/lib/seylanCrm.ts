@@ -1,7 +1,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { api, getConvexClient } from "./convex";
 import { applyDemoCrmIfNeeded } from "./demoCrm";
-import { isN8nCrmConfigured } from "./env";
+import { isCrmFetchWebhookConfigured } from "./automationEnv";
 import {
   fetchCrmForVisitor,
   getSeylanDemoAccountNumber,
@@ -31,7 +31,7 @@ export async function applySeylanCrmIfNeeded(args: {
   fingerprint: string;
   returnCount: number;
 }): Promise<boolean> {
-  if (isN8nCrmConfigured() || !isSeylanApiConfigured()) return false;
+  if (isCrmFetchWebhookConfigured() || !isSeylanApiConfigured()) return false;
 
   const shouldEnrich =
     args.returnCount > 1 ||

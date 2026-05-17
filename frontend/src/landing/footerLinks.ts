@@ -1,7 +1,7 @@
 import type { MessageKey } from "./i18n/messages";
 
 export const FOOTER_PRODUCT = [
-  { key: "footer.dashboard" as MessageKey, to: "/dashboard" },
+  { key: "footer.dashboard" as MessageKey, to: "/canvas" },
   { key: "footer.demos" as MessageKey, to: "/demos/seylan" },
   { key: "footer.onboard" as MessageKey, to: "/onboard" },
   { key: "footer.embedSdk" as MessageKey, href: "#features" },

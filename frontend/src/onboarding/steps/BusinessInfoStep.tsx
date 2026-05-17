@@ -11,19 +11,32 @@ type Props = {
   onBack: () => void;
   onContinue: () => void;
   showBack: boolean;
+  readOnly?: boolean;
 };
 
-export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }: Props) {
+export function BusinessInfoStep({
+  data,
+  update,
+  onBack,
+  onContinue,
+  showBack,
+  readOnly = false,
+}: Props) {
   const category = getCategoryByIndustry(data.industry);
+
   const canContinue =
     data.companyName.trim().length > 0 &&
-    data.website.trim().length > 0 &&
+    (readOnly || data.website.trim().length > 0) &&
     data.industry !== "";
 
   return (
     <OnboardingShell
       title="Business info"
-      description="Tell us about your company so we can tailor the avatar and embed."
+      description={
+        readOnly
+          ? "Your client account is set up. Review details, then continue to avatar and embed."
+          : "Tell us about your company so we can tailor the avatar and embed."
+      }
       onBack={onBack}
       onContinue={onContinue}
       continueDisabled={!canContinue}
@@ -38,6 +51,8 @@ export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }:
           onChange={(e) => update({ companyName: e.target.value })}
           placeholder="Acme Corp"
           className={onboardingInputClass}
+          readOnly={readOnly}
+          disabled={readOnly}
         />
       </div>
       <div className="space-y-2">
@@ -49,6 +64,8 @@ export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }:
           onChange={(e) => update({ website: e.target.value })}
           placeholder="https://example.com"
           className={onboardingInputClass}
+          readOnly={readOnly}
+          disabled={readOnly}
         />
       </div>
       <div className="space-y-2">
@@ -66,6 +83,7 @@ export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }:
             value={data.industry}
             onChange={(e) => update({ industry: e.target.value as OnboardingData["industry"] })}
             className={onboardingSelectClass}
+            disabled={readOnly}
           >
             <option value="">Select industry</option>
             {INDUSTRIES.map((opt) => (

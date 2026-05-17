@@ -141,9 +141,11 @@ See [BEYOND_PRESENCE.md](BEYOND_PRESENCE.md).
 
 ---
 
-## POST /api/webhooks/n8n/crm
+## POST /api/webhooks/crm-ingest
 
-**Header**: `X-Webhook-Secret: {N8N_WEBHOOK_SECRET}`
+**Header**: `X-Webhook-Secret: {INBOUND_WEBHOOK_SECRET}` (legacy: `N8N_WEBHOOK_SECRET`)
+
+**Alias:** `POST /api/webhooks/n8n/crm` — same handler.
 
 **Body**:
 
@@ -203,7 +205,7 @@ Fires hot-lead Slack trigger when latest `intentScore > 80`.
 
 ---
 
-## Fake CRM (n8n / Person 3)
+## Fake CRM (automation / Person 3)
 
 ```json
 {
@@ -231,11 +233,11 @@ Server-side proxy to hackathon sandbox. Requires `SEYLAN_API_BASE_URL` + `SEYLAN
 { "accountNumber": "064000012548001" }
 ```
 
-Fingerprint CRM order: n8n → Seylan sandbox → built-in demo mock.
+Fingerprint CRM order: outbound CRM-fetch webhook → Seylan sandbox → built-in demo mock.
 
 **Automation (server-side):**
-- `POST /api/pipeline` — if `intentScore >= 80`, fires `N8N_WEBHOOK_SLACK` (hot-lead)
-- `POST /api/webhooks/beyondpresence/session` — fires triggers, Slack, `N8N_WEBHOOK_CRM_PUSH`
+- `POST /api/pipeline` — if `intentScore >= 80`, fires `WEBHOOK_SLACK_HOT_LEAD` (legacy: `N8N_WEBHOOK_SLACK`)
+- `POST /api/webhooks/beyondpresence/session` — fires triggers, Slack, `WEBHOOK_CRM_PUSH` (legacy: `N8N_WEBHOOK_CRM_PUSH`)
 
 ---
 

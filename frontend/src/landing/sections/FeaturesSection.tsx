@@ -144,7 +144,7 @@ export function FeaturesSection() {
             number="02"
             title={t("features.c2.title")}
             icon={LayoutDashboard}
-            linkTo="/dashboard"
+            linkTo="/canvas"
             className="lg:col-span-5"
             learnMoreLabel={t("features.learnMore")}
             items={[t("features.c2.i0"), t("features.c2.i1"), t("features.c2.i2")]}

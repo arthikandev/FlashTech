@@ -72,6 +72,16 @@ export function AiRulesStep({
         />
       </div>
 
+      <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Example opener
+        </p>
+        <p className="text-sm text-foreground/90 italic">
+          &ldquo;Hi — I noticed you&apos;re exploring our solutions. What brought you here
+          today?&rdquo;
+        </p>
+      </div>
+
       <div className="space-y-2">
         <Label>Languages</Label>
         <div className="flex flex-wrap gap-2">

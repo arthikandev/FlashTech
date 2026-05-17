@@ -167,7 +167,7 @@ function TriggerFormDialog({
               id="webhook"
               value={form.webhookUrl}
               onChange={(e) => setForm((f) => ({ ...f, webhookUrl: e.target.value }))}
-              placeholder="https://your-n8n.app/webhook/..."
+              placeholder="https://your-provider.example/webhook/..."
             />
           </Field>
           <Field className="flex flex-row items-center justify-between gap-4">
@@ -270,7 +270,7 @@ export function WorkflowTriggers({ businessId, triggers, loading, canEdit }: Pro
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
           <CardTitle className="text-base">Automation triggers</CardTitle>
-          <CardDescription>n8n webhooks fired from the intent pipeline</CardDescription>
+          <CardDescription>HTTPS webhooks fired from the intent pipeline</CardDescription>
         </div>
         {canEdit && businessId && (
           <>

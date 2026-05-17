@@ -1,3 +1,10 @@
+import {
+  envChurnRiskWebhookUrl,
+  envCrmFetchTriggerUrl,
+  envCrmPushUrl,
+  envInboundCrmWebhookSecret,
+  envSlackHotLeadUrl,
+} from "./automationEnv";
 export type EnvCheckResult = {
   ok: boolean;
   missing: string[];
@@ -5,10 +12,11 @@ export type EnvCheckResult = {
   checks: {
     convex: "configured" | "missing";
     openai: "configured" | "missing";
-    n8nCrm: "configured" | "demo_mock";
-    n8nSlack: "configured" | "missing";
-    n8nCrmPush: "configured" | "missing";
-    n8nChurn: "configured" | "missing";
+    elevenLabs: "configured" | "missing";
+    automationCrmFetch: "configured" | "demo_mock";
+    automationSlackHotLead: "configured" | "missing";
+    automationCrmPush: "configured" | "missing";
+    automationChurn: "configured" | "missing";
     seylan: "configured" | "demo_fallback" | "missing";
     beyondPresence: "configured" | "missing";
     webhookSecrets: "configured" | "partial" | "missing";
@@ -30,44 +38,28 @@ export function checkEnv(): EnvCheckResult {
 
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
   const openaiKey = process.env.OPENAI_API_KEY;
-  const n8nCrmFetch = process.env.N8N_WEBHOOK_CRM_FETCH;
-  const n8nSlack = process.env.N8N_WEBHOOK_SLACK;
-  const n8nCrmPush = process.env.N8N_WEBHOOK_CRM_PUSH;
-  const n8nChurn = process.env.N8N_WEBHOOK_CHURN;
-  const n8nSecret = process.env.N8N_WEBHOOK_SECRET;
+  const crmFetchTrigger = envCrmFetchTriggerUrl();
+  const slackHotLead = envSlackHotLeadUrl();
+  const crmPush = envCrmPushUrl();
+  const churn = envChurnRiskWebhookUrl();
+  const inboundSecret = envInboundCrmWebhookSecret();
   const bpSecret = process.env.BP_WEBHOOK_SECRET;
   const bpApiConfigured = isBeyondPresenceConfigured();
   const seylanConfigured = isSeylanApiConfigured();
+  const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
 
   if (!convexUrl) missing.push("NEXT_PUBLIC_CONVEX_URL");
   if (!openaiKey?.trim()) {
     missing.push("OPENAI_API_KEY");
     warnings.push("Intent API uses demo fallback for Sarangan without OPENAI_API_KEY");
   }
-
-  if (!n8nCrmFetch?.trim()) {
-    if (seylanConfigured) {
-      warnings.push(
-        "N8N_WEBHOOK_CRM_FETCH empty — using Seylan sandbox CRM (demo mock if sandbox fails)"
-      );
-    } else {
-      warnings.push("N8N_WEBHOOK_CRM_FETCH empty — using built-in demo CRM mock");
-    }
+  if (!elevenLabsKey?.trim()) {
+    warnings.push(
+      "ElevenLabs voice probe is skipped without ELEVENLABS_API_KEY (optional — set for 4/4 integration pills)"
+    );
   }
 
-  if (!n8nSlack?.trim()) {
-    warnings.push("N8N_WEBHOOK_SLACK empty — hot-lead Slack automation disabled");
-  }
-
-  if (!n8nCrmPush?.trim()) {
-    warnings.push("N8N_WEBHOOK_CRM_PUSH empty — post-call CRM push disabled");
-  }
-
-  if (!seylanConfigured && !n8nCrmFetch?.trim()) {
-    warnings.push("SEYLAN_API_* not set — fingerprint uses demo CRM mock only");
-  }
-
-  if (!n8nSecret?.trim() || !bpSecret?.trim()) {
+  if (!inboundSecret?.trim() || !bpSecret?.trim()) {
     warnings.push("Webhook secrets use dev defaults when unset in non-production");
   }
 
@@ -78,15 +70,15 @@ export function checkEnv(): EnvCheckResult {
   }
 
   const webhookSecrets =
-    n8nSecret?.trim() && bpSecret?.trim()
+    inboundSecret?.trim() && bpSecret?.trim()
       ? "configured"
-      : n8nSecret?.trim() || bpSecret?.trim()
+      : inboundSecret?.trim() || bpSecret?.trim()
         ? "partial"
         : "missing";
 
   const seylanCheck: EnvCheckResult["checks"]["seylan"] = seylanConfigured
     ? "configured"
-    : n8nCrmFetch?.trim()
+    : crmFetchTrigger
       ? "missing"
       : "demo_fallback";
 
@@ -97,10 +89,11 @@ export function checkEnv(): EnvCheckResult {
     checks: {
       convex: convexUrl ? "configured" : "missing",
       openai: openaiKey?.trim() ? "configured" : "missing",
-      n8nCrm: n8nCrmFetch?.trim() ? "configured" : "demo_mock",
-      n8nSlack: n8nSlack?.trim() ? "configured" : "missing",
-      n8nCrmPush: n8nCrmPush?.trim() ? "configured" : "missing",
-      n8nChurn: n8nChurn?.trim() ? "configured" : "missing",
+      elevenLabs: elevenLabsKey?.trim() ? "configured" : "missing",
+      automationCrmFetch: crmFetchTrigger ? "configured" : "demo_mock",
+      automationSlackHotLead: slackHotLead ? "configured" : "missing",
+      automationCrmPush: crmPush ? "configured" : "missing",
+      automationChurn: churn ? "configured" : "missing",
       seylan: seylanCheck,
       beyondPresence: bpApiConfigured ? "configured" : "missing",
       webhookSecrets,
@@ -112,18 +105,14 @@ export function getDemoEmbedKeys(): string[] {
   return DEMO_EMBED_KEYS;
 }
 
-export function isN8nCrmConfigured(): boolean {
-  return Boolean(process.env.N8N_WEBHOOK_CRM_FETCH?.trim());
-}
-
 export function getIntegrationsStatus() {
   const env = checkEnv();
   return {
-    n8n: {
-      crmFetch: env.checks.n8nCrm === "configured",
-      slack: env.checks.n8nSlack === "configured",
-      crmPush: env.checks.n8nCrmPush === "configured",
-      churn: env.checks.n8nChurn === "configured",
+    automation: {
+      crmFetch: env.checks.automationCrmFetch === "configured",
+      slackHotLead: env.checks.automationSlackHotLead === "configured",
+      crmPush: env.checks.automationCrmPush === "configured",
+      churnRisk: env.checks.automationChurn === "configured",
     },
     seylan: env.checks.seylan === "configured",
     beyondPresence: env.checks.beyondPresence === "configured",

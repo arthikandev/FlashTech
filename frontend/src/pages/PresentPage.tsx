@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { DashboardPageStandalone } from "@/dashboard/DashboardPage";
 import { SlackMock } from "@/dashboard/SlackMock";
+import { TenantProvider } from "@/tenant/TenantContext";
 
 /** Split-screen presenter layout for live pitch (step 4 + 5). */
 export function PresentPage() {
@@ -25,7 +26,9 @@ export function PresentPage() {
           <p className="text-xs uppercase tracking-wide text-gray-500 mb-4">
             Live dashboard (step 5)
           </p>
-          <DashboardPageStandalone />
+          <TenantProvider>
+            <DashboardPageStandalone />
+          </TenantProvider>
         </div>
         <div className="p-4 overflow-auto max-h-[calc(100vh-52px)] bg-[#0a0a0a]">
           <p className="text-xs uppercase tracking-wide text-gray-500 mb-4">

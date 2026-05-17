@@ -347,8 +347,8 @@ export function CinematicFooter() {
                   See live demo
                 </MagneticButton>
                 <MagneticButton
-                  as="a"
-                  href={getDashboardHref()}
+                  as={Link}
+                  to={getDashboardHref()}
                   className="footer-glass-pill w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-full text-foreground font-bold text-sm md:text-base text-center"
                 >
                   Open dashboard

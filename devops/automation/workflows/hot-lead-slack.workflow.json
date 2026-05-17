@@ -1,0 +1,17 @@
+{
+  "name": "PresenceIQ Hot Lead Slack",
+  "description": "Fires when intent score >= 80 from pipeline automation",
+  "trigger": {
+    "type": "webhook",
+    "path": "presenceiq-hot-lead",
+    "method": "POST"
+  },
+  "steps": [
+    {
+      "id": "slack",
+      "type": "slack",
+      "channel": "#sales",
+      "message": "Hot lead — {{name}} — Intent {{intentScore}}/100 — {{recommendedAction}}"
+    }
+  ]
+}

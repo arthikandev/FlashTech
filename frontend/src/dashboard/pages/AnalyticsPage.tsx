@@ -1,6 +1,7 @@
+import { CategoryDashboardHeader } from "@/components/categories/CategoryDashboardHeader";
+import { useBusinessCategory } from "@/hooks/useBusinessCategory";
 import { useDashboardContext } from "../context/DashboardContext";
 import { AnalyticsScopeNote } from "../components/AnalyticsScopeNote";
-import { DashboardPageHeader } from "../components/DashboardPageHeader";
 import { KpiGrid } from "../sections/KpiGrid";
 import { ConversationAnalytics } from "../sections/ConversationAnalytics";
 import { IntentHeatmap } from "../sections/IntentHeatmap";
@@ -8,13 +9,16 @@ import { useAnalyticsSessions } from "@/hooks/useAnalyticsSessions";
 
 export function AnalyticsPage() {
   const {
+    business,
     dashboardStats,
     detail,
     embedKey,
     businessId,
     canLoadMoreSessions,
     hasMembershipForEmbed,
+    category: dashboardCategory,
   } = useDashboardContext();
+  const category = useBusinessCategory();
 
   const { sessions: analyticsSessions, loading: analyticsLoading } = useAnalyticsSessions({
     embedKey,
@@ -26,11 +30,12 @@ export function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      <DashboardPageHeader
+      <CategoryDashboardHeader
         title="Analytics"
-        subtitle="Conversation volume, intent distribution, and engagement heatmap"
+        category={category}
+        clientName={business?.name}
       />
-      <KpiGrid sessions={chartSessions} stats={dashboardStats} />
+      <KpiGrid sessions={chartSessions} stats={dashboardStats} category={dashboardCategory} />
       <AnalyticsScopeNote
         stats={dashboardStats}
         loadedCount={analyticsSessions?.length ?? 0}

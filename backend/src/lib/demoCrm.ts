@@ -1,8 +1,8 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { api, getConvexClient } from "./convex";
-import { isN8nCrmConfigured } from "./env";
+import { isCrmFetchWebhookConfigured } from "./automationEnv";
 
-/** Demo CRM records — matches frontend/public/fake-crm.json and n8n workflow */
+/** Demo CRM records — matches frontend/public/fake-crm.json and automation CRM shape */
 const DEMO_CRM: Record<
   string,
   {
@@ -32,7 +32,7 @@ export function resolveDemoCrmId(crmId?: string, fingerprint?: string): string |
 }
 
 /**
- * When n8n is not configured, patch visitor CRM data directly for demo flows.
+ * When no external CRM-fetch webhook is configured, patch visitor CRM data directly for demo flows.
  */
 export async function applyDemoCrmIfNeeded(args: {
   visitorId: Id<"visitors">;
@@ -40,7 +40,7 @@ export async function applyDemoCrmIfNeeded(args: {
   fingerprint: string;
   returnCount: number;
 }): Promise<boolean> {
-  if (isN8nCrmConfigured()) return false;
+  if (isCrmFetchWebhookConfigured()) return false;
 
   const shouldEnrich = args.returnCount > 1 || Boolean(args.crmId) || args.fingerprint === DEMO_FINGERPRINT;
   if (!shouldEnrich) return false;

@@ -2,15 +2,19 @@ import { z } from "zod";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { runPipelineAutomation } from "@/lib/automation";
 import { syncAgentFromIntelligence, type SyncAgentContextResult } from "@/lib/beyondPresenceApi";
-import { pickKnowledgeContext } from "@/lib/knowledge";
+import { pickKnowledgeContextAsync } from "@/lib/knowledge";
+import { selectVoiceForContext } from "@/lib/elevenlabs";
+import { intentToVoiceTone, toneToPersonaHint } from "@/lib/tone";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { runIntentPipeline, waitForCrmData } from "@/lib/pipeline";
+import { api, getConvexClient } from "@/lib/convex";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
 
 const bodySchema = z.object({
   visitorId: z.string(),
   businessId: z.string(),
   waitForCrmMs: z.number().optional().default(200),
+  operatorMessage: z.string().max(2000).optional(),
 });
 
 const PIPELINE_CEILING_MS = 1500;
@@ -35,10 +39,28 @@ export async function POST(request: Request) {
     await waitForCrmData(visitorId, body.waitForCrmMs);
     const crmWaitMs = Date.now() - t0;
 
+    const convex = getConvexClient();
+    let usageModel = "gpt-4o-mini";
+    try {
+      const usage = await convex.mutation(api.usage.checkAndConsume, {
+        businessId,
+        type: "intelligence_call",
+      });
+      usageModel = usage.model;
+    } catch (consumeErr) {
+      const msg =
+        consumeErr instanceof Error ? consumeErr.message : String(consumeErr);
+      if (msg.includes("CreditsExhausted")) {
+        return jsonError("Intelligence credits exhausted for this billing period", 402);
+      }
+      throw consumeErr;
+    }
+
     const t1 = Date.now();
     const { intelligence, visitor, business } = await runIntentPipeline(
       visitorId,
-      businessId
+      businessId,
+      { operatorMessage: body.operatorMessage, model: usageModel }
     );
     const intentMs = Date.now() - t1;
 
@@ -53,12 +75,26 @@ export async function POST(request: Request) {
     });
     const automationMs = Date.now() - automationStart;
 
-    const personaTone = business.avatarConfig.personaTone ?? "formal";
+    const voiceTone = intentToVoiceTone({
+      intentScore: intelligence.intentScore,
+      industry: business.industry,
+      churnRisk: visitor.crmData?.churnRisk,
+    });
+    const personaTone =
+      business.avatarConfig.personaTone ?? toneToPersonaHint(voiceTone);
+    const voiceToneHint = toneToPersonaHint(voiceTone);
+    const voiceSelection = selectVoiceForContext({
+      industry: business.industry,
+      language: visitor.language,
+      tone: voiceTone,
+    });
     const bpAgentId = business.avatarConfig.bpAgentId;
+    const useNativeBpAgent = business.avatarConfig.useNativeBpAgent === true;
 
-    const knowledgeContext = pickKnowledgeContext({
+    const knowledgeContext = await pickKnowledgeContextAsync({
       chunks: business.knowledgeChunks ?? [],
       pageHistory: visitor.pageHistory,
+      crmNotes: visitor.crmData?.notes,
     });
 
     let beyondPresence: SyncAgentContextResult = {
@@ -67,12 +103,18 @@ export async function POST(request: Request) {
     };
     let bpPatchMs = 0;
 
-    if (bpAgentId?.trim()) {
+    if (useNativeBpAgent && bpAgentId?.trim()) {
+      beyondPresence = {
+        synced: false,
+        reason: "native BP agent — using bey.chat config",
+      };
+    } else if (bpAgentId?.trim()) {
       const bpStart = Date.now();
       const bpPromise = syncAgentFromIntelligence({
         bpAgentId,
         businessName: business.name,
         personaTone,
+        voiceToneHint,
         visitorName: visitor.crmData?.name,
         language: visitor.language,
         intentScore: intelligence.intentScore,
@@ -156,7 +198,7 @@ export async function POST(request: Request) {
         automationMs,
         bpPatchMs,
         pipelineMs,
-        model: "gpt-4o-mini",
+        model: usageModel,
         cacheHit,
         fallbackUsed,
       })
@@ -166,10 +208,12 @@ export async function POST(request: Request) {
       ? "complete"
       : !bpAgentId?.trim()
         ? "pending"
-        : beyondPresence.reason?.includes("deferred") ||
-            beyondPresence.reason?.includes("skipped")
-          ? "pending"
-          : "failed";
+        : beyondPresence.reason?.includes("native BP agent")
+          ? "complete"
+          : beyondPresence.reason?.includes("deferred") ||
+              beyondPresence.reason?.includes("skipped")
+            ? "pending"
+            : "failed";
 
     return jsonSuccess({
       intelligence,
@@ -185,6 +229,11 @@ export async function POST(request: Request) {
         name: business.name,
         industry: business.industry,
         personaTone,
+      },
+      voice: {
+        voiceId: voiceSelection.voiceId,
+        tone: voiceTone,
+        label: voiceSelection.label,
       },
       bpAgentId: bpAgentId ?? null,
       beyondPresence,

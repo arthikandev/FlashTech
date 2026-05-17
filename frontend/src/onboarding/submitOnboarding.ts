@@ -1,4 +1,5 @@
 import { getBackendBaseUrl, initBackendUrl } from "@/lib/backendUrl";
+import { buildEmbedSnippet } from "@/canvas/lib/embedSnippet";
 import type { OnboardingData } from "./types";
 
 export type OnboardApiResult = {
@@ -6,6 +7,7 @@ export type OnboardApiResult = {
   embedKey: string;
   embedSnippet: string;
   embedUrl?: string;
+  categoryCode?: string;
 };
 
 const LANGUAGE_CODES: Record<string, string> = {
@@ -43,6 +45,21 @@ export function buildOnboardRequestBody(data: OnboardingData) {
     personaTone: `${data.personality}, ${data.tone}`,
     defaultLanguage: LANGUAGE_CODES[primaryLanguage] ?? "en",
     embedKey: slugifyEmbedKeyFromName(data.companyName),
+    ...(data.bpAgentId.trim() ? { bpAgentId: data.bpAgentId.trim() } : {}),
+  };
+}
+
+export function buildFinalizeOnboardingArgs(
+  data: OnboardingData,
+  businessId: string
+) {
+  const primaryLanguage = data.languages[0] ?? "English";
+  return {
+    businessId,
+    personaTone: `${data.personality}, ${data.tone}`,
+    defaultLanguage: LANGUAGE_CODES[primaryLanguage] ?? "en",
+    bpAgentId: data.bpAgentId.trim() || undefined,
+    useNativeBpAgent: data.useNativeBpAgent,
   };
 }
 
@@ -81,5 +98,18 @@ export async function submitOnboardingToApi(
     embedKey: result.embedKey,
     embedSnippet: result.embedSnippet,
     embedUrl: result.embedUrl,
+  };
+}
+
+export function onboardResultFromFinalize(
+  businessId: string,
+  embedKey: string,
+  categoryCode?: string
+): OnboardApiResult {
+  return {
+    businessId,
+    embedKey,
+    embedSnippet: buildEmbedSnippet(embedKey),
+    categoryCode,
   };
 }

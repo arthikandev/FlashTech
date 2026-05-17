@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { LoadingState } from "@/components/ui/LoadingState";
 import { DashboardProvider, useDashboardContext } from "./context/DashboardContext";
 import { DashboardShell } from "./shell/DashboardShell";
 import { NotificationsCenter } from "./sections/NotificationsCenter";
@@ -9,14 +8,6 @@ import { OverviewPage } from "./pages/OverviewPage";
 function DashboardLayoutInner({ standalone = false }: { standalone?: boolean }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const ctx = useDashboardContext();
-
-  if (!ctx.authReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <LoadingState variant="fullscreen" label="Loading dashboard…" />
-      </div>
-    );
-  }
 
   return (
     <DashboardShell

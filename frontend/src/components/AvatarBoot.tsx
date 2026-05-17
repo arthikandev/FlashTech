@@ -5,25 +5,6 @@ const backendUrl = (import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3001")
   ""
 );
 
-declare global {
-  interface Window {
-    PresenceIQAvatar?: {
-      init: (opts: {
-        backendUrl?: string;
-        container?: HTMLElement;
-        avatarContainer?: HTMLElement;
-        waitForCrmMs?: number;
-      }) => void;
-      initPresenceIQAvatar: (opts: {
-        backendUrl?: string;
-        container?: HTMLElement;
-        avatarContainer?: HTMLElement;
-        waitForCrmMs?: number;
-      }) => void;
-    };
-  }
-}
-
 function loadAvatarSdk(): Promise<void> {
   if (window.PresenceIQAvatar?.init) return Promise.resolve();
   return new Promise((resolve, reject) => {
