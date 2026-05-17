@@ -68,6 +68,6 @@ export function SignupFunnelProgress({ current, className }: Props) {
           );
         })}
       </ol>
-    </motion.div>
+    </div>
   );
 }

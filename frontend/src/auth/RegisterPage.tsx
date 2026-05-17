@@ -8,6 +8,7 @@ import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
 import { AuthSignedInRedirect } from "./AuthSignedInRedirect";
 import { AuthFormFooter } from "./AuthFormFooter";
+import { SignupFunnelProgress } from "./SignupFunnelProgress";
 import { useAuthClerkAppearance } from "./useAuthClerkAppearance";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -44,6 +45,7 @@ export function RegisterPage() {
 
           <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-10 sm:px-10 lg:px-14">
             <motion.div className="mx-auto w-full max-w-[420px]">
+              <SignupFunnelProgress current={1} className="mb-8" />
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                 PresenceIQ
               </p>

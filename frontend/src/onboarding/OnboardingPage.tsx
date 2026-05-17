@@ -1,12 +1,13 @@
 import { useMutation } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
-import { AppShell } from "@/app-shell/AppShell";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { SignupFunnelLayout } from "@/auth/SignupFunnelLayout";
 import { api, clerkEnabled } from "@/convex/api";
 import { useCurrentClient } from "@/hooks/useCurrentClient";
 import { StepProgress } from "./components/StepProgress";
 import {
   clearOnboardResult,
+  loadDraft,
   loadOnboardResult,
   saveOnboardResult,
 } from "./storage";
@@ -46,6 +47,7 @@ export function OnboardingPage() {
     update,
     goNext,
     goBack,
+    goTo,
     isFirst,
     direction,
   } = useOnboarding();
@@ -62,9 +64,18 @@ export function OnboardingPage() {
     update({
       companyName: client.businessName || business.name,
       industry: business.industry as OnboardingData["industry"],
-      website: "",
+      website: loadDraft().website || "",
     });
   }, [client, business, update]);
+
+  const skippedBusinessRef = useRef(false);
+  useEffect(() => {
+    if (!client || skippedBusinessRef.current) return;
+    if (step.id === "business") {
+      skippedBusinessRef.current = true;
+      goTo("crm");
+    }
+  }, [client, step.id, goTo]);
 
   const persistTenant = useCallback(
     async (options?: { force?: boolean }) => {
@@ -148,15 +159,20 @@ export function OnboardingPage() {
   }, [step.id, onboardResult, isSubmitting, submitError, persistTenant]);
 
   return (
-    <AppShell
-      backTo="/login"
+    <SignupFunnelLayout
+      macroStep={3}
       title="Set up PresenceIQ"
       subtitle="Configure your workspace, avatar, and embed in a few steps."
-      stepLabel={`Step ${stepIndex + 1} of ${steps.length}`}
+      backTo="/client/setup"
+      backLabel="Back"
+      maxWidthClass="max-w-2xl"
     >
+      <p className="mb-6 text-xs text-muted-foreground">
+        Step {stepIndex + 1} of {steps.length}
+      </p>
       <div className="mb-10">
-          <StepProgress steps={steps} currentIndex={stepIndex} />
-        </div>
+        <StepProgress steps={steps} currentIndex={stepIndex} />
+      </div>
 
         <div className="bg-card border border-border p-6 sm:p-8 shadow-sm">
           <AnimatePresence mode="wait" custom={direction}>
@@ -221,7 +237,7 @@ export function OnboardingPage() {
             </motion.div>
           </AnimatePresence>
         </div>
-    </AppShell>
+    </SignupFunnelLayout>
   );
 }
 

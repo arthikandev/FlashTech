@@ -27,11 +27,11 @@ function HeroNavAuth({ className = "" }: { className?: string }) {
   if (!clerkEnabled) {
     return (
       <div className={`flex items-center gap-3 ${className}`}>
-        <Link to="/onboard" className={navLinkClass}>
+        <Link to="/login" className={navLinkClass}>
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/onboard"
+          to="/register"
           className="shimmer-btn rounded-full bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary/90"
         >
           {t("auth.getStarted")}
@@ -169,7 +169,7 @@ export function HeroSection() {
                     </>
                   ) : (
                     <Link
-                      to="/onboard"
+                      to="/register"
                       className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
                     >
                       {t("auth.getStarted")}

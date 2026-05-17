@@ -1,12 +1,14 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppShell } from "@/app-shell/AppShell";
+import { SignupFunnelLayout } from "@/auth/SignupFunnelLayout";
 import { api } from "@/convex/api";
 import { INDUSTRY_CATEGORIES } from "@/lib/categories/industryCategories";
 import { setLastEmbedKey } from "@/lib/postAuth";
-import type { Industry } from "@/onboarding/types";
 import { cn } from "@/lib/utils";
+import { onboardingInputClass } from "@/onboarding/inputStyles";
+import { loadDraft, saveDraft } from "@/onboarding/storage";
+import type { Industry } from "@/onboarding/types";
 
 export function ClientSetupPage() {
   const navigate = useNavigate();
@@ -32,6 +34,12 @@ export function ClientSetupPage() {
         website: website.trim() || undefined,
       })) as { embedKey: string };
       setLastEmbedKey(result.embedKey);
+      saveDraft({
+        ...loadDraft(),
+        companyName: businessName.trim(),
+        industry,
+        website: website.trim(),
+      });
       navigate("/onboard", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create client account");
@@ -41,10 +49,13 @@ export function ClientSetupPage() {
   }
 
   return (
-    <AppShell
-      backTo="/login"
-      title="Create your client account"
-      subtitle="Choose your industry category and business name. You will configure your avatar in onboarding next."
+    <SignupFunnelLayout
+      macroStep={2}
+      title="Create your workspace"
+      subtitle="Choose your industry and business name. Next you will configure your avatar and embed."
+      backTo="/register"
+      backLabel="Back"
+      maxWidthClass="max-w-2xl"
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-8">
         <div className="space-y-3">
@@ -59,10 +70,10 @@ export function ClientSetupPage() {
                   type="button"
                   onClick={() => setIndustry(cat.industryKey)}
                   className={cn(
-                    "flex items-start gap-3 border p-4 text-left transition-colors",
+                    "flex items-start gap-3 rounded-2xl border p-4 text-left transition-all",
                     selected
-                      ? "border-primary bg-primary/5"
-                      : "border-border bg-card hover:border-primary/40"
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/40 hover:shadow-sm"
                   )}
                 >
                   <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
@@ -85,7 +96,7 @@ export function ClientSetupPage() {
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             placeholder="Commercial Bank of Ceylon"
-            className="w-full border border-border bg-background px-4 py-3 text-sm"
+            className={onboardingInputClass}
             required
           />
         </div>
@@ -100,7 +111,7 @@ export function ClientSetupPage() {
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             placeholder="https://example.com"
-            className="w-full border border-border bg-background px-4 py-3 text-sm"
+            className={onboardingInputClass}
           />
         </div>
 
@@ -109,11 +120,11 @@ export function ClientSetupPage() {
         <button
           type="submit"
           disabled={submitting || !businessName.trim() || !industry}
-          className="h-12 w-full bg-primary text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 sm:w-auto sm:px-10"
+          className="h-12 w-full rounded-xl bg-primary text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto sm:px-10"
         >
-          {submitting ? "Creating account…" : "Continue to onboarding"}
+          {submitting ? "Creating workspace…" : "Continue to onboarding"}
         </button>
       </form>
-    </AppShell>
+    </SignupFunnelLayout>
   );
 }

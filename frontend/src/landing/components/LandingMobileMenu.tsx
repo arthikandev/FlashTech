@@ -24,7 +24,7 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
   if (!clerkEnabled) {
     return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link to="/onboard" className={NAV_LINK_CLASS} onClick={onNavigate}>
+        <Link to="/register" className={NAV_LINK_CLASS} onClick={onNavigate}>
           {t("auth.signIn")}
         </Link>
         <Link
