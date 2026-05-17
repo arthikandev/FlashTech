@@ -7,11 +7,13 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
 import { AuthSignedInRedirect } from "./AuthSignedInRedirect";
-import { authClerkAppearance } from "./clerkAppearance";
+import { AuthFormFooter } from "./AuthFormFooter";
+import { useAuthClerkAppearance } from "./useAuthClerkAppearance";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function RegisterPage() {
+  const authClerkAppearance = useAuthClerkAppearance();
   const location = useLocation();
   const isSsoCallback = location.pathname.includes("sso-callback");
 
@@ -90,12 +92,11 @@ export function RegisterPage() {
                     </motion.div>
                   </>
                 )}
-                <p className="text-center text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <Link to="/login" className="text-primary hover:underline">
-                    Sign in
-                  </Link>
-                </p>
+                <AuthFormFooter
+                  prompt="Already have an account?"
+                  linkLabel="Sign in"
+                  linkTo="/login"
+                />
               </motion.div>
             </motion.div>
           </div>

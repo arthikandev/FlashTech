@@ -1,5 +1,5 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
-import { authClerkAppearance } from "@/auth/clerkAppearance";
+import { buildAuthClerkAppearance } from "@/auth/clerkAppearance";
 import { ConfettiAuthListener } from "@/components/ConfettiAuthListener";
 import { resolveConvexUrl } from "@/lib/runtimeConfig";
 import { ConvexProvider } from "convex/react";
@@ -66,7 +66,15 @@ export function AppProviders({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkKey} appearance={authClerkAppearance}>
+    <ClerkProvider
+      publishableKey={clerkKey}
+      appearance={buildAuthClerkAppearance(
+        typeof document !== "undefined" &&
+          document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light"
+      )}
+    >
       <ConfettiAuthListener />
       <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
         {content}

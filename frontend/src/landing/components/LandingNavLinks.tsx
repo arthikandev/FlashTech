@@ -11,12 +11,14 @@ import { LandingNavDropdown } from "./LandingNavDropdown";
 
 type Props = {
   onNavigate?: () => void;
+  variant?: "desktop" | "mobile";
   className?: string;
   itemClassName?: string;
 };
 
 export function LandingNavLinks({
   onNavigate,
+  variant = "desktop",
   className = "flex items-center gap-4 xl:gap-5 flex-nowrap",
   itemClassName = NAV_LINK_CLASS,
 }: Props) {
@@ -29,6 +31,7 @@ export function LandingNavLinks({
           <LandingNavDropdown
             key={entry.key}
             item={entry}
+            variant={variant}
             wrapper="div"
             onNavigate={onNavigate}
             linkClassName={cn(itemClassName, navLinkEmphasisClass(entry.emphasize))}
@@ -58,6 +61,14 @@ function NavEntryLink({
   onNavigate?: () => void;
   label: string;
 }) {
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    onNavigate?.();
+    if (item.href?.startsWith("#")) {
+      e.preventDefault();
+      document.querySelector(item.href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   if (item.to) {
     return (
       <Link to={item.to} className={className} onClick={onNavigate}>
@@ -66,7 +77,7 @@ function NavEntryLink({
     );
   }
   return (
-    <a href={item.href} className={className} onClick={onNavigate}>
+    <a href={item.href} className={className} onClick={handleAnchorClick}>
       {label}
     </a>
   );

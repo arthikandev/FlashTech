@@ -7,11 +7,13 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
 import { AuthSidePanel } from "./AuthSidePanel";
 import { AuthSignedInRedirect } from "./AuthSignedInRedirect";
-import { authClerkAppearance } from "./clerkAppearance";
+import { AuthFormFooter } from "./AuthFormFooter";
+import { useAuthClerkAppearance } from "./useAuthClerkAppearance";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function LoginPage() {
+  const authClerkAppearance = useAuthClerkAppearance();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const redirectParam = searchParams.get("redirect");
@@ -94,12 +96,11 @@ export function LoginPage() {
                     </motion.div>
                   </>
                 )}
-                <p className="text-center text-sm text-muted-foreground">
-                  No account?{" "}
-                  <Link to="/register" className="text-primary hover:underline">
-                    Create one
-                  </Link>
-                </p>
+                <AuthFormFooter
+                  prompt="No account?"
+                  linkLabel="Create one"
+                  linkTo="/register"
+                />
               </motion.div>
             </motion.div>
           </div>

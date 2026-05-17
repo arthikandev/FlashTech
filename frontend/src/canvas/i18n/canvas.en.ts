@@ -39,6 +39,14 @@ export const canvasMessages = {
   "avatar.previewHint": "Live preview — send a message to personalise the opener.",
   "avatar.fallback": "Avatar connection issue",
   "avatar.noAgent": "Configure a Beyond Presence agent in workspace settings.",
+  "avatar.setupTitle": "Connect your AI avatar",
+  "avatar.setupNoAgent": "Add your Beyond Presence agent ID from bey.chat so the live preview can load.",
+  "avatar.setupPlaceholder":
+    "This workspace still uses the shared demo agent ID. Paste your own agent ID from the Beyond Presence dashboard.",
+  "avatar.setupBpKey":
+    "Set BEYONDPRESENCE_API_KEY in backend/.env.local and restart the API, then add your agent ID below.",
+  "avatar.setupCta": "Workspace settings → Avatar",
+  "avatar.setupHint": "Create an agent at bey.chat, copy its ID, and save it under Avatar settings.",
   "page.loading": "Loading canvas…",
   "welcome.title": "Run your live AI advisor",
   "welcome.subtitle":
@@ -59,6 +67,12 @@ export const canvasMessages = {
     "Automate CRM push, Slack alerts, and follow-ups when intent crosses your thresholds. Use workspace Settings or backend WEBHOOK_* env vars.",
   "workflow.ctaWebhooks": "Set up webhooks",
   "workflow.ctaEmbed": "Get embed code",
+  "workflow.ctaAdvisor": "Open live advisor",
+  "workflow.pipelineTitle": "Setup pipeline",
+  "workflow.webhooksTitle": "Webhook endpoints",
+  "workflow.optional": "Optional",
+  "workflow.openStep": "Configure",
+  "integrations.coreLive": "Live stack ready (voice optional)",
   "webhooks.title": "Webhooks",
   "webhooks.subtitle": "HTTPS endpoints for CRM and Slack alerts",
   "webhooks.intro":
@@ -89,7 +103,9 @@ export const canvasMessages = {
   "integrations.missing": "Not configured",
   "integrations.fixSetup": "Fix setup",
   "integrations.retry": "Retry",
+  "integrations.showDetails": "Details",
   "integrations.requiredEnvTitle": "Required backend env (missing)",
+  "integrations.optionalEnvTitle": "Optional (voice)",
   "integrations.warningsTitle": "Setup warnings",
   "integrations.clerkMissing": "Sign-in: add VITE_CLERK_PUBLISHABLE_KEY to frontend/.env.local (must match backend Clerk key), then rebuild.",
   "integrations.warningsTruncated": "more — see Help for full list",

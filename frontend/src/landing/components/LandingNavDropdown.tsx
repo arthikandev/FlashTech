@@ -4,12 +4,13 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 import type { MessageKey } from "../i18n/messages";
+import { NAV_LINK_CLASS } from "../nav";
 import type { NavDropdownChild, NavDropdownItem } from "../nav";
 
 type Props = {
   item: NavDropdownItem;
   variant?: "desktop" | "mobile";
-  /** Use `div` when not inside a `<ul>` (e.g. hero overlay nav). */
+  /** Use `motion.div` when not inside a `<ul>` (e.g. hero overlay nav). */
   wrapper?: "li" | "div";
   onNavigate?: () => void;
   linkClassName?: string;
@@ -32,6 +33,13 @@ export function LandingNavDropdown({
   const Wrapper = wrapper === "li" ? "li" : "div";
   const menuId = useId();
 
+  const triggerClass = cn(NAV_LINK_CLASS, linkClassName);
+
+  const close = () => {
+    setOpen(false);
+    onNavigate?.();
+  };
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
@@ -39,51 +47,47 @@ export function LandingNavDropdown({
         setOpen(false);
       }
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
-
-  const triggerClass = cn(
-    "inline-flex items-center gap-1 rounded-sm transition-colors whitespace-nowrap",
-    linkClassName,
-    item.emphasize && "font-semibold text-primary hover:text-primary/90"
-  );
-
-  const close = () => {
-    setOpen(false);
-    onNavigate?.();
-  };
 
   if (variant === "mobile") {
     return (
-      <li ref={rootRef} className="border-b border-border/60 last:border-0">
+      <div ref={rootRef as never} className="border-b border-white/10 last:border-0">
         <button
           type="button"
-          className="flex w-full items-center justify-between py-3.5 text-base font-medium text-foreground"
+          className="flex w-full items-center justify-between py-3.5 text-base font-medium text-[#E1E0CC]"
           aria-expanded={open}
           aria-controls={menuId}
           onClick={() => setOpen((o) => !o)}
         >
           {t(item.key)}
           <ChevronDown
-            className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")}
+            className={cn("size-4 text-[#E1E0CC]/60 transition-transform", open && "rotate-180")}
           />
         </button>
         {open ? (
-          <ul id={menuId} className="pb-3 pl-3 space-y-1">
+          <ul id={menuId} className="space-y-0.5 pb-3 pl-2">
             {item.children.map((child) => (
               <li key={child.key}>
                 <DropdownChildLink
                   child={child}
                   t={t}
-                  className="block py-2.5 text-sm text-muted-foreground hover:text-foreground"
+                  className="block rounded-lg py-2.5 pl-2 pr-3 text-sm text-[#E1E0CC]/75 hover:bg-white/5 hover:text-[#fdfcf8]"
                   onNavigate={close}
                 />
               </li>
             ))}
           </ul>
         ) : null}
-      </li>
+      </div>
     );
   }
 
@@ -104,22 +108,28 @@ export function LandingNavDropdown({
       >
         {t(item.key)}
         <ChevronDown
-          className={cn("size-3.5 opacity-70 transition-transform", open && "rotate-180")}
+          className={cn(
+            "size-3.5 shrink-0 text-[#E1E0CC]/55 transition-transform",
+            open && "rotate-180"
+          )}
+          strokeWidth={2}
           aria-hidden
         />
       </button>
       {open ? (
-        <NavDropdownPanel id={menuId}>
-          {item.children.map((child) => (
-            <DropdownChildLink
-              key={child.key}
-              child={child}
-              t={t}
-              className="block rounded-lg px-3 py-2 text-sm text-foreground/80 hover:bg-white/8 hover:text-foreground transition-colors"
-              onNavigate={close}
-            />
-          ))}
-        </NavDropdownPanel>
+        <div className="absolute left-1/2 top-full z-[80] -translate-x-1/2 pt-1.5">
+          <NavDropdownPanel id={menuId}>
+            {item.children.map((child) => (
+              <DropdownChildLink
+                key={child.key}
+                child={child}
+                t={t}
+                className="block rounded-lg px-3 py-2 text-sm text-[#E1E0CC]/85 hover:bg-white/8 hover:text-[#fdfcf8] transition-colors"
+                onNavigate={close}
+              />
+            ))}
+          </NavDropdownPanel>
+        </div>
       ) : null}
     </Wrapper>
   );
@@ -130,7 +140,7 @@ function NavDropdownPanel({ id, children }: { id: string; children: React.ReactN
     <div
       id={id}
       role="menu"
-      className="absolute left-1/2 top-[calc(100%+0.5rem)] z-50 min-w-[13rem] -translate-x-1/2 rounded-xl border border-white/12 bg-[#141414]/95 py-1.5 px-1 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.85)] backdrop-blur-xl"
+      className="max-h-[min(70vh,22rem)] min-w-[13.5rem] overflow-y-auto rounded-xl border border-white/12 bg-[#141414]/96 py-1.5 px-1 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.85)] backdrop-blur-xl scrollbar-thin"
     >
       {children}
     </div>
@@ -154,20 +164,34 @@ function DropdownChildLink({
   const inner = (
     <>
       <span className="font-medium">{label}</span>
-      {desc ? <span className="mt-0.5 block text-xs text-foreground/55">{desc}</span> : null}
+      {desc ? <span className="mt-0.5 block text-xs text-[#E1E0CC]/50">{desc}</span> : null}
     </>
   );
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    onNavigate();
+    if (child.href?.startsWith("#")) {
+      e.preventDefault();
+      const el = document.querySelector(child.href);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   if (child.to) {
     return (
-      <Link to={child.to} className={className} onClick={onNavigate}>
+      <Link to={child.to} className={className} role="menuitem" onClick={onNavigate}>
         {inner}
       </Link>
     );
   }
 
   return (
-    <a href={child.href ?? "#"} className={className} onClick={onNavigate}>
+    <a
+      href={child.href ?? "#"}
+      className={className}
+      role="menuitem"
+      onClick={handleAnchorClick}
+    >
       {inner}
     </a>
   );

@@ -5,6 +5,7 @@ import { ClientDashboardRoute } from "./dashboard/ClientDashboardRoute";
 import { SlackMock } from "./dashboard/SlackMock";
 import { LoginPage } from "./auth/LoginPage";
 import { RegisterPage } from "./auth/RegisterPage";
+import { DevelopersPage } from "./landing/DevelopersPage";
 import { LandingPage } from "./landing/LandingPage";
 import { OnboardingRoute } from "./onboarding/OnboardingRoute";
 import { PitchDeck } from "./pitch/PitchDeck";
@@ -33,6 +34,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route index element={<LandingPage />} />
+          <Route path="developers" element={<DevelopersPage />} />
           <Route path="deck" element={<PitchDeck />} />
           <Route path="slack" element={<SlackMock />} />
           <Route path="present" element={<PresentPage />} />

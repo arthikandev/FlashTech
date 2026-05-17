@@ -32,3 +32,8 @@ export function canSubmitAdvisorScenario(g: AdvisorScenarioGate): boolean {
     g.hasBusinessId
   );
 }
+
+/** Live advisor send uses intelligence only; ElevenLabs is optional for voice catalog. */
+export function advisorRequiresElevenLabs(): boolean {
+  return false;
+}

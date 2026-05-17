@@ -348,6 +348,11 @@ body {
   width: 100%;
 }
 
+/* Pill nav: no underline offset — keeps labels on one baseline */
+[data-nav-pill] .nav-link::after {
+  display: none;
+}
+
 .shimmer-btn {
   position: relative;
   overflow: hidden;
@@ -581,6 +586,112 @@ body {
 
 .auth-clerk-shell .cl-card {
   box-shadow: none;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ── Clerk auth: dark theme ───────────────────────────────── */
+.dark .auth-clerk-shell .cl-socialButtonsBlockButton,
+.dark .auth-clerk-shell .cl-socialButtonsBlockButtonText,
+.dark .auth-clerk-shell .cl-socialButtonsBlockButtonArrow {
+  color: #e1e0cc !important;
+}
+
+.dark .auth-clerk-shell .cl-socialButtonsBlockButton {
+  background-color: #1a1a1a !important;
+  border-color: #2a2a2a !important;
+}
+
+.dark .auth-clerk-shell .cl-formButtonPrimary,
+.dark .auth-clerk-shell .cl-formButtonPrimary span {
+  color: #000000 !important;
+}
+
+.dark .auth-clerk-shell .cl-formFieldLabel {
+  color: #94a3b8 !important;
+}
+
+.dark .auth-clerk-shell .cl-dividerText {
+  color: #6b7280 !important;
+}
+
+/* ── Clerk auth: light theme ──────────────────────────────── */
+html:not(.dark) .auth-clerk-shell .cl-socialButtonsBlockButton,
+html:not(.dark) .auth-clerk-shell .cl-socialButtonsBlockButtonText,
+html:not(.dark) .auth-clerk-shell .cl-socialButtonsBlockButtonArrow {
+  color: #1a1a1a !important;
+}
+
+html:not(.dark) .auth-clerk-shell .cl-socialButtonsBlockButton {
+  background-color: #f4f4f5 !important;
+  border-color: #e4e4e7 !important;
+}
+
+html:not(.dark) .auth-clerk-shell .cl-formButtonPrimary,
+html:not(.dark) .auth-clerk-shell .cl-formButtonPrimary span {
+  color: #000000 !important;
+}
+
+html:not(.dark) .auth-clerk-shell .cl-formFieldLabel {
+  color: #64748b !important;
+}
+
+html:not(.dark) .auth-clerk-shell .cl-dividerText {
+  color: #94a3b8 !important;
+}
+
+html:not(.dark) .auth-clerk-shell .cl-formFieldInput {
+  color: #1a1a1a !important;
+}
+
+/* Clerk UserButton popover — readable menu text/icons on dark UI */
+.cl-userButtonPopoverCard {
+  background-color: #1a1a1a !important;
+  border: 1px solid rgb(255 255 255 / 0.12) !important;
+  color: #e1e0cc !important;
+}
+
+.cl-userButtonPopoverActionButton {
+  color: #e1e0cc !important;
+}
+
+.cl-userButtonPopoverActionButton:hover {
+  background-color: rgb(255 255 255 / 0.08) !important;
+}
+
+.cl-userButtonPopoverActionButtonText,
+.cl-userButtonPopoverActionButtonIcon,
+.cl-userButtonPopoverActionButtonIcon svg {
+  color: #e1e0cc !important;
+}
+
+.cl-userPreviewMainIdentifier {
+  color: #fdfcf8 !important;
+}
+
+.cl-userPreviewSecondaryIdentifier {
+  color: #94a3b8 !important;
+}
+
+html:not(.dark) .cl-userButtonPopoverCard {
+  background-color: #ffffff !important;
+  border-color: rgb(0 0 0 / 0.1) !important;
+  color: #1a1a1a !important;
+}
+
+html:not(.dark) .cl-userButtonPopoverActionButton,
+html:not(.dark) .cl-userButtonPopoverActionButtonText,
+html:not(.dark) .cl-userButtonPopoverActionButtonIcon,
+html:not(.dark) .cl-userButtonPopoverActionButtonIcon svg {
+  color: #1a1a1a !important;
+}
+
+html:not(.dark) .cl-userPreviewMainIdentifier {
+  color: #1a1a1a !important;
+}
+
+html:not(.dark) .cl-userPreviewSecondaryIdentifier {
+  color: #64748b !important;
 }
 
 /* Dark UI surfaces (login, etc.) — keep brand cream, not dashboard cyan */

@@ -78,7 +78,13 @@ Dashboard Convex queries require a signed-in Clerk user linked to a business via
 1. Copy `backend/.env.example` → `backend/.env.local`
 2. Set `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` (see backend template for `adamant-puffin-769` example)
 3. Run `npx convex dev` from `backend/` — it may add dev credentials to `.env.local` automatically
-4. For CI/production deploy: use **Deploy Key** from Convex Dashboard → Settings (not the `dev:slug|eyJ...` dev URL token)
+4. Seed platform categories (required for client signup / `clients:createAccount`; idempotent):
+
+   ```bash
+   cd backend && npx convex run categories:seedCategories
+   ```
+
+5. For CI/production deploy: use **Deploy Key** from Convex Dashboard → Settings (not the `dev:slug|eyJ...` dev URL token)
 
 ## Production (Vercel / Netlify)
 

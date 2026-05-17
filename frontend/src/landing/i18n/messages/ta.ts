@@ -43,6 +43,16 @@ export const taMessages: Record<MessageKey, string> = {
   "footer.embedSdk": "எம்பெட் SDK",
   "footer.pricing": "விலை",
   "footer.apiDocs": "API ஆவணங்கள்",
+  "footer.developers": "டெவலப்பர்கள்",
+  "developers.eyebrow": "உருவாக்குபவர்களுக்கு",
+  "developers.title": "PresenceIQ உடன் உருவாக்குங்கள்",
+  "developers.subtitle":
+    "உங்கள் தளத்தில் முன்-உரையாடல் நுண்ணறிவை எம்பெட் செய்யுங்கள், CRM சூழலை ஒத்திசைத்து, தனிப்பயன் Beyond Presence அவதாரங்களை வெளியிடுங்கள் — ஒரு ஸ்கிரிப்ட், முழு API அணுகல்.",
+  "developers.linkedin": "LinkedIn",
+  "developers.github": "GitHub",
+  "developers.apiDocs": "API ஆவணங்களைப் படியுங்கள்",
+  "developers.backHome": "முகப்புக்குத் திரும்பு",
+  "developers.heroAlt": "PresenceIQ உடன் உருவாக்கும் டெவலப்பர்கள்",
   "hero.menuAria": "மெனுவைத் திற",
   "hero.tagline":
     "உங்கள் AI பேசுவதற்கு முன் ஒவ்வொரு பார்வையாளரையும் அறியுங்கள். உரையாடலுக்கு முந்தைய நுண்ணறிவு நோக்கத்தை மதிப்பிடுகிறது, CRM சூழலை ஒத்திசைக்கிறது, 2 வினாடிகளுக்குள் Beyond Presence அவதாரத்தை தனிப்பயனாக்குகிறது.",

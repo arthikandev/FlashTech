@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useTenant } from "@/tenant/TenantContext";
 import { IntegrationHealthProvider, useCanvasIntegrationHealth } from "./context/IntegrationHealthContext";
 import { useUsageBalance } from "./hooks/useUsageBalance";
@@ -9,9 +9,22 @@ import { IntegrationStatusBar } from "./shell/IntegrationStatusBar";
 
 function CanvasShellIntegrationStrip() {
   const health = useCanvasIntegrationHealth();
+  const { pathname } = useLocation();
+  const onAdvisor = pathname === "/canvas" || pathname === "/canvas/";
+  const compact =
+    onAdvisor ||
+    pathname.startsWith("/canvas/dashboard") ||
+    pathname.startsWith("/canvas/profile") ||
+    pathname.startsWith("/canvas/settings") ||
+    pathname.startsWith("/canvas/workflow");
+
+  if (onAdvisor && health.canRunIntelligence && !health.error) {
+    return null;
+  }
+
   return (
-    <div className="shrink-0 border-b border-border bg-card/40 px-2 py-1.5">
-      <IntegrationStatusBar health={health} />
+    <div className="shrink-0 border-b border-border bg-card/40 px-3 py-1.5">
+      <IntegrationStatusBar health={health} compact={compact} />
     </div>
   );
 }

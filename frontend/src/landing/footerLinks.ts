@@ -11,6 +11,7 @@ export const FOOTER_PRODUCT = [
     href: "https://docs.presenceiq.ai",
     external: true,
   },
+  { key: "footer.developers" as MessageKey, to: "/developers" },
 ] as const;
 
 export const FOOTER_COMPANY = [

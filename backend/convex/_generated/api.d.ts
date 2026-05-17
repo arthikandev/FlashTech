@@ -17,6 +17,7 @@ import type * as intelligence from "../intelligence.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_bpAgentDefaults from "../lib/bpAgentDefaults.js";
 import type * as lib_categoriesData from "../lib/categoriesData.js";
+import type * as lib_ensureCategoriesSeeded from "../lib/ensureCategoriesSeeded.js";
 import type * as lib_webhookUrls from "../lib/webhookUrls.js";
 import type * as seed from "../seed.js";
 import type * as triggers from "../triggers.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/bpAgentDefaults": typeof lib_bpAgentDefaults;
   "lib/categoriesData": typeof lib_categoriesData;
+  "lib/ensureCategoriesSeeded": typeof lib_ensureCategoriesSeeded;
   "lib/webhookUrls": typeof lib_webhookUrls;
   seed: typeof seed;
   triggers: typeof triggers;

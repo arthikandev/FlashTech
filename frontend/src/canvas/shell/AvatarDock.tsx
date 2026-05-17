@@ -1,10 +1,13 @@
-import { X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { AlertCircle, Settings } from "lucide-react";
 import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
 import { CanvasAvatarBoot } from "../CanvasAvatarBoot";
-import { useBpAgentId } from "@/hooks/useBpAgentId";
+import { useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
+import { useBpAgentResolve } from "@/hooks/useBpAgentId";
 import { useTenant } from "@/tenant/TenantContext";
 import { t } from "../i18n/canvas.en";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 
 type PanelProps = {
   sessionActive: boolean;
@@ -13,6 +16,35 @@ type PanelProps = {
   showClose?: boolean;
 };
 
+function AvatarSetupCard({ reason }: { reason: "noAgent" | "placeholder" | "bpKey" }) {
+  const { embedKey } = useTenant();
+  const qs = `?embedKey=${encodeURIComponent(embedKey)}&tab=avatar`;
+  const settingsTo = `/canvas/settings${qs}`;
+
+  const copy =
+    reason === "bpKey"
+      ? t("avatar.setupBpKey")
+      : reason === "placeholder"
+        ? t("avatar.setupPlaceholder")
+        : t("avatar.setupNoAgent");
+
+  return (
+    <div className="flex h-full min-h-[min(52vh,480px)] flex-col items-center justify-center rounded-xl border border-dashed border-amber-500/35 bg-amber-500/5 px-6 py-8 text-center">
+      <AlertCircle className="mb-3 size-8 text-amber-600 dark:text-amber-400" aria-hidden />
+      <p className="text-sm font-medium text-foreground">{t("avatar.setupTitle")}</p>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">{copy}</p>
+      <Link
+        to={settingsTo}
+        className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        <Settings className="size-4" />
+        {t("avatar.setupCta")}
+      </Link>
+      <p className="mt-4 text-[11px] text-muted-foreground">{t("avatar.setupHint")}</p>
+    </div>
+  );
+}
+
 export function AvatarPanelContent({
   sessionActive,
   fallbackMessage,
@@ -20,7 +52,12 @@ export function AvatarPanelContent({
   showClose = false,
 }: PanelProps) {
   const { embedKey } = useTenant();
-  const bpAgentId = useBpAgentId();
+  const { agentId, needsSetup } = useBpAgentResolve();
+  const health = useCanvasIntegrationHealth();
+  const bpConfigured = health.beyondPresence.ok;
+
+  const showSetup = needsSetup || !agentId;
+  const setupReason = !bpConfigured ? "bpKey" : needsSetup ? "placeholder" : "noAgent";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -48,11 +85,11 @@ export function AvatarPanelContent({
       <div className="relative min-h-0 flex-1 overflow-hidden p-3">
         {fallbackMessage ? (
           <div
-            className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200"
+            className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200"
             role="alert"
           >
             <p className="font-medium">{t("avatar.fallback")}</p>
-            <p className="mt-1 text-amber-200/80">{fallbackMessage}</p>
+            <p className="mt-1 opacity-90">{fallbackMessage}</p>
           </div>
         ) : null}
 
@@ -68,17 +105,15 @@ export function AvatarPanelContent({
         </div>
 
         {!sessionActive ? (
-          bpAgentId ? (
+          showSetup ? (
+            <AvatarSetupCard reason={setupReason} />
+          ) : (
             <BeyondPresenceFrame
-              agentId={bpAgentId}
+              agentId={agentId}
               height={480}
               className="h-full min-h-[min(52vh,480px)] w-full rounded-lg"
               title={t("avatar.title")}
             />
-          ) : (
-            <p className="rounded-lg border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-              {t("avatar.noAgent")}
-            </p>
           )
         ) : null}
       </div>
@@ -98,8 +133,8 @@ export function AvatarDock({ sessionActive, fallbackMessage }: Omit<DockProps, "
   return (
     <aside
       className={cn(
-        "hidden min-h-0 shrink-0 flex-col border-l border-border bg-card lg:flex",
-        "w-[min(480px,42vw)] min-h-[min(72vh,640px)]"
+        "hidden min-h-0 shrink-0 flex-col border-l border-border bg-card/50 lg:flex",
+        "w-[min(420px,38vw)]"
       )}
     >
       <AvatarPanelContent sessionActive={sessionActive} fallbackMessage={fallbackMessage} />

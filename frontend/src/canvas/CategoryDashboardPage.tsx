@@ -1,9 +1,9 @@
+import { Construction } from "lucide-react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { CategoryClientDashboardShell } from "@/dashboard/category/CategoryClientDashboardShell";
 import { getCategoryDashboardDef } from "@/dashboard/category/categoryDashboardRegistry";
 import { useBusinessCategory } from "@/hooks/useBusinessCategory";
 import { SettingsPage } from "@/dashboard/pages/SettingsPage";
-import { Card } from "@/components/ui/card";
 
 function CategoryMainDashboard() {
   const category = useBusinessCategory();
@@ -14,12 +14,16 @@ function CategoryMainDashboard() {
 
 function CategorySubpageStub({ title }: { title: string }) {
   return (
-    <Card className="p-8">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Category-specific view — connect analytics and CRM data in a future release.
+    <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 px-6 py-12 text-center">
+      <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
+        <Construction className="size-5 text-muted-foreground" aria-hidden />
+      </div>
+      <h2 className="text-base font-semibold text-foreground">{title}</h2>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+        This section will show category-specific analytics and CRM data. Use Dashboard and
+        Workspace settings for live configuration today.
       </p>
-    </Card>
+    </div>
   );
 }
 

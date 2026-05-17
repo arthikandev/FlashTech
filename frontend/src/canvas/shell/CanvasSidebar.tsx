@@ -74,8 +74,8 @@ export function CanvasSidebar({ collapsed, onToggleCollapse }: Props) {
           className={cn(
             "flex items-center gap-2 rounded-md px-2 py-2.5 text-sm transition-colors",
             active
-              ? "bg-primary/10 text-foreground"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              ? "bg-primary/12 font-medium text-foreground"
+              : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
             collapsed && "justify-center px-0"
           )}
           title={t(item.labelKey)}
@@ -99,8 +99,8 @@ export function CanvasSidebar({ collapsed, onToggleCollapse }: Props) {
   return (
     <aside
       className={cn(
-        "relative z-10 flex shrink-0 flex-col border-r border-border bg-card/60 transition-[width] duration-300",
-        collapsed ? "w-14" : "w-52"
+        "relative z-10 flex shrink-0 flex-col border-r border-border bg-card transition-[width] duration-300",
+        collapsed ? "w-14" : "w-56"
       )}
     >
       <button

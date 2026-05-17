@@ -6,6 +6,7 @@ import { clerkEnabled } from "@/convex/api";
 import { CANVAS_PATH } from "@/lib/postAuth";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 import { useLandingLocale } from "../i18n/LandingLocaleProvider";
+import { useClerkUserButtonAppearance } from "@/auth/useClerkUserButtonAppearance";
 import { NAV_LINK_CLASS } from "../nav";
 import { LandingNavLinks } from "./LandingNavLinks";
 
@@ -18,6 +19,7 @@ const navLinkClass = `${NAV_LINK_CLASS} block py-3.5`;
 
 function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useLandingLocale();
+  const userButtonAppearance = useClerkUserButtonAppearance();
 
   if (!clerkEnabled) {
     return (
@@ -58,12 +60,7 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
         >
           {t("auth.openWorkspace")}
         </Link>
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: { avatarBox: "w-9 h-9 ring-2 ring-primary/30" },
-          }}
-        />
+        <UserButton afterSignOutUrl="/" appearance={userButtonAppearance} />
       </SignedIn>
     </div>
   );
@@ -97,8 +94,9 @@ export function LandingMobileMenu({ open, onClose }: Props) {
       <div className="flex min-h-full flex-col">
         <LanguageSwitcher className="mb-6" />
         <LandingNavLinks
+          variant="mobile"
           onNavigate={handleNavigate}
-          className="flex flex-col gap-1"
+          className="flex flex-col gap-0"
           itemClassName={navLinkClass}
         />
         <div className="mt-auto border-t border-[#212121] pt-4">

@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
     integrations: getIntegrationsStatus(),
     embedKeys: getDemoEmbedKeys(),
     warnings: env.warnings.length > 0 ? env.warnings : undefined,
-    missing: env.missing.length > 0 ? env.missing : undefined,
+    missing:
+      env.missing.filter((k) => k !== "ELEVENLABS_API_KEY").length > 0
+        ? env.missing.filter((k) => k !== "ELEVENLABS_API_KEY")
+        : undefined,
     timestamp: Date.now(),
   };
 

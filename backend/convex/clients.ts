@@ -5,6 +5,7 @@ import {
   categoryCodeFromIndustry,
   type IndustryKey,
 } from "./lib/categoriesData";
+import { ensurePlatformCategoriesSeeded } from "./lib/ensureCategoriesSeeded";
 import { CANONICAL_BP_AGENT_ID } from "./lib/bpAgentDefaults";
 import { businessWebhookUrls } from "./lib/webhookUrls";
 
@@ -99,6 +100,7 @@ export const createAccount = mutation({
       };
     }
 
+    await ensurePlatformCategoriesSeeded(ctx);
     const category = await categoryRowForIndustry(ctx, args.industry as IndustryKey);
     const baseKey = args.embedKey?.trim() || slugify(name);
     const embedKey = await uniqueEmbedKey(ctx, baseKey || "business");

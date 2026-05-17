@@ -5,6 +5,9 @@ import {
   resolveBackendBaseUrl,
 } from "@/lib/backendUrl";
 import { invalidateCanvasAvatarInit } from "../lib/avatarSdk";
+import { OPTIONAL_BACKEND_ENV_VARS } from "../canvasWorkflow";
+
+const OPTIONAL_ENV_SET = new Set<string>(OPTIONAL_BACKEND_ENV_VARS);
 
 export type IntegrationProbe = {
   ok: boolean;
@@ -22,8 +25,10 @@ export type IntegrationHealth = {
   error?: string;
   /** Resolved API base used for health (after dev proxy fallback). */
   resolvedBackendUrl?: string;
-  /** Env vars the backend reports as required-but-missing (from GET /api/health `missing`) */
+  /** Required env vars from GET /api/health `missing` */
   missingEnvVars: string[];
+  /** Optional integrations (probe-only; not in backend `missing`) */
+  optionalEnvVars: string[];
   /** Non-fatal setup gaps from GET /api/health `warnings` (automation webhooks, BP key, secrets, etc.) */
   setupWarnings: string[];
   /** Build-time: dashboard sign-in publishable key absent from Vite bundle */
@@ -130,15 +135,26 @@ function buildProbe(
 function buildHealth(
   body: HealthBody
 ): Omit<IntegrationHealth, "loading" | "refresh" | "clerkPublishableMissing"> {
-  const missing = body.missing ?? [];
-  const convex = buildProbe(PROBE_META[0], body.probes, body.probeDetails, body.checks, missing);
+  const missingRaw = body.missing ?? [];
+  const missing = missingRaw.filter((name) => !OPTIONAL_ENV_SET.has(name));
+  const convex = buildProbe(PROBE_META[0], body.probes, body.probeDetails, body.checks, missingRaw);
   const openai = buildProbe(PROBE_META[1], body.probes, body.probeDetails, body.checks, missing);
   const beyondPresence = buildProbe(PROBE_META[2], body.probes, body.probeDetails, body.checks, missing);
   const elevenLabs = buildProbe(PROBE_META[3], body.probes, body.probeDetails, body.checks, missing);
 
+  const optionalEnvVars: string[] = [];
+  if (!elevenLabs.ok) {
+    optionalEnvVars.push("ELEVENLABS_API_KEY");
+  }
+
   const requiredLive = [convex, openai, beyondPresence];
   const requiredIntelligence = [convex, openai];
-  const all = [convex, openai, beyondPresence, elevenLabs];
+  const coreProbes = requiredLive;
+  const liveStackReady = requiredLive.every((p) => p.ok);
+
+  const setupWarnings = (body.warnings ?? []).filter(
+    (w) => !/elevenlabs/i.test(w) || !liveStackReady
+  );
 
   return {
     convex,
@@ -146,11 +162,12 @@ function buildHealth(
     beyondPresence,
     elevenLabs,
     missingEnvVars: [...missing],
-    setupWarnings: [...(body.warnings ?? [])],
+    optionalEnvVars,
+    setupWarnings,
     canRunIntelligence: requiredIntelligence.every((p) => p.ok),
-    canRunLive: requiredLive.every((p) => p.ok),
-    connectedCount: all.filter((p) => p.ok).length,
-    totalCount: all.length,
+    canRunLive: liveStackReady,
+    connectedCount: coreProbes.filter((p) => p.ok).length,
+    totalCount: coreProbes.length,
   };
 }
 

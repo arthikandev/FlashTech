@@ -1,10 +1,10 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
-  CATEGORY_SEED_ROWS,
   categoryCodeFromIndustry,
   type IndustryKey,
 } from "./lib/categoriesData";
+import { ensurePlatformCategoriesSeeded } from "./lib/ensureCategoriesSeeded";
 
 const categoryCode = v.union(
   v.literal("BANKING_FINANCIAL"),
@@ -19,45 +19,8 @@ const categoryCode = v.union(
 export const seedCategories = mutation({
   args: {},
   handler: async (ctx) => {
-    const now = Date.now();
-    let inserted = 0;
-    let updated = 0;
-
-    for (const row of CATEGORY_SEED_ROWS) {
-      const existing = await ctx.db
-        .query("categories")
-        .withIndex("by_code", (q) => q.eq("code", row.code))
-        .unique();
-
-      if (existing) {
-        await ctx.db.patch(existing._id, {
-          industryKey: row.industryKey,
-          name: row.name,
-          tag: row.tag,
-          coreMetric: row.coreMetric,
-          dashboardFocus: row.dashboardFocus,
-          exampleClients: row.exampleClients,
-          sortOrder: row.sortOrder,
-          updatedAt: now,
-        });
-        updated += 1;
-      } else {
-        await ctx.db.insert("categories", {
-          code: row.code,
-          industryKey: row.industryKey,
-          name: row.name,
-          tag: row.tag,
-          coreMetric: row.coreMetric,
-          dashboardFocus: row.dashboardFocus,
-          exampleClients: row.exampleClients,
-          sortOrder: row.sortOrder,
-          updatedAt: now,
-        });
-        inserted += 1;
-      }
-    }
-
-    return { inserted, updated, total: CATEGORY_SEED_ROWS.length };
+    const { inserted, updated } = await ensurePlatformCategoriesSeeded(ctx);
+    return { inserted, updated, total: 6 };
   },
 });
 

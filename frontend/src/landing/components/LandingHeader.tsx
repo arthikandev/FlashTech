@@ -6,7 +6,13 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { useLandingLocale } from "@/landing/i18n/LandingLocaleProvider";
 import { LandingNavDropdown } from "@/landing/components/LandingNavDropdown";
-import { LANDING_NAV_ENTRIES, type NavLinkItem } from "@/landing/nav";
+import {
+  LANDING_NAV_ENTRIES,
+  LANDING_NAV_PILL_CLASS,
+  NAV_LINK_CLASS,
+  navLinkEmphasisClass,
+  type NavLinkItem,
+} from "@/landing/nav";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -25,9 +31,8 @@ function NavLink({
 }) {
   const { t } = useLandingLocale();
   const base = cn(
-    "text-[0.8125rem] md:text-sm text-foreground/85 hover:text-foreground transition-colors rounded-sm whitespace-nowrap",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-    item.emphasize && "font-semibold text-primary hover:text-primary/90",
+    NAV_LINK_CLASS,
+    navLinkEmphasisClass(item.emphasize),
     className
   );
 
@@ -102,13 +107,19 @@ export function LandingHeader({ embedded = false }: Props) {
           </div>
 
           <nav className="hidden lg:flex justify-self-center min-w-0 max-w-[min(920px,calc(100vw-22rem))]" aria-label="Main">
-            <ul className="flex min-w-0 items-center gap-2.5 xl:gap-4 rounded-full border border-white/14 bg-[var(--nav-pill)] px-4 py-2 md:px-5 md:py-2.5 shadow-[0_14px_50px_-20px_rgba(0,0,0,0.75)] backdrop-blur-xl overflow-x-auto scrollbar-hide">
+            <ul
+              data-nav-pill
+              className={cn(
+                "flex min-w-0 items-center gap-4 xl:gap-5 overflow-visible",
+                LANDING_NAV_PILL_CLASS
+              )}
+            >
               {LANDING_NAV_ENTRIES.map((entry) =>
                 entry.type === "dropdown" ? (
                   <LandingNavDropdown
                     key={entry.key}
                     item={entry}
-                    linkClassName="text-[0.8125rem] md:text-sm text-foreground/85 hover:text-foreground"
+                    linkClassName={cn(NAV_LINK_CLASS, navLinkEmphasisClass(entry.emphasize))}
                   />
                 ) : (
                   <li key={entry.key} className="shrink-0">
@@ -184,6 +195,7 @@ export function LandingHeader({ embedded = false }: Props) {
                       <LandingNavDropdown
                         item={entry}
                         variant="mobile"
+                        wrapper="div"
                         onNavigate={closeMenu}
                       />
                     </motion.div>

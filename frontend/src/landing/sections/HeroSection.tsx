@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { clerkEnabled } from "@/convex/api";
 import { CANVAS_PATH } from "@/lib/postAuth";
 import { PREVIEW_VIDEO_SRC } from "@/lib/previewVideo";
@@ -12,7 +13,8 @@ import { LandingNavLinks } from "../components/LandingNavLinks";
 import { WordsPullUp } from "../components/WordsPullUp";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 import { useLandingLocale } from "../i18n/LandingLocaleProvider";
-import { NAV_LINK_CLASS } from "../nav";
+import { useClerkUserButtonAppearance } from "@/auth/useClerkUserButtonAppearance";
+import { LANDING_NAV_PILL_CLASS, NAV_LINK_CLASS } from "../nav";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -20,6 +22,7 @@ const navLinkClass = NAV_LINK_CLASS;
 
 function HeroNavAuth({ className = "" }: { className?: string }) {
   const { t } = useLandingLocale();
+  const userButtonAppearance = useClerkUserButtonAppearance();
 
   if (!clerkEnabled) {
     return (
@@ -51,12 +54,7 @@ function HeroNavAuth({ className = "" }: { className?: string }) {
         </Link>
       </SignedOut>
       <SignedIn>
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: { avatarBox: "w-9 h-9 ring-2 ring-primary/30" },
-          }}
-        />
+        <UserButton afterSignOutUrl="/" appearance={userButtonAppearance} />
       </SignedIn>
     </div>
   );
@@ -99,10 +97,14 @@ export function HeroSection() {
           </Link>
 
           <nav
-            className="hidden lg:flex min-w-0 max-w-[min(880px,calc(100vw-20rem))] items-center rounded-full border border-white/14 bg-black/45 px-4 py-2 md:px-5 md:py-2.5 shadow-[0_12px_40px_-18px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-x-auto scrollbar-hide"
+            data-nav-pill
+            className={cn(
+              "hidden lg:flex min-w-0 max-w-[min(920px,calc(100vw-20rem))] items-center overflow-visible",
+              LANDING_NAV_PILL_CLASS
+            )}
             aria-label="Main"
           >
-            <LandingNavLinks className="flex items-center gap-3 xl:gap-5 flex-nowrap px-1" />
+            <LandingNavLinks className="flex h-8 items-center gap-4 xl:gap-5 flex-nowrap" />
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">

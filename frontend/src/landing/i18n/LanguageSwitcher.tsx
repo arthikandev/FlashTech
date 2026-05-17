@@ -1,9 +1,6 @@
 import { cn } from "@/lib/utils";
-import { NAV_LINK_CLASS } from "../nav";
 import { useLandingLocale } from "./LandingLocaleProvider";
 import type { LandingLocale } from "./types";
-
-const segmentClass = cn("flex-1 rounded-full px-3 py-2", NAV_LINK_CLASS);
 
 type Props = {
   className?: string;
@@ -22,8 +19,8 @@ export function LanguageSwitcher({ className }: Props) {
       role="group"
       aria-label="Language"
       className={cn(
-        "flex rounded-full border border-[#212121] bg-black/40 p-1",
-        className,
+        "flex rounded-full border border-white/14 bg-black/45 p-1 backdrop-blur-xl shadow-[0_12px_40px_-18px_rgba(0,0,0,0.65)]",
+        className
       )}
     >
       {options.map(({ id, labelKey }) => {
@@ -33,7 +30,12 @@ export function LanguageSwitcher({ className }: Props) {
             key={id}
             type="button"
             onClick={() => setLocale(id)}
-            className={cn(segmentClass, active && "bg-white/10")}
+            className={cn(
+              "flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+              active
+                ? "bg-white/12 text-[#fdfcf8]"
+                : "text-[#E1E0CC]/65 hover:text-[#E1E0CC]"
+            )}
             aria-pressed={active}
           >
             {t(labelKey)}

@@ -41,6 +41,16 @@ export const enMessages = {
   "footer.embedSdk": "Embed SDK",
   "footer.pricing": "Pricing",
   "footer.apiDocs": "API docs",
+  "footer.developers": "Developers",
+  "developers.eyebrow": "For builders",
+  "developers.title": "Build with PresenceIQ",
+  "developers.subtitle":
+    "Embed pre-conversation intelligence on your site, sync CRM context, and ship personalised Beyond Presence avatars — one script, full API access.",
+  "developers.linkedin": "LinkedIn",
+  "developers.github": "GitHub",
+  "developers.apiDocs": "Read the API docs",
+  "developers.backHome": "Back to home",
+  "developers.heroAlt": "Developers building with PresenceIQ",
   "hero.menuAria": "Open menu",
   "hero.tagline":
     "Know every visitor before your AI speaks. Pre-conversation intelligence scores intent, syncs CRM context, and personalises your Beyond Presence avatar in under 2 seconds.",

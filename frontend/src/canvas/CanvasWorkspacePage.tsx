@@ -73,7 +73,7 @@ export function CanvasWorkspacePage() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <CanvasGettingStarted health={integrationHealth} />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
         <CanvasChatColumn
           prompt={prompt}
           onPromptChange={setPrompt}
@@ -90,7 +90,7 @@ export function CanvasWorkspacePage() {
           onToggleAvatar={() => setAvatarOpen((o) => !o)}
           mobileAvatarSlot={<AvatarMobileSlot {...avatarProps} />}
         />
-      <AvatarDock sessionActive={sessionActive} fallbackMessage={fallbackMessage} />
+        <AvatarDock sessionActive={sessionActive} fallbackMessage={fallbackMessage} />
       </div>
     </div>
   );

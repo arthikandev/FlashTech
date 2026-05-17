@@ -94,9 +94,12 @@ Terminal 2:
 ```bash
 cd backend
 npm install
+npx convex run categories:seedCategories
 npx convex run seed:seedDemo
 npm run dev
 ```
+
+`categories:seedCategories` inserts the six industry rows (`hotel` → `HOTELS_TOURISM`, etc.) required by `clients:createAccount`. `createAccount` also auto-seeds if missing, but run this once on new Convex deployments.
 
 Run **one command per line**. Do not put shell comments on the same line as `npm run dev` (e.g. `npm run dev # comment` breaks Next.js with a `backend/#` error).
 
