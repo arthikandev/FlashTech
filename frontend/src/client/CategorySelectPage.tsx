@@ -12,7 +12,7 @@ export function CategorySelectPage() {
 
   const selectCategory = (industry: Industry) => {
     setSelectedIndustry(industry);
-    navigate("/dashboard", { replace: true });
+    navigate("/canvas", { replace: true });
   };
 
   return (

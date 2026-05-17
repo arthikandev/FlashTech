@@ -16,7 +16,7 @@ export function PendingVerificationPage() {
         automatically after onboarding — continue to your dashboard if you have already completed
         setup.
       </p>
-      <Button render={<Link to="/dashboard" />}>Go to dashboard</Button>
+      <Button render={<Link to="/canvas" />}>Go to dashboard</Button>
       <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
         Back to home
       </Link>

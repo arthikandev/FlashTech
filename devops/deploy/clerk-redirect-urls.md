@@ -14,6 +14,8 @@ Replace `<host>` with your deployed frontend origin (e.g. `https://frontend-nu-n
 | `<host>/register/*` | Sign-up OAuth callbacks |
 | `<host>/onboard` | Post-auth onboarding |
 | `<host>/auth/callback` | Post sign-in redirect ([`LoginPage`](../../frontend/src/auth/LoginPage.tsx) `forceRedirectUrl`) |
+| `<host>/canvas` | Operator workspace after sign-in |
+| `<host>/canvas/*` | Workspace sub-routes (sessions, analytics, …) |
 
 ## Example (production)
 
@@ -35,6 +37,8 @@ http://localhost:5173/register
 http://localhost:5173/register/*
 http://localhost:5173/onboard
 http://localhost:5173/auth/callback
+http://localhost:5173/canvas
+http://localhost:5173/canvas/*
 ```
 
 Also add your frontend origin under **Authorized domains** if Clerk prompts for it.

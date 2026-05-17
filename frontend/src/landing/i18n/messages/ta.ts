@@ -28,6 +28,7 @@ export const taMessages: Record<MessageKey, string> = {
   "auth.signIn": "உள்நுழை",
   "auth.getStarted": "தொடங்குங்கள்",
   "auth.seeLiveDemo": "நேரடி டெமோ பாருங்கள்",
+  "auth.openWorkspace": "பணியிடத்தைத் திற",
   "lang.en": "EN",
   "lang.ta": "தமிழ்",
   "footer.columns.company": "நிறுவனம்",

@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { clerkEnabled } from "@/convex/api";
+import { CANVAS_PATH } from "@/lib/postAuth";
 import { PREVIEW_VIDEO_SRC } from "@/lib/previewVideo";
 import { KeywordTicker } from "../components/KeywordTicker";
 import { LandingMobileMenu } from "../components/LandingMobileMenu";
@@ -145,12 +146,33 @@ export function HeroSection() {
                   {t("hero.tagline")}
                 </p>
                 <div className="mt-6">
-                  <Link
-                    to="/demos/seylan"
-                    className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
-                  >
-                    {t("auth.seeLiveDemo")}
-                  </Link>
+                  {clerkEnabled ? (
+                    <>
+                      <SignedOut>
+                        <Link
+                          to="/sites/seylan/index.html"
+                          className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
+                        >
+                          {t("auth.seeLiveDemo")}
+                        </Link>
+                      </SignedOut>
+                      <SignedIn>
+                        <Link
+                          to={CANVAS_PATH}
+                          className="flex w-full sm:w-auto items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/60 hover-lift transition-colors"
+                        >
+                          {t("auth.openWorkspace")}
+                        </Link>
+                      </SignedIn>
+                    </>
+                  ) : (
+                    <Link
+                      to="/onboard"
+                      className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
+                    >
+                      {t("auth.getStarted")}
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             </div>

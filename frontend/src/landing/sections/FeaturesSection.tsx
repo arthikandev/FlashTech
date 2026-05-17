@@ -128,7 +128,7 @@ export function FeaturesSection() {
             number="01"
             title={t("features.c1.title")}
             icon={Code2}
-            linkTo="/demos/seylan"
+            linkTo="/sites/seylan/index.html"
             className="lg:col-span-5"
             learnMoreLabel={t("features.learnMore")}
             items={[
@@ -155,7 +155,7 @@ export function FeaturesSection() {
             number="03"
             title={t("features.c3.title")}
             icon={Presentation}
-            linkTo="/demos/seylan"
+            linkTo="/sites/seylan/index.html"
             className="lg:col-span-12"
             learnMoreLabel={t("features.learnMore")}
             items={[t("features.c3.i0"), t("features.c3.i1"), t("features.c3.i2")]}

@@ -59,18 +59,18 @@ export default function HomePage() {
             — live sessions, KPIs, analytics
           </li>
           <li>
-            <a href={frontendPath("/demos/seylan")} style={{ color: "#93c5fd" }}>
+            <a href={frontendPath("/sites/seylan/index.html")} style={{ color: "#93c5fd" }}>
               Seylan demo
             </a>{" "}
-            — avatar + embed
+            — static embed site
           </li>
           <li>
-            <a href={frontendPath("/demos/cloudmetrics")} style={{ color: "#93c5fd" }}>
+            <a href={frontendPath("/sites/cloudmetrics/index.html")} style={{ color: "#93c5fd" }}>
               CloudMetrics demo
             </a>
           </li>
           <li>
-            <a href={frontendPath("/demos/coral")} style={{ color: "#93c5fd" }}>
+            <a href={frontendPath("/sites/coral/index.html")} style={{ color: "#93c5fd" }}>
               Coral demo
             </a>
           </li>

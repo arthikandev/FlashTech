@@ -1,6 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { getSelectedIndustry, isOnboardingComplete, loadDraft } from "@/onboarding/storage";
 import { DashboardPage } from "./DashboardPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { AvatarPage } from "./pages/AvatarPage";
@@ -9,13 +8,8 @@ import { SessionsPage } from "./pages/SessionsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { WorkflowPage } from "./pages/WorkflowPage";
 
+/** Operator workspace (canvas UI) — shared by `/canvas/*` and `/dashboard/*`. */
 export function ClientDashboardRoute() {
-  const hasIndustry = Boolean(loadDraft().industry || getSelectedIndustry());
-
-  if (!isOnboardingComplete() && !hasIndustry) {
-    return <Navigate to="/client/signup" replace />;
-  }
-
   return (
     <ProtectedRoute allowDemoPreview={false}>
       <Routes>

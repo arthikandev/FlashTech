@@ -42,7 +42,7 @@ Template for local parity: [`frontend/.env.example`](../../frontend/.env.example
 
 ## 3. SPA routing
 
-[`frontend/vercel.json`](../../frontend/vercel.json) rewrites non-static paths to `index.html` so client routes (**`/dashboard`**, **`/deck`**, **`/present`**, **`/demos/*`**) and hard refresh work. Static exclusions include `assets/`, `sites/`, **`presenceiq-avatar.js`**, `fake-crm.json`.
+[`frontend/vercel.json`](../../frontend/vercel.json) rewrites non-static paths to `index.html` so client routes (**`/canvas`**, **`/dashboard`**, **`/deck`**, **`/present`**) and hard refresh work. Static exclusions include `assets/`, `sites/`, **`presenceiq-avatar.js`**, `fake-crm.json`.
 
 ## 4. Avatar embed bundle
 
@@ -56,9 +56,9 @@ Manual checks after each production deploy:
 
 - [ ] `/` landing loads  
 - [ ] `/login` → Google/SSO → brief `/login/sso-callback` → `/onboard` (no blank screen)  
-- [ ] `/dashboard` loads (Convex + optional Clerk — network tab shows Convex websocket)    
-- [ ] **`/dashboard` hard refresh** (reload) still serves app (SPA rewrite)  
-- [ ] `/demos/seylan` (and other `/demos/*`)  
+- [ ] `/canvas` loads (Convex + optional Clerk — network tab shows Convex websocket)    
+- [ ] **`/canvas` hard refresh** (reload) still serves app (SPA rewrite)  
+- [ ] `/sites/seylan/index.html` (and other static `/sites/*` demos)  
 - [ ] `/deck`, `/present` if using pitch flows  
 - [ ] `/presenceiq-avatar.js` returns 200  
 

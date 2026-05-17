@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Sheet } from "@/components/ui/Sheet";
 import { clerkEnabled } from "@/convex/api";
+import { CANVAS_PATH } from "@/lib/postAuth";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 import { useLandingLocale } from "../i18n/LandingLocaleProvider";
 import { NAV_LINK_CLASS } from "../nav";
@@ -25,7 +26,7 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/demos/seylan"
+          to="/sites/seylan/index.html"
           onClick={onNavigate}
           className="flex items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/40"
         >
@@ -42,7 +43,7 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/demos/seylan"
+          to="/sites/seylan/index.html"
           onClick={onNavigate}
           className="flex items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/40"
         >
@@ -50,6 +51,13 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
         </Link>
       </SignedOut>
       <SignedIn>
+        <Link
+          to={CANVAS_PATH}
+          onClick={onNavigate}
+          className="flex items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/60"
+        >
+          {t("auth.openWorkspace")}
+        </Link>
         <UserButton
           afterSignOutUrl="/"
           appearance={{

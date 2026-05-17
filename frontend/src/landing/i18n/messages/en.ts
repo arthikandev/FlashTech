@@ -26,6 +26,7 @@ export const enMessages = {
   "auth.signIn": "Sign in",
   "auth.getStarted": "Get started",
   "auth.seeLiveDemo": "See live demo",
+  "auth.openWorkspace": "Open workspace",
   "lang.en": "EN",
   "lang.ta": "தமிழ்",
   "footer.columns.company": "Company",

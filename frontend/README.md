@@ -38,10 +38,10 @@ Open http://localhost:5173 — cinematic landing at `/`; dashboard and demos on 
 | Route | Page |
 |-------|------|
 | `/` | Marketing landing — Hero, About, demo selector, Features, infinite-scroll testimonials, cinematic footer |
-| `/dashboard` | Live Convex sessions dashboard |
-| `/demos/seylan` | Seylan Bank embed demo |
-| `/demos/cloudmetrics` | CloudMetrics SaaS embed demo |
-| `/demos/coral` | Coral Resort embed demo |
+| `/canvas` | Live Convex operator workspace |
+| `/sites/seylan/index.html` | Seylan Bank static embed demo |
+| `/sites/cloudmetrics/index.html` | CloudMetrics SaaS static embed demo |
+| `/sites/coral/index.html` | Coral Resort static embed demo |
 
 UI components live in `src/components/ui/` (shadcn-style: `motion-footer`, `testimonials-columns-1`).
 

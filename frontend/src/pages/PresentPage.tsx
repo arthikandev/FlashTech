@@ -10,7 +10,7 @@ export function PresentPage() {
       <header className="border-b border-[#212121] px-4 py-3 flex items-center justify-between">
         <span className="font-serif text-primary">PresenceIQ · Presenter</span>
         <div className="flex gap-4 text-xs text-gray-500">
-          <Link to="/demos/seylan" className="hover:text-primary" target="_blank">
+          <Link to="/sites/seylan/index.html" className="hover:text-primary" target="_blank">
             Open demo tab
           </Link>
           <Link to="/deck" className="hover:text-primary">
