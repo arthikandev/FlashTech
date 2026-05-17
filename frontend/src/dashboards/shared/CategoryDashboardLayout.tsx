@@ -9,9 +9,10 @@ type Props = {
   category: CategoryDefinition;
   businessName: string;
   children: ReactNode;
+  banner?: ReactNode;
 };
 
-export function CategoryDashboardLayout({ category, businessName, children }: Props) {
+export function CategoryDashboardLayout({ category, businessName, children, banner }: Props) {
   return (
     <div className="dark dash-theme flex min-h-[100dvh] bg-dash-bg text-dash-ink">
       <aside className="hidden w-56 shrink-0 flex-col border-r border-dash-border bg-dash-sidebar lg:flex">
@@ -54,6 +55,7 @@ export function CategoryDashboardLayout({ category, businessName, children }: Pr
         </header>
 
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+          {banner}
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {category.mockKpis.map((kpi) => (
               <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} hint={kpi.hint} />

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { CATEGORIES } from "@/lib/categories";
-import { loadDraft, saveDraft } from "@/onboarding/storage";
+import { setSelectedIndustry } from "@/onboarding/storage";
 import type { Industry } from "@/onboarding/types";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -11,9 +11,8 @@ export function CategorySelectPage() {
   const navigate = useNavigate();
 
   const selectCategory = (industry: Industry) => {
-    const draft = loadDraft();
-    saveDraft({ ...draft, industry });
-    navigate("/onboard");
+    setSelectedIndustry(industry);
+    navigate("/dashboard", { replace: true });
   };
 
   return (

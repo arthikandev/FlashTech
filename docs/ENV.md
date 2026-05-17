@@ -24,7 +24,8 @@ PresenceIQ uses **one `.env.example` per app folder** (not at repo root). Next.j
 | `N8N_WEBHOOK_SECRET` | backend | n8n workflows calling backend webhooks |
 | `NEXT_PUBLIC_APP_URL` / `BACKEND_URL` | backend | avatar, frontend embed + API calls. **Local dev:** use `http://localhost:3001` when running `npm run dev:3001` |
 | `BEYONDPRESENCE_API_KEY` | backend only | Outbound BP API — **do not** copy to `avatar/.env.local` |
-| `VITE_CLERK_PUBLISHABLE_KEY` | frontend | Clerk sign-in for dashboard (Person 3) |
+| `VITE_CLERK_PUBLISHABLE_KEY` | frontend | Clerk sign-in for dashboard (Person 3) — **not** the Frontend API URL |
+| `CLERK_JWT_ISSUER_DOMAIN` | Convex (via `npx convex env set`) | Clerk **Frontend API URL**, e.g. `https://integral-lamprey-56.clerk.accounts.dev` |
 
 **Source of truth for backend + webhooks:** [`backend/.env.example`](../backend/.env.example)
 
@@ -57,6 +58,9 @@ Dashboard Convex queries require a signed-in Clerk user linked to a business via
    ```bash
    npx convex env set CLERK_JWT_ISSUER_DOMAIN https://your-app.clerk.accounts.dev
    ```
+
+   Example (integral-lamprey-56): `https://integral-lamprey-56.clerk.accounts.dev`.  
+   Clerk Dashboard may label this **Frontend API URL** — it is **not** the Vite `VITE_*` publishable key.
 
 3. Run `npx convex dev` so `convex/auth.config.ts` syncs.
 4. Optional — link your Clerk user to the Seylan demo business after seed:

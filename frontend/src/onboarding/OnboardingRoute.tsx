@@ -2,15 +2,15 @@ import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
 import { clerkEnabled } from "@/convex/api";
 import { OnboardingPage } from "./OnboardingPage";
-import { isOnboardingComplete, loadDraft } from "./storage";
+import { getSelectedIndustry, isOnboardingComplete, loadDraft } from "./storage";
 
 export function OnboardingRoute() {
   if (isOnboardingComplete()) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const draft = loadDraft();
-  if (!draft.industry) {
+  const industry = loadDraft().industry || getSelectedIndustry();
+  if (!industry) {
     return <Navigate to="/client/signup" replace />;
   }
 

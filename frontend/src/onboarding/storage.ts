@@ -1,9 +1,10 @@
-import { defaultOnboardingData, type OnboardingData } from "./types";
+import { defaultOnboardingData, type OnboardingData, type Industry } from "./types";
 import type { OnboardApiResult } from "./submitOnboarding";
 
 const COMPLETE_KEY = "piq_onboarding_complete";
 const DRAFT_KEY = "piq_onboarding_draft";
 const RESULT_KEY = "piq_onboarding_result";
+const SELECTED_INDUSTRY_KEY = "piq_selected_industry";
 
 export function isOnboardingComplete(): boolean {
   try {
@@ -26,8 +27,33 @@ export function loadDraft(): OnboardingData {
 export function saveDraft(data: OnboardingData): void {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    if (data.industry) {
+      localStorage.setItem(SELECTED_INDUSTRY_KEY, data.industry);
+    }
   } catch {
     /* ignore quota errors */
+  }
+}
+
+export function setSelectedIndustry(industry: Industry): void {
+  try {
+    localStorage.setItem(SELECTED_INDUSTRY_KEY, industry);
+    const draft = loadDraft();
+    saveDraft({ ...draft, industry });
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getSelectedIndustry(): Industry | "" {
+  try {
+    const fromDraft = loadDraft().industry;
+    if (fromDraft) return fromDraft;
+    const raw = localStorage.getItem(SELECTED_INDUSTRY_KEY);
+    if (!raw) return "";
+    return raw as Industry;
+  } catch {
+    return "";
   }
 }
 

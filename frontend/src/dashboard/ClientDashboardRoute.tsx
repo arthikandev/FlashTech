@@ -1,21 +1,33 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { DashboardRouter } from "@/dashboards/DashboardRouter";
-import { loadDraft } from "@/onboarding/storage";
-import { isOnboardingComplete } from "@/onboarding/storage";
+import { getSelectedIndustry, isOnboardingComplete, loadDraft } from "@/onboarding/storage";
+import { DashboardPage } from "./DashboardPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { AvatarPage } from "./pages/AvatarPage";
+import { OverviewPage } from "./pages/OverviewPage";
+import { SessionsPage } from "./pages/SessionsPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { WorkflowPage } from "./pages/WorkflowPage";
 
 export function ClientDashboardRoute() {
-  if (!isOnboardingComplete()) {
-    const draft = loadDraft();
-    if (!draft.industry) {
-      return <Navigate to="/client/signup" replace />;
-    }
-    return <Navigate to="/onboard" replace />;
+  const hasIndustry = Boolean(loadDraft().industry || getSelectedIndustry());
+
+  if (!isOnboardingComplete() && !hasIndustry) {
+    return <Navigate to="/client/signup" replace />;
   }
 
   return (
     <ProtectedRoute allowDemoPreview={false}>
-      <DashboardRouter />
+      <Routes>
+        <Route element={<DashboardPage />}>
+          <Route index element={<OverviewPage />} />
+          <Route path="sessions" element={<SessionsPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="workflow" element={<WorkflowPage />} />
+          <Route path="avatar" element={<AvatarPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+      </Routes>
     </ProtectedRoute>
   );
 }

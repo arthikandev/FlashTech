@@ -10,7 +10,11 @@ import { useSearchParams } from "react-router-dom";
 import type { Id } from "@/convex/ids";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useTriggers } from "@/hooks/useTriggers";
+import type { CategoryDefinition } from "@/lib/categories";
+import { getCategoryByIndustry } from "@/lib/categories";
 import { showError } from "@/lib/toast";
+import { getSelectedIndustry, loadDraft } from "@/onboarding/storage";
+import type { Industry } from "@/onboarding/types";
 import { filterSessions, sortSessionsByIntent } from "@/lib/dashboard/sessionFilters";
 import { useAiFeedEvents, type FeedEvent } from "../hooks/useAiFeedEvents";
 import type { TriggerRow } from "@/hooks/useTriggers";
@@ -52,6 +56,8 @@ export type DashboardContextValue = {
   needsMembership: boolean;
   hasMembershipForEmbed: boolean;
   previewOnly: boolean;
+  industry: Industry | "";
+  category: CategoryDefinition | undefined;
   sessionsError: string | null;
   canLoadMoreSessions: boolean;
   sessionsLoadingMore: boolean;
@@ -117,6 +123,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     return match?.label ?? business?.name ?? "Workspace";
   }, [embedOptions, embedKey, business?.name]);
 
+  const industry = useMemo((): Industry | "" => {
+    const fromBusiness = business?.industry as Industry | undefined;
+    if (fromBusiness) return fromBusiness;
+    return getSelectedIndustry() || loadDraft().industry || "";
+  }, [business?.industry]);
+
+  const category = useMemo(() => getCategoryByIndustry(industry), [industry]);
+
   function handleEmbedKeyChange(key: string) {
     setEmbedKey(key);
     setSelectedVisitorId(null);
@@ -153,6 +167,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     needsMembership,
     hasMembershipForEmbed,
     previewOnly,
+    industry,
+    category,
     sessionsError,
     canLoadMoreSessions,
     sessionsLoadingMore,
