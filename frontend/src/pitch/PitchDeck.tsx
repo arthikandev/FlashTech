@@ -10,7 +10,7 @@ const SLIDES = [
   {
     title: "Live demo",
     body: "Reload Seylan Bank pricing. In under 2 seconds the avatar says: Welcome back Sarangan — I see you have been comparing our Gold and Platinum plans. Your automation endpoints can raise a Slack hot-lead alert. The dashboard updates with transcript and intent arc.",
-    cta: { label: "Open Seylan demo", to: "/demos/seylan" },
+    cta: { label: "Open Seylan demo", to: "/sites/seylan/index.html" },
   },
   {
     title: "How it works",

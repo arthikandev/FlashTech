@@ -50,7 +50,7 @@ export const INDUSTRY_CATEGORIES: IndustryCategory[] = [
       "People's Bank",
     ],
     icon: Building2,
-    demoTo: "/demos/seylan",
+    demoTo: "/sites/seylan/index.html",
     samplePrompt:
       "A returning customer viewed pricing three times — greet them warmly and offer a plan comparison.",
     statHighlight: "2.1× qualified leads",
@@ -66,7 +66,7 @@ export const INDUSTRY_CATEGORIES: IndustryCategory[] = [
     dashboardFocus: "Trial user behavior, pricing page interactions, churn prediction",
     exampleClients: ["CRM tools", "Project management apps", "Developer platforms"],
     icon: Code,
-    demoTo: "/demos/cloudmetrics",
+    demoTo: "/sites/cloudmetrics/index.html",
     samplePrompt:
       "Trial user on day 6 comparing plans — open with usage-aware upgrade guidance.",
     statHighlight: "3× trial conversion",
@@ -82,7 +82,7 @@ export const INDUSTRY_CATEGORIES: IndustryCategory[] = [
     dashboardFocus: "Guest preferences, room availability, package recommendations, multi-language support",
     exampleClients: ["Cinnamon Hotels", "Jetwing", "Aitken Spence", "Galle Face Hotel"],
     icon: Hotel,
-    demoTo: "/demos/coral",
+    demoTo: "/sites/coral/index.html",
     samplePrompt:
       "Returning guest prefers ocean-view suite — suggest an upgrade with breakfast included.",
     statHighlight: "40% faster booking",
@@ -98,7 +98,7 @@ export const INDUSTRY_CATEGORIES: IndustryCategory[] = [
     dashboardFocus: "Appointment routing, doctor availability, language preferences, sensitive content handling",
     exampleClients: ["Nawaloka Hospital", "Asiri Hospital", "Lanka Hospitals", "Durdans"],
     icon: Heart,
-    demoTo: "/demos/coral",
+    demoTo: "/sites/coral/index.html",
     samplePrompt:
       "Patient prefers Tamil for a follow-up visit — open with empathetic intake in their language.",
     statHighlight: "Multilingual intake",
@@ -114,7 +114,7 @@ export const INDUSTRY_CATEGORIES: IndustryCategory[] = [
     dashboardFocus: "Cart history, browse behavior, time-sensitive offers, product recommendations",
     exampleClients: ["Daraz", "Kapruka", "Wow.lk", "Glomark Online"],
     icon: ShoppingBag,
-    demoTo: "/demos/coral",
+    demoTo: "/sites/coral/index.html",
     samplePrompt:
       "Cart abandoned with premium items — recover with a limited-time offer on their saved products.",
     statHighlight: "28% cart recovery",
@@ -130,7 +130,7 @@ export const INDUSTRY_CATEGORIES: IndustryCategory[] = [
     dashboardFocus: "CV analysis, role matching, interview scheduling, candidate scoring",
     exampleClients: ["XpressJobs", "ikman Jobs", "HR consultancies", "Recruitment firms"],
     icon: Users,
-    demoTo: "/demos/cloudmetrics",
+    demoTo: "/sites/cloudmetrics/index.html",
     samplePrompt:
       "Senior engineer candidate — open with a question tied to their latest project on the CV.",
     statHighlight: "50% faster screen",

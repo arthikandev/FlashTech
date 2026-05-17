@@ -1,5 +1,4 @@
 import type { Industry } from "@/onboarding/types";
-import { isOnboardingComplete } from "@/onboarding/storage";
 import { resolveCategoryDashboardPath } from "@/lib/categoryDashboardLink";
 import type { CategoryCode } from "@/lib/categories/industryCategories";
 
@@ -80,41 +79,34 @@ export type ClientAuthRow = {
   business: { embedKey: string } | null;
 };
 
+/** Signed-in operator workspace (not marketing demo sites). */
+export const CANVAS_PATH = "/canvas";
+
 /** Where to send a signed-in user after login or SSO. */
 export function resolvePostAuthPath(
   memberships: MembershipRow[] | undefined,
   clientRow?: ClientAuthRow | null
 ): string {
   const withEmbed = memberships?.filter((m) => m.business?.embedKey) ?? [];
-  const hasBusiness = withEmbed.length > 0;
 
-  if (clientRow && clientRow.client === null && !hasBusiness) {
+  if (clientRow?.client === null && withEmbed.length === 0) {
     return "/client/setup";
   }
 
-  if (!hasBusiness) {
-    return "/client/signup";
+  if (withEmbed.length > 0) {
+    const last = getLastEmbedKey();
+    const match =
+      withEmbed.find((m) => m.business!.embedKey === last) ?? withEmbed[0];
+    if (match?.business?.embedKey) {
+      setLastEmbedKey(match.business.embedKey);
+      return resolveCategoryDashboardPath(
+        match.business.embedKey,
+        clientRow?.client?.categoryCode
+      );
+    }
   }
 
-  if (!isOnboardingComplete()) {
-    return "/onboard";
-  }
-
-  const last = getLastEmbedKey();
-  const match =
-    withEmbed.find((m) => m.business!.embedKey === last) ?? withEmbed[0];
-  if (match?.business?.embedKey) {
-    setLastEmbedKey(match.business.embedKey);
-  }
-
-  const embedKey = match?.business?.embedKey;
-  const categoryCode = clientRow?.client?.categoryCode;
-
-  if (embedKey) {
-    return resolveCategoryDashboardPath(embedKey, categoryCode);
-  }
-
-  return "/dashboard";
+  return CANVAS_PATH;
 }
 
 /** @deprecated Use resolvePostAuthPath */

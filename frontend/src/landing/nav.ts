@@ -64,17 +64,17 @@ export const LANDING_NAV_ENTRIES: LandingNavEntry[] = [
     children: [
       {
         key: "nav.demo.seylan",
-        to: "/demos/seylan",
+        to: "/sites/seylan/index.html",
         description: "nav.demo.seylanDesc",
       },
       {
         key: "nav.demo.cloudmetrics",
-        to: "/demos/cloudmetrics",
+        to: "/sites/cloudmetrics/index.html",
         description: "nav.demo.cloudmetricsDesc",
       },
       {
         key: "nav.demo.coral",
-        to: "/demos/coral",
+        to: "/sites/coral/index.html",
         description: "nav.demo.coralDesc",
       },
     ],
@@ -91,7 +91,7 @@ export const LANDING_NAV_ITEMS: LandingNavItem[] = [
   { key: "nav.platform", href: "#features" },
   { key: "nav.pricing", href: "#pricing" },
   { key: "nav.about", href: "#about" },
-  { key: "nav.liveDemos", to: "/demos/seylan", emphasize: true },
+  { key: "nav.liveDemos", to: "/sites/seylan/index.html", emphasize: true },
   { key: "nav.workspace", to: "/canvas", emphasize: true },
 ];
 

@@ -1,12 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { PostAuthRedirect } from "./components/PostAuthRedirect";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Layout } from "./components/Layout";
 import { ClientDashboardRoute } from "./dashboard/ClientDashboardRoute";
 import { SlackMock } from "./dashboard/SlackMock";
-import { SeylanPage } from "./demos/SeylanPage";
-import { CloudMetricsPage } from "./demos/CloudMetricsPage";
-import { CoralPage } from "./demos/CoralPage";
 import { LoginPage } from "./auth/LoginPage";
 import { RegisterPage } from "./auth/RegisterPage";
 import { LandingPage } from "./landing/LandingPage";
@@ -84,12 +80,6 @@ export default function App() {
                 }
               />
             </Route>
-          </Route>
-
-          <Route element={<Layout />}>
-            <Route path="demos/seylan" element={<SeylanPage />} />
-            <Route path="demos/cloudmetrics" element={<CloudMetricsPage />} />
-            <Route path="demos/coral" element={<CoralPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
