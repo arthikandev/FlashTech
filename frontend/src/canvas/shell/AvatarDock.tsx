@@ -4,6 +4,7 @@ import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
 import { CanvasAvatarBoot } from "../CanvasAvatarBoot";
 import { useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
 import { useBpAgentResolve } from "@/hooks/useBpAgentId";
+import { LEGACY_BP_AGENT_ID } from "@/lib/bpAgentDefaults";
 import { useTenant } from "@/tenant/TenantContext";
 import { t } from "../i18n/canvas.en";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,11 @@ type PanelProps = {
   showClose?: boolean;
 };
 
-function AvatarSetupCard({ reason }: { reason: "noAgent" | "placeholder" | "bpKey" }) {
+function AvatarSetupCard({
+  reason,
+}: {
+  reason: "noAgent" | "placeholder" | "bpKey" | "demoStale";
+}) {
   const { embedKey } = useTenant();
   const qs = `?embedKey=${encodeURIComponent(embedKey)}&tab=avatar`;
   const settingsTo = `/canvas/settings${qs}`;
@@ -24,9 +29,11 @@ function AvatarSetupCard({ reason }: { reason: "noAgent" | "placeholder" | "bpKe
   const copy =
     reason === "bpKey"
       ? t("avatar.setupBpKey")
-      : reason === "placeholder"
-        ? t("avatar.setupPlaceholder")
-        : t("avatar.setupNoAgent");
+      : reason === "demoStale"
+        ? t("avatar.setupDemoStale")
+        : reason === "placeholder"
+          ? t("avatar.setupPlaceholder")
+          : t("avatar.setupNoAgent");
 
   return (
     <div className="flex h-full min-h-[min(52vh,480px)] flex-col items-center justify-center rounded-xl border border-dashed border-amber-500/35 bg-amber-500/5 px-6 py-8 text-center">
@@ -56,8 +63,27 @@ export function AvatarPanelContent({
   const health = useCanvasIntegrationHealth();
   const bpConfigured = health.beyondPresence.ok;
 
-  const showSetup = needsSetup || !agentId;
-  const setupReason = !bpConfigured ? "bpKey" : needsSetup ? "placeholder" : "noAgent";
+  const envDemoAgentId =
+    typeof import.meta.env.VITE_BP_DEMO_AGENT_ID === "string"
+      ? import.meta.env.VITE_BP_DEMO_AGENT_ID.trim()
+      : "";
+  const trimmedAgentId = agentId?.trim() ?? "";
+  /** Legacy bundled UUID often 404s on bey.chat — block iframe unless env overrides it. */
+  const usingStaleBuiltinDemo =
+    trimmedAgentId !== "" &&
+    trimmedAgentId === LEGACY_BP_AGENT_ID &&
+    !envDemoAgentId;
+
+  const showSetup =
+    needsSetup || trimmedAgentId === "" || (!sessionActive && usingStaleBuiltinDemo);
+
+  const setupReason = !bpConfigured
+    ? "bpKey"
+    : usingStaleBuiltinDemo
+      ? "demoStale"
+      : needsSetup
+        ? "placeholder"
+        : "noAgent";
 
   return (
     <div className="flex h-full min-h-0 flex-col">

@@ -6,12 +6,10 @@ on:
     branches: [main]
     paths:
       - "frontend/**"
-      - "scripts/write-runtime-config.mjs"
       - ".github/workflows/frontend-ci.yml"
   pull_request:
     paths:
       - "frontend/**"
-      - "scripts/write-runtime-config.mjs"
       - ".github/workflows/frontend-ci.yml"
 
 jobs:
@@ -26,13 +24,19 @@ jobs:
       - name: Apply backend URL for build (optional secret)
         env:
           PRESENCEIQ_BACKEND_URL: ${{ secrets.PRESENCEIQ_BACKEND_URL }}
-        run: node ../scripts/write-runtime-config.mjs
+        run: node scripts/write-runtime-config.mjs
 
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: i18n parity
+        run: node scripts/check-i18n-parity.mjs
 
       - name: Build
         env:

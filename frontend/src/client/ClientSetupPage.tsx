@@ -25,20 +25,32 @@ export function ClientSetupPage() {
       setError("Business name and category are required.");
       return;
     }
+    const trimmedWebsite = website.trim();
+    if (trimmedWebsite) {
+      try {
+        const parsed = new URL(trimmedWebsite);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          throw new Error("protocol");
+        }
+      } catch {
+        setError("Website must be a full URL starting with http:// or https://");
+        return;
+      }
+    }
     setSubmitting(true);
     setError(null);
     try {
       const result = (await createAccount({
         businessName: businessName.trim(),
         industry,
-        website: website.trim() || undefined,
+        website: trimmedWebsite || undefined,
       })) as { embedKey: string };
       setLastEmbedKey(result.embedKey);
       saveDraft({
         ...loadDraft(),
         companyName: businessName.trim(),
         industry,
-        website: website.trim(),
+        website: trimmedWebsite,
       });
       navigate("/onboard", { replace: true });
     } catch (err) {
@@ -57,10 +69,10 @@ export function ClientSetupPage() {
       backLabel="Back"
       maxWidthClass="max-w-2xl"
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-8">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6 sm:space-y-8">
         <div className="space-y-3">
           <p className="text-sm font-medium text-foreground">Industry category</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
             {INDUSTRY_CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               const selected = industry === cat.industryKey;
@@ -69,6 +81,8 @@ export function ClientSetupPage() {
                   key={cat.code}
                   type="button"
                   onClick={() => setIndustry(cat.industryKey)}
+                  aria-pressed={selected}
+                  aria-label={`${cat.name} — ${cat.tag}`}
                   className={cn(
                     "flex items-start gap-3 rounded-2xl border p-4 text-left transition-all",
                     selected

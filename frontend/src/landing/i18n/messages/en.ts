@@ -50,7 +50,10 @@ export const enMessages = {
   "developers.github": "GitHub",
   "developers.apiDocs": "Read the API docs",
   "developers.backHome": "Back to home",
-  "developers.heroAlt": "Developers building with PresenceIQ",
+  "developers.teamEyebrow": "The team",
+  "developers.teamTitle": "Built by PresenceIQ",
+  "developers.teamSubtitle":
+    "Engineers and builders behind the embed SDK, intent pipeline, and live avatar integrations.",
   "hero.menuAria": "Open menu",
   "hero.tagline":
     "Know every visitor before your AI speaks. Pre-conversation intelligence scores intent, syncs CRM context, and personalises your Beyond Presence avatar in under 2 seconds.",

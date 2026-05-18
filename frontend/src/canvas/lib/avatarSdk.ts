@@ -36,6 +36,11 @@ export function loadAvatarSdk(): Promise<void> {
     document.head.appendChild(script);
   });
 
+  // Drop the cached rejection so the next caller gets a fresh attempt.
+  loadPromise.catch(() => {
+    loadPromise = null;
+  });
+
   return loadPromise;
 }
 
@@ -61,19 +66,20 @@ function waitForContainer(timeoutMs = 8000): Promise<HTMLElement> {
 
 /** Load SDK and init against the canvas mount (must exist in DOM). */
 export async function ensureCanvasAvatarInitialized(bpAgentId?: string): Promise<void> {
+  const trimmedAgent = bpAgentId?.trim();
+  if (trimmedAgent) {
+    window.__PRESENCEIQ_CONFIG__ = {
+      ...window.__PRESENCEIQ_CONFIG__,
+      bpAgentId: trimmedAgent,
+    };
+  }
+
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
     try {
       await loadAvatarSdk();
       const container = await waitForContainer();
-
-      if (bpAgentId) {
-        window.__PRESENCEIQ_CONFIG__ = {
-          ...window.__PRESENCEIQ_CONFIG__,
-          bpAgentId,
-        };
-      }
 
       const backendUrl = await resolveBackendBaseUrl();
       window.PresenceIQAvatar?.init({

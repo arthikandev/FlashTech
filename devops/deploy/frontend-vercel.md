@@ -23,6 +23,23 @@ Set in **Vercel → Project → Settings → Environment Variables** for branche
 | `VITE_CONVEX_URL` | **Yes** | Convex HTTP URL (`https://…..convex.cloud`) — dashboard realtime queries |
 | `VITE_BACKEND_URL` | Recommended | Deployed backend base (`https://…vercel.app`) — embed/API calls from the browser |
 | `VITE_CLERK_PUBLISHABLE_KEY` | If using Clerk | Must match Convex auth setup (see [`docs/ENV.md`](../../docs/ENV.md)) |
+| `VITE_BP_DEMO_AGENT_ID` | Recommended | Live Beyond Presence agent UUID for `/canvas` iframe preview — avoids stale built-in demo (“Agent Not Found” on bey.chat) |
+
+**Manual Bey.chat iframe** on a plain HTML site or CMS (same agent URL the SPA uses — see [`BeyondPresenceFrame`](../../frontend/src/components/BeyondPresenceFrame.tsx)):
+
+```html
+<iframe
+    src="https://bey.chat/694c83e2-8895-4a98-bd16-56332ca3f449"
+    width="100%"
+    height="600px"
+    frameborder="0"
+    allowfullscreen
+    allow="camera; microphone; fullscreen"
+    style="border: none; max-width: 100%;"
+></iframe>
+```
+
+Replace the URL path with your own agent id from [app.bey.chat](https://app.bey.chat) if needed; team default embed matches repo [`CANONICAL_BP_AGENT_ID`](../../frontend/src/lib/bpAgentDefaults.ts). In React, use **`frameBorder="0"`** (camelCase).
 
 **Preview deployments:** Duplicate the same vars for **Preview**, or scope secrets to Production only.
 
@@ -39,6 +56,8 @@ In **Clerk Dashboard → Configure → Paths** (or **Allowed redirect URLs**), a
 React Router must use `login/*` and `register/*` routes (not exact `/login` only) so Clerk path-based auth can mount `<SignIn />` on SSO callback.
 
 Template for local parity: [`frontend/.env.example`](../../frontend/.env.example), production sample: `.env.production` (never commit secrets).
+
+> **Runtime config dual-prefix:** [`frontend/scripts/write-runtime-config.mjs`](../../frontend/scripts/write-runtime-config.mjs) reads both `PRESENCEIQ_*` (CI/host conventions) and `VITE_*` (Vite build-time) names. Setting either is enough; do not duplicate values.
 
 ## 3. SPA routing
 

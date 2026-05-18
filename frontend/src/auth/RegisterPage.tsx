@@ -1,7 +1,7 @@
 import { SignUp } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { PostAuthRedirect } from "@/components/PostAuthRedirect";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { clerkEnabled } from "@/convex/api";
@@ -16,21 +16,27 @@ const ease = [0.16, 1, 0.3, 1] as const;
 export function RegisterPage() {
   const authClerkAppearance = useAuthClerkAppearance();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const rawRedirect = searchParams.get("redirect");
+  const redirectParam =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : null;
   const isSsoCallback = location.pathname.includes("sso-callback");
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="brand-theme fixed inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-background text-foreground lg:grid lg:grid-cols-2"
+      className="brand-theme fixed inset-0 flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-background text-foreground lg:grid lg:grid-cols-2"
     >
       <AuthSignedInRedirect />
-      <motion.div className="relative flex h-full min-h-0 flex-col border-r border-border bg-card">
+      <motion.div className="relative flex min-h-0 flex-1 flex-col overflow-hidden border-r border-border bg-card lg:h-full lg:flex-none">
         <motion.div
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, ease }}
-          className="relative z-10 flex flex-1 flex-col"
+          className="relative z-10 flex min-h-0 flex-1 flex-col"
         >
           <motion.div className="flex shrink-0 items-center justify-between px-6 pt-6 sm:px-10 lg:px-14">
             <Link
@@ -43,7 +49,7 @@ export function RegisterPage() {
             <AnimatedThemeToggler variant="circle" duration={450} />
           </motion.div>
 
-          <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-10 sm:px-10 lg:px-14">
+          <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto overscroll-y-contain px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom))] touch-pan-y sm:px-10 lg:px-14">
             <motion.div className="mx-auto w-full max-w-[420px]">
               <SignupFunnelProgress current={1} className="mb-8" />
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
@@ -66,7 +72,7 @@ export function RegisterPage() {
                   </p>
                 ) : (
                   <>
-                    {!isSsoCallback && <PostAuthRedirect />}
+                    {!isSsoCallback && redirectParam == null && <PostAuthRedirect />}
                     {isSsoCallback && (
                       <div
                         className="flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
@@ -87,8 +93,10 @@ export function RegisterPage() {
                         routing="path"
                         path="/register"
                         signInUrl="/login"
-                        forceRedirectUrl="/auth/callback"
-                        fallbackRedirectUrl="/auth/callback"
+                        forceRedirectUrl={redirectParam ?? "/auth/callback"}
+                        fallbackRedirectUrl={redirectParam ?? "/auth/callback"}
+                        signInForceRedirectUrl={redirectParam ?? "/auth/callback"}
+                        signInFallbackRedirectUrl={redirectParam ?? "/auth/callback"}
                         appearance={authClerkAppearance}
                       />
                     </motion.div>

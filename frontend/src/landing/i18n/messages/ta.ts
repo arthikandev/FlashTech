@@ -52,7 +52,10 @@ export const taMessages: Record<MessageKey, string> = {
   "developers.github": "GitHub",
   "developers.apiDocs": "API ஆவணங்களைப் படியுங்கள்",
   "developers.backHome": "முகப்புக்குத் திரும்பு",
-  "developers.heroAlt": "PresenceIQ உடன் உருவாக்கும் டெவலப்பர்கள்",
+  "developers.teamEyebrow": "குழு",
+  "developers.teamTitle": "PresenceIQ உருவாக்கியவர்கள்",
+  "developers.teamSubtitle":
+    "எம்பெட் SDK, நோக்கக் குழாய், நேரடி அவதார ஒருங்கிணைப்புகளுக்குப் பின்னால் உள்ள பொறியாளர்கள்.",
   "hero.menuAria": "மெனுவைத் திற",
   "hero.tagline":
     "உங்கள் AI பேசுவதற்கு முன் ஒவ்வொரு பார்வையாளரையும் அறியுங்கள். உரையாடலுக்கு முந்தைய நுண்ணறிவு நோக்கத்தை மதிப்பிடுகிறது, CRM சூழலை ஒத்திசைக்கிறது, 2 வினாடிகளுக்குள் Beyond Presence அவதாரத்தை தனிப்பயனாக்குகிறது.",
