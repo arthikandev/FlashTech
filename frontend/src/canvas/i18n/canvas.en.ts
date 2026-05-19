@@ -10,6 +10,10 @@ export const canvasMessages = {
   "composer.creditsExhausted":
     "Intelligence credits used for this period. Upgrade your plan or wait for renewal.",
   "composer.sending": "Scoring intent and syncing avatar…",
+  "composer.awaitingOpener": "Personalising opener…",
+  "composer.pipelineFailedMiddle":
+    "Intent scoring failed — your scenario is still in the box below; fix setup or retry.",
+  "composer.idleHint": "Send a message to generate intelligence and start the session.",
   "composer.setupRequired":
     "Convex + OpenAI must be reachable before intelligence runs (backend env + running server).",
   "composer.setupLink": "View setup guide",
@@ -34,6 +38,7 @@ export const canvasMessages = {
   "sidebar.automation": "Automation",
   "sidebar.collapse": "Collapse",
   "sidebar.soon": "Soon",
+  "sidebar.admin": "Workspace admin",
   "avatar.title": "AI avatar",
   "avatar.loading": "Preparing your advisor…",
   "avatar.previewHint": "Live preview — send a message to personalise the opener.",
@@ -41,8 +46,6 @@ export const canvasMessages = {
   "avatar.noAgent": "Configure a Beyond Presence agent in workspace settings.",
   "avatar.setupTitle": "Connect your AI avatar",
   "avatar.setupNoAgent": "Add your Beyond Presence agent ID from bey.chat so the live preview can load.",
-  "avatar.setupPlaceholder":
-    "This workspace still uses the shared demo agent ID. Paste your own agent ID from the Beyond Presence dashboard.",
   "avatar.setupBpKey":
     "Set BEYONDPRESENCE_API_KEY in backend/.env.local and restart the API, then add your agent ID below.",
   "avatar.setupCta": "Workspace settings → Avatar",

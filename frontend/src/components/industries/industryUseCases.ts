@@ -8,7 +8,6 @@ export type IndustryUseCase = {
   stat: string;
   description: string;
   icon: LucideIcon;
-  demoTo: string;
   samplePrompt: string;
   code: string;
 };
@@ -21,6 +20,5 @@ export const INDUSTRY_USE_CASES: IndustryUseCase[] = INDUSTRY_CATEGORIES.map((c)
   stat: c.statHighlight,
   description: c.description,
   icon: c.icon,
-  demoTo: c.demoTo,
   samplePrompt: c.samplePrompt,
 }));

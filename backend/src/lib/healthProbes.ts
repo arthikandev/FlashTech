@@ -20,7 +20,7 @@ export async function probeConvex(): Promise<ProbeResult> {
   try {
     await Promise.race([
       getConvexClient().query(api.businesses.getByEmbedKey, {
-        embedKey: "seylan-demo",
+        embedKey: "__health-probe__",
       }),
       rejectAfter(PROBE_TIMEOUT_MS),
     ]);

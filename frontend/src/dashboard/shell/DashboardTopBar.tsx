@@ -37,15 +37,7 @@ export function DashboardTopBar({
   const [localSearch, setLocalSearch] = useState(search);
   const deferredSearch = useDeferredValue(localSearch);
 
-  const {
-    embedKey,
-    embedOptions,
-    onEmbedKeyChange,
-    linking,
-    linkError,
-    linkToCurrentBusiness,
-    needsMembership,
-  } = useDashboardContext();
+  const { embedKey, embedOptions, onEmbedKeyChange } = useDashboardContext();
 
   useEffect(() => {
     const t = window.setTimeout(() => onSearchChange(deferredSearch), 300);
@@ -65,7 +57,7 @@ export function DashboardTopBar({
       </div>
 
       <Select value={embedKey} onValueChange={(v) => v && onEmbedKeyChange(v)}>
-        <SelectTrigger className="hidden h-8 w-[140px] text-xs md:flex">
+        <SelectTrigger className="hidden h-8 w-35 text-xs md:flex">
           <SelectValue placeholder="Workspace" />
         </SelectTrigger>
         <SelectContent>
@@ -95,19 +87,6 @@ export function DashboardTopBar({
           <span className="live-dot" />
           Live
         </span>
-
-        {signedIn && needsMembership && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={linkToCurrentBusiness}
-            disabled={linking}
-            className="hidden text-xs sm:inline-flex"
-          >
-            {linking ? "Linking…" : "Link workspace"}
-          </Button>
-        )}
 
         <Button type="button" variant="ghost" size="icon" onClick={onOpenNotifications} aria-label="Notifications">
           <Bell />
@@ -143,11 +122,6 @@ export function DashboardTopBar({
         )}
       </div>
 
-      {linkError ? (
-        <p className="absolute top-full right-4 left-4 mt-1 text-xs text-destructive" role="alert">
-          {linkError}
-        </p>
-      ) : null}
     </header>
   );
 }

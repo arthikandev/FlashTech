@@ -1,7 +1,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -11,7 +10,6 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useTriggers } from "@/hooks/useTriggers";
 import type { CategoryDefinition } from "@/lib/categories";
 import { getCategoryByIndustry } from "@/lib/categories";
-import { showError } from "@/lib/toast";
 import { getSelectedIndustry, loadDraft } from "@/onboarding/storage";
 import type { Industry } from "@/onboarding/types";
 import { filterSessions, sortSessionsByIntent } from "@/lib/dashboard/sessionFilters";
@@ -42,15 +40,9 @@ export type DashboardContextValue = {
   triggers: TriggerRow[] | undefined;
   triggersLoading: boolean;
   workspaceLabel: string;
-  linking: boolean;
-  linkError: string | null;
-  linkToCurrentBusiness: () => void;
-  needsMembership: boolean;
   hasMembershipForEmbed: boolean;
-  previewOnly: boolean;
   industry: Industry | "";
   category: CategoryDefinition | undefined;
-  sessionsError: string | null;
   canLoadMoreSessions: boolean;
   sessionsLoadingMore: boolean;
   loadMoreSessions: (numItems: number) => void;
@@ -60,7 +52,6 @@ const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const tenant = useTenant();
-  const { embedKey } = tenant;
 
   const [selectedVisitorId, setSelectedVisitorId] = useState<Id<"visitors"> | null>(
     null
@@ -71,21 +62,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     sessions,
     dashboardStats,
     detail,
-    linking,
-    linkError,
-    linkToCurrentBusiness,
-    needsMembership,
-    previewOnly,
-    sessionsError,
     canLoadMoreSessions,
     sessionsLoadingMore,
     loadMoreSessions,
     hasMembershipForEmbed,
   } = useDashboardData(selectedVisitorId);
-
-  useEffect(() => {
-    if (sessionsError) showError(sessionsError);
-  }, [sessionsError]);
 
   const filteredSessions = useMemo(() => {
     if (!sessions) return undefined;
@@ -94,10 +75,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const { events: feedEvents, pulseIds } = useAiFeedEvents(sessions, detail);
   const businessId = tenant.businessId;
-  const { triggers, loading: triggersLoading } = useTriggers(businessId, {
-    embedKey,
-    useAuthQueries: hasMembershipForEmbed,
-  });
+  const { triggers, loading: triggersLoading } = useTriggers(businessId);
 
   const industry = useMemo((): Industry | "" => {
     const fromBusiness = tenant.business?.industry as Industry | undefined;
@@ -132,15 +110,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     triggers,
     triggersLoading,
     workspaceLabel: tenant.workspaceLabel,
-    linking,
-    linkError,
-    linkToCurrentBusiness,
-    needsMembership,
     hasMembershipForEmbed,
-    previewOnly,
     industry,
     category,
-    sessionsError,
     canLoadMoreSessions,
     sessionsLoadingMore,
     loadMoreSessions,

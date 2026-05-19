@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { Webhook } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/tenant/TenantContext";
-import { useWebhookStatus } from "./hooks/useWebhookStatus";
-import { CanvasSubpageHeader } from "./shell/CanvasSubpageHeader";
-import { t } from "./i18n/canvas.en";
+import { useWebhookStatus } from "../hooks/useWebhookStatus";
+import { CanvasSubpageHeader } from "../shell/CanvasSubpageHeader";
+import { t } from "../i18n/canvas.en";
 
 export function CanvasWebhooksPage() {
   const { embedKey } = useTenant();

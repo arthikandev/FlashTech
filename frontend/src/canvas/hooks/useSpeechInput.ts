@@ -54,10 +54,29 @@ function fullTranscriptFromEvent(event: SpeechRecognitionEventLike): string {
   return text;
 }
 
-export function useSpeechInput(onTranscript: (text: string, isFinal: boolean) => void) {
+type UseSpeechInputOptions = {
+  /** When provided, the hook is controlled: the parent owns the language and
+   *  receives changes via `onLanguageChange`. When omitted, the hook keeps an
+   *  internal language state for backward compatibility. */
+  language?: SpeechLangCode;
+  onLanguageChange?: (next: SpeechLangCode) => void;
+};
+
+export function useSpeechInput(
+  onTranscript: (text: string, isFinal: boolean) => void,
+  options: UseSpeechInputOptions = {}
+) {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
-  const [lang, setLang] = useState<SpeechLangCode>("en");
+  const [internalLang, setInternalLang] = useState<SpeechLangCode>("en");
+  const lang = options.language ?? internalLang;
+  const setLang = useCallback(
+    (next: SpeechLangCode) => {
+      if (options.onLanguageChange) options.onLanguageChange(next);
+      if (options.language === undefined) setInternalLang(next);
+    },
+    [options]
+  );
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const onTranscriptRef = useRef(onTranscript);

@@ -42,7 +42,7 @@ PresenceIQ uses **one `.env.example` per app folder** (not at repo root). Next.j
 | `N8N_WEBHOOK_SLACK` | n8n Cloud — hot-lead Slack when intent ≥ 80 |
 | `N8N_WEBHOOK_CRM_PUSH` | n8n Cloud — post-call CRM log |
 | `N8N_WEBHOOK_CHURN` | Optional — churn-risk email workflow |
-| If all `N8N_WEBHOOK_*` empty | Uses Seylan sandbox then demo CRM mock |
+| If all `N8N_WEBHOOK_*` empty | Uses CloudMetrics sandbox then demo CRM mock |
 
 If `OPENAI_API_KEY` or `BEYONDPRESENCE_API_KEY` was ever committed to git or pasted in chat, rotate at the provider immediately.
 
@@ -63,7 +63,7 @@ Dashboard Convex queries require a signed-in Clerk user linked to a business via
    Clerk Dashboard may label this **Frontend API URL** — it is **not** the Vite `VITE_*` publishable key.
 
 3. Run `npx convex dev` so `convex/auth.config.ts` syncs.
-4. Optional — link your Clerk user to the Seylan demo business after seed:
+4. Optional — link your Clerk user to the CloudMetrics demo business after seed:
 
    ```bash
    npx convex run seed:seedDemo '{"clerkUserId":"user_..."}'

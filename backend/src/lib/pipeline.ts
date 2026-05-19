@@ -16,6 +16,36 @@ export type PipelineContext = {
   business: Doc<"businesses">;
 };
 
+const WEBHOOK_TIMEOUT_MS = 2_000;
+
+async function postWebhook(
+  url: string,
+  payload: Record<string, unknown> | unknown,
+  label: string
+): Promise<void> {
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
+    });
+  } catch (err) {
+    const aborted =
+      (err instanceof Error && err.name === "AbortError") ||
+      (err instanceof DOMException && err.name === "TimeoutError");
+    console.error(
+      JSON.stringify({
+        event: aborted ? "webhook_timeout" : "webhook_failed",
+        label,
+        url,
+        timeoutMs: WEBHOOK_TIMEOUT_MS,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    );
+  }
+}
+
 export function saveIntelligenceAsync(
   visitorId: Id<"visitors">,
   businessId: Id<"businesses">,
@@ -68,7 +98,6 @@ export async function runIntentPipeline(
     pageHistory: visitor.pageHistory,
     crmNotes: visitor.crmData?.notes,
     churnRisk: visitor.crmData?.churnRisk,
-    fingerprint: visitor.fingerprint,
     operatorMessage: options?.operatorMessage,
     model: options?.model,
   });
@@ -127,16 +156,7 @@ export async function triggerCrmFetchAutomation(
 ): Promise<void> {
   const url = resolveAutomationCrmFetchUrl(tenantUrls);
   if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[automation] CRM fetch trigger failed", err);
-  }
+  await postWebhook(url, payload, "crm_fetch");
 }
 
 export async function fireSlackWebhook(
@@ -145,16 +165,7 @@ export async function fireSlackWebhook(
 ): Promise<void> {
   const url = resolveAutomationSlackHotLeadUrl(tenantUrls);
   if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[automation] Slack hot-lead webhook failed", err);
-  }
+  await postWebhook(url, payload, "slack_hot_lead");
 }
 
 export async function forwardCrmPush(
@@ -163,16 +174,7 @@ export async function forwardCrmPush(
 ): Promise<void> {
   const url = resolveAutomationCrmPushUrl(tenantUrls);
   if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[automation] CRM push failed", err);
-  }
+  await postWebhook(url, payload, "crm_push");
 }
 
 export async function fireChurnWebhook(
@@ -180,16 +182,7 @@ export async function fireChurnWebhook(
 ): Promise<void> {
   const url = resolveAutomationChurnUrl();
   if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[automation] Churn workflow webhook failed", err);
-  }
+  await postWebhook(url, payload, "churn_workflow");
 }
 
 export async function fireTriggerWebhook(
@@ -197,14 +190,5 @@ export async function fireTriggerWebhook(
   payload: Record<string, unknown>
 ): Promise<void> {
   if (!webhookUrl?.trim()) return;
-
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[automation] Trigger webhook failed", webhookUrl, err);
-  }
+  await postWebhook(webhookUrl, payload, "trigger");
 }

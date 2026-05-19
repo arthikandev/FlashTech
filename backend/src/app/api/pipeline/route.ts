@@ -1,7 +1,11 @@
 import { z } from "zod";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { runPipelineAutomation } from "@/lib/automation";
-import { syncAgentFromIntelligence, type SyncAgentContextResult } from "@/lib/beyondPresenceApi";
+import {
+  resolveSyncStatus,
+  syncAgentFromIntelligence,
+  type SyncAgentContextResult,
+} from "@/lib/beyondPresenceApi";
 import { pickKnowledgeContextAsync } from "@/lib/knowledge";
 import { selectVoiceForContext } from "@/lib/elevenlabs";
 import { intentToVoiceTone, toneToPersonaHint } from "@/lib/tone";
@@ -17,7 +21,9 @@ const bodySchema = z.object({
   operatorMessage: z.string().max(2000).optional(),
 });
 
-const PIPELINE_CEILING_MS = 1500;
+const PIPELINE_CEILING_MS = Number(
+  process.env.PRESENCEIQ_PIPELINE_CEILING_MS ?? 1500
+);
 
 export async function OPTIONS() {
   return corsOptions();
@@ -26,7 +32,7 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   const started = Date.now();
   const ip = request.headers.get("x-forwarded-for") ?? "local";
-  if (!checkRateLimit(`pipeline:${ip}`)) {
+  if (!checkRateLimit(`pipeline:ip:${ip}`)) {
     return jsonError("Rate limit exceeded", 429);
   }
 
@@ -34,6 +40,10 @@ export async function POST(request: Request) {
     const body = bodySchema.parse(await request.json());
     const visitorId = body.visitorId as Id<"visitors">;
     const businessId = body.businessId as Id<"businesses">;
+
+    if (!checkRateLimit(`pipeline:tenant:${businessId}:${ip}`)) {
+      return jsonError("Rate limit exceeded", 429);
+    }
 
     const t0 = Date.now();
     await waitForCrmData(visitorId, body.waitForCrmMs);
@@ -103,13 +113,11 @@ export async function POST(request: Request) {
     };
     let bpPatchMs = 0;
 
-    if (useNativeBpAgent && bpAgentId?.trim()) {
-      beyondPresence = {
-        synced: false,
-        reason: "native BP agent — using bey.chat config",
-      };
-    } else if (bpAgentId?.trim()) {
+    if (bpAgentId?.trim()) {
       const bpStart = Date.now();
+      // useNativeBpAgent → still PATCH the greeting so the avatar speaks
+      // the personalised opener; just don't overwrite the dashboard's
+      // system prompt.
       const bpPromise = syncAgentFromIntelligence({
         bpAgentId,
         businessName: business.name,
@@ -121,6 +129,7 @@ export async function POST(request: Request) {
         recommendedAction: intelligence.recommendedAction,
         personalisedOpener: intelligence.personalisedOpener,
         knowledgeContext,
+        greetingOnly: useNativeBpAgent,
       });
 
       const elapsed = Date.now() - started;
@@ -204,16 +213,32 @@ export async function POST(request: Request) {
       })
     );
 
-    const syncStatus: "complete" | "pending" | "failed" = beyondPresence.synced
-      ? "complete"
-      : !bpAgentId?.trim()
-        ? "pending"
-        : beyondPresence.reason?.includes("native BP agent")
-          ? "complete"
-          : beyondPresence.reason?.includes("deferred") ||
-              beyondPresence.reason?.includes("skipped")
-            ? "pending"
-            : "failed";
+    // Record the run in the audit log so admins can see route distribution.
+    const route = fallbackUsed ? "heuristic" : cacheHit ? "cached" : "live";
+    void convex
+      .mutation(api.audit.recordSystemEvent, {
+        businessId,
+        action: "pipeline.run",
+        targetType: "visitor",
+        targetId: visitorId,
+        metadataJson: JSON.stringify({
+          route,
+          intentScore: intelligence.intentScore,
+          bpSynced: beyondPresence.synced,
+          bpPartial:
+            beyondPresence.synced && "partial" in beyondPresence
+              ? beyondPresence.partial === true
+              : false,
+          pipelineMs,
+          intentMs,
+          bpPatchMs,
+        }),
+      })
+      .catch((err) => {
+        console.warn("[pipeline] audit.recordSystemEvent failed", err);
+      });
+
+    const syncStatus = resolveSyncStatus({ result: beyondPresence, bpAgentId });
 
     return jsonSuccess({
       intelligence,

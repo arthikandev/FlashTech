@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
-import { AlertCircle, Settings } from "lucide-react";
+import { AlertCircle, Settings, X } from "lucide-react";
 import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
-import { CanvasAvatarBoot } from "../CanvasAvatarBoot";
+import { CanvasAvatarBoot } from "./CanvasAvatarBoot";
 import { useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
 import { useBpAgentResolve } from "@/hooks/useBpAgentId";
-import { LEGACY_BP_AGENT_ID } from "@/lib/bpAgentDefaults";
 import { useTenant } from "@/tenant/TenantContext";
 import { t } from "../i18n/canvas.en";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
 
 type PanelProps = {
   sessionActive: boolean;
@@ -20,20 +18,13 @@ type PanelProps = {
 function AvatarSetupCard({
   reason,
 }: {
-  reason: "noAgent" | "placeholder" | "bpKey" | "demoStale";
+  reason: "noAgent" | "bpKey";
 }) {
   const { embedKey } = useTenant();
   const qs = `?embedKey=${encodeURIComponent(embedKey)}&tab=avatar`;
   const settingsTo = `/canvas/settings${qs}`;
 
-  const copy =
-    reason === "bpKey"
-      ? t("avatar.setupBpKey")
-      : reason === "demoStale"
-        ? t("avatar.setupDemoStale")
-        : reason === "placeholder"
-          ? t("avatar.setupPlaceholder")
-          : t("avatar.setupNoAgent");
+  const copy = reason === "bpKey" ? t("avatar.setupBpKey") : t("avatar.setupNoAgent");
 
   return (
     <div className="flex h-full min-h-[min(52vh,480px)] flex-col items-center justify-center rounded-xl border border-dashed border-amber-500/35 bg-amber-500/5 px-6 py-8 text-center">
@@ -63,27 +54,8 @@ export function AvatarPanelContent({
   const health = useCanvasIntegrationHealth();
   const bpConfigured = health.beyondPresence.ok;
 
-  const envDemoAgentId =
-    typeof import.meta.env.VITE_BP_DEMO_AGENT_ID === "string"
-      ? import.meta.env.VITE_BP_DEMO_AGENT_ID.trim()
-      : "";
-  const trimmedAgentId = agentId?.trim() ?? "";
-  /** Legacy bundled UUID often 404s on bey.chat — block iframe unless env overrides it. */
-  const usingStaleBuiltinDemo =
-    trimmedAgentId !== "" &&
-    trimmedAgentId === LEGACY_BP_AGENT_ID &&
-    !envDemoAgentId;
-
-  const showSetup =
-    needsSetup || trimmedAgentId === "" || (!sessionActive && usingStaleBuiltinDemo);
-
-  const setupReason = !bpConfigured
-    ? "bpKey"
-    : usingStaleBuiltinDemo
-      ? "demoStale"
-      : needsSetup
-        ? "placeholder"
-        : "noAgent";
+  const showSetup = !bpConfigured || needsSetup || agentId === "";
+  const setupReason: "bpKey" | "noAgent" = bpConfigured ? "noAgent" : "bpKey";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -119,29 +91,37 @@ export function AvatarPanelContent({
           </div>
         ) : null}
 
-        <div
-          className={
-            sessionActive
-              ? "relative min-h-[min(52vh,480px)]"
-              : "pointer-events-none absolute size-0 overflow-hidden opacity-0"
-          }
-          aria-hidden={!sessionActive}
-        >
+        {/* SDK plumbing — loads presenceiq-avatar.js so pipeline events fire. */}
+        <div className="pointer-events-none absolute size-0 overflow-hidden opacity-0" aria-hidden>
           <CanvasAvatarBoot embedKey={embedKey} />
         </div>
 
-        {!sessionActive ? (
-          showSetup ? (
-            <AvatarSetupCard reason={setupReason} />
-          ) : (
+        {showSetup ? (
+          <AvatarSetupCard reason={setupReason} />
+        ) : (
+          <div className="flex h-full flex-col gap-2">
             <BeyondPresenceFrame
+              key={agentId}
               agentId={agentId}
               height={480}
               className="h-full min-h-[min(52vh,480px)] w-full rounded-lg"
               title={t("avatar.title")}
             />
-          )
-        ) : null}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>
+                {sessionActive
+                  ? "Live · personalised opener applied"
+                  : t("avatar.previewHint")}
+              </span>
+              <Link
+                to={`/canvas/settings?embedKey=${encodeURIComponent(embedKey)}&tab=avatar`}
+                className="hover:text-foreground"
+              >
+                Replace agent →
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -177,7 +157,7 @@ export function AvatarMobileSlot({
 }: DockProps) {
   if (!open) return null;
   return (
-    <div className="flex max-h-[min(50vh,420px)] min-h-[220px] shrink-0 flex-col overflow-hidden border-t border-border bg-card">
+    <div className="flex max-h-[min(50vh,420px)] min-h-55 shrink-0 flex-col overflow-hidden border-t border-border bg-card">
       <AvatarPanelContent
         sessionActive={sessionActive}
         fallbackMessage={fallbackMessage}

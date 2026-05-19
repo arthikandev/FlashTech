@@ -49,7 +49,7 @@ Session-end webhooks resolve visitor/business from module state at flush time (n
     mockMode: false,
   };
 </script>
-<script src="https://YOUR_VERCEL_APP.vercel.app/api/embed/seylan-demo" async></script>
+<script src="https://YOUR_VERCEL_APP.vercel.app/api/embed/cloudmetrics-demo" async></script>
 <script src="/path/to/presenceiq-avatar.js"></script>
 ```
 

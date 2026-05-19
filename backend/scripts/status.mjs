@@ -40,10 +40,6 @@ const rows = [
       v.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() && v.CLERK_SECRET_KEY?.trim()
     ),
   ],
-  [
-    "Seylan API",
-    Boolean(v.SEYLAN_API_BASE_URL?.trim() && v.SEYLAN_API_KEY?.trim()),
-  ],
   ["Beyond Presence", Boolean(v.BEYONDPRESENCE_API_KEY?.trim())],
   [
     "Webhook secrets",

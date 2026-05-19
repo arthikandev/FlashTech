@@ -105,9 +105,6 @@ function printIntegrationSummary() {
     `  Churn workflow (opt) ${churn ? (isAutomationWebhookUrlValid(churn) ? "configured" : "invalid") : "not set"}`
   );
   console.log(
-    `  Seylan sandbox       ${vars.SEYLAN_API_KEY?.trim() ? "configured" : "missing"}`
-  );
-  console.log(
     `  OpenAI               ${vars.OPENAI_API_KEY?.trim() ? "configured" : "demo fallback"}`
   );
   console.log(

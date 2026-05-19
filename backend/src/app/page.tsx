@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { frontendPath, getFrontendUrl } from "@/lib/frontendUrl";
 
 export default function HomePage() {
@@ -16,14 +15,12 @@ export default function HomePage() {
           fontSize: 14,
         }}
       >
-        You are on the <strong>API server</strong> (Next.js). The marketing site,
-        dashboard, and demos run on the <strong>frontend app</strong>.
+        You are on the <strong>API server</strong> (Next.js). The marketing site
+        and canvas workspace run on the <strong>frontend app</strong>.
       </p>
 
       <h1 style={{ marginTop: 0 }}>PresenceIQ API</h1>
-      <p style={{ color: "#555" }}>
-        Pre-conversation intelligence — Cursor Colombo 2026
-      </p>
+      <p style={{ color: "#555" }}>Pre-conversation intelligence</p>
 
       <section
         style={{
@@ -35,7 +32,7 @@ export default function HomePage() {
         }}
       >
         <p style={{ margin: "0 0 12px", fontSize: 14, opacity: 0.85 }}>
-          Product UI (landing, dashboard, avatar demos)
+          Product UI (landing, canvas workspace)
         </p>
         <a
           href={frontend}
@@ -53,26 +50,10 @@ export default function HomePage() {
         </a>
         <ul style={{ margin: "16px 0 0", paddingLeft: 20, fontSize: 14 }}>
           <li>
-            <a href={frontendPath("/dashboard")} style={{ color: "#93c5fd" }}>
-              Dashboard
+            <a href={frontendPath("/canvas")} style={{ color: "#93c5fd" }}>
+              Canvas workspace
             </a>{" "}
             — live sessions, KPIs, analytics
-          </li>
-          <li>
-            <a href={frontendPath("/sites/seylan/index.html")} style={{ color: "#93c5fd" }}>
-              Seylan demo
-            </a>{" "}
-            — static embed site
-          </li>
-          <li>
-            <a href={frontendPath("/sites/cloudmetrics/index.html")} style={{ color: "#93c5fd" }}>
-              CloudMetrics demo
-            </a>
-          </li>
-          <li>
-            <a href={frontendPath("/sites/coral/index.html")} style={{ color: "#93c5fd" }}>
-              Coral demo
-            </a>
           </li>
         </ul>
       </section>
@@ -85,7 +66,7 @@ export default function HomePage() {
           <a href="/api/health?probes=1">with latency probes</a>
         </li>
         <li>
-          <code>GET /api/embed/seylan-demo</code> — embed SDK
+          <code>GET /api/embed/&lt;embedKey&gt;</code> — embed SDK
         </li>
         <li>
           <code>POST /api/pipeline</code> — intent pipeline
@@ -99,8 +80,7 @@ export default function HomePage() {
       </p>
 
       <p style={{ fontSize: 13, color: "#666" }}>
-        <Link href="/dashboard">Legacy API dashboard</Link> (basic table) · Docs:{" "}
-        <code>docs/API_CONTRACT.md</code>
+        Docs: <code>docs/API_CONTRACT.md</code>
       </p>
     </main>
   );

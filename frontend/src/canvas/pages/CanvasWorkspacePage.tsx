@@ -2,14 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { useBpAgentId } from "@/hooks/useBpAgentId";
 import { useTenant } from "@/tenant/TenantContext";
-import { preloadCanvasAvatarSdk } from "./lib/avatarSdk";
-import { useUsageBalance } from "./hooks/useUsageBalance";
-import { useComposerPipeline } from "./hooks/useComposerPipeline";
-import { useCanvasIntegrationHealth } from "./context/IntegrationHealthContext";
-import { CanvasChatColumn } from "./shell/CanvasChatColumn";
-import { AvatarDock, AvatarMobileSlot } from "./shell/AvatarDock";
-import { CanvasGettingStarted } from "./shell/CanvasGettingStarted";
-import { canSubmitAdvisorScenario } from "./workspaceFlow";
+import { ensureCanvasAvatarInitialized, preloadCanvasAvatarSdk } from "../lib/avatarSdk";
+import type { SpeechLangCode } from "../hooks/useSpeechInput";
+import { useUsageBalance } from "../hooks/useUsageBalance";
+import { useComposerPipeline } from "../hooks/useComposerPipeline";
+import { useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
+import { CanvasChatColumn } from "../shell/CanvasChatColumn";
+import { AvatarDock, AvatarMobileSlot } from "../shell/AvatarDock";
+import { CanvasGettingStarted } from "../shell/CanvasGettingStarted";
+import { canSubmitAdvisorScenario } from "../lib/workspaceFlow";
 
 /** Chat + avatar workspace — index route under `/canvas`. */
 export function CanvasWorkspacePage() {
@@ -20,21 +21,34 @@ export function CanvasWorkspacePage() {
   useEffect(() => {
     preloadCanvasAvatarSdk();
   }, []);
+
+  useEffect(() => {
+    if (!bpAgentId) return;
+    void ensureCanvasAvatarInitialized(bpAgentId).catch(() => {
+      /* surfaced again when the user clicks send */
+    });
+  }, [bpAgentId]);
   const integrationHealth = useCanvasIntegrationHealth();
   const [avatarOpen, setAvatarOpen] = useState(true);
   const [prompt, setPrompt] = useState("");
+  const [language, setLanguage] = useState<SpeechLangCode>("en");
 
   const {
     send,
+    prewarm,
     sending,
     error,
     lastOpener,
+    streamingOpener,
+    lastScenario,
+    lastRun,
     sessionActive,
     setSessionActive,
     fallbackMessage,
   } = useComposerPipeline(embedKey);
 
-  const showWelcome = !sessionActive && !lastOpener && !sending;
+  const displayOpener = streamingOpener ?? lastOpener;
+  const showWelcome = !sessionActive && !displayOpener && !sending;
 
   const intelligenceReady = integrationHealth.canRunIntelligence;
   const fullStackReady = integrationHealth.canRunLive;
@@ -57,7 +71,7 @@ export function CanvasWorkspacePage() {
       setSessionActive(true);
     });
     try {
-      await send(prompt, bpAgentId || undefined);
+      await send(prompt, bpAgentId || undefined, language);
     } catch {
       /* error + session reset handled in useComposerPipeline */
     }
@@ -83,9 +97,15 @@ export function CanvasWorkspacePage() {
           stackReady={intelligenceReady}
           fullStackReady={fullStackReady}
           creditsExhausted={creditsExhausted}
-          lastOpener={lastOpener}
+          lastOpener={displayOpener}
+          lastScenario={lastScenario}
+          lastRun={lastRun}
+          onPrewarm={prewarm}
+          language={language}
+          onLanguageChange={setLanguage}
           error={error}
           showWelcome={showWelcome}
+          sessionActive={sessionActive}
           avatarOpen={avatarOpen}
           onToggleAvatar={() => setAvatarOpen((o) => !o)}
           mobileAvatarSlot={<AvatarMobileSlot {...avatarProps} />}

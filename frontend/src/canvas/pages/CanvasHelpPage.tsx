@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { CircleHelp } from "lucide-react";
 import { getBackendBaseUrl } from "@/lib/backendUrl";
 import { useTenant } from "@/tenant/TenantContext";
-import { useCanvasIntegrationHealth } from "./context/IntegrationHealthContext";
-import { CanvasSubpageHeader } from "./shell/CanvasSubpageHeader";
-import { t } from "./i18n/canvas.en";
+import { useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
+import { CanvasSubpageHeader } from "../shell/CanvasSubpageHeader";
+import { t } from "../i18n/canvas.en";
 
 const STEPS = [
   { n: 1, title: "Onboard", path: "/onboard", body: "Create your workspace and paste your Beyond Presence agent ID." },

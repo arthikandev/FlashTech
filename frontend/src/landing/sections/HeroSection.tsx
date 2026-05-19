@@ -152,10 +152,10 @@ export function HeroSection() {
                     <>
                       <SignedOut>
                         <Link
-                          to="/sites/seylan/index.html"
+                          to="/register"
                           className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
                         >
-                          {t("auth.seeLiveDemo")}
+                          {t("auth.getStarted")}
                         </Link>
                       </SignedOut>
                       <SignedIn>

@@ -87,7 +87,12 @@ export default defineSchema({
 
   usageEvents: defineTable({
     businessId: v.id("businesses"),
-    type: v.union(v.literal("intelligence_call"), v.literal("post_call_analysis")),
+    type: v.union(
+      v.literal("intelligence_call"),
+      v.literal("post_call_analysis"),
+      v.literal("connector_sync"),
+      v.literal("canvas_tts_call")
+    ),
     model: v.string(),
     tokensEstimate: v.optional(v.number()),
     createdAt: v.number(),
@@ -180,10 +185,95 @@ export default defineSchema({
     clerkUserId: v.string(),
     businessId: v.id("businesses"),
     role: v.union(v.literal("admin"), v.literal("viewer")),
+    invitedEmail: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_clerk_user", ["clerkUserId"])
-    .index("by_user_and_business", ["clerkUserId", "businessId"]),
+    .index("by_user_and_business", ["clerkUserId", "businessId"])
+    .index("by_business", ["businessId"]),
+
+  pendingInvites: defineTable({
+    businessId: v.id("businesses"),
+    email: v.string(),
+    role: v.union(v.literal("admin"), v.literal("viewer")),
+    invitedByClerkUserId: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("revoked")
+    ),
+    createdAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index("by_business", ["businessId"])
+    .index("by_email", ["email"])
+    .index("by_email_status", ["email", "status"]),
+
+  industryTemplates: defineTable({
+    industry,
+    categoryCode,
+    personaTone: v.string(),
+    defaultLanguage: v.string(),
+    systemPrompt: v.string(),
+    openerExamples: v.array(v.string()),
+    knowledgeSections: v.array(v.string()),
+    defaultTriggers: v.array(
+      v.object({
+        condition: v.union(
+          v.literal("intent_score_above"),
+          v.literal("churn_risk_detected"),
+          v.literal("appointment_booked")
+        ),
+        threshold: v.optional(v.number()),
+        action: v.union(
+          v.literal("slack_alert"),
+          v.literal("crm_push"),
+          v.literal("email_sequence")
+        ),
+      })
+    ),
+    suggestedConnectors: v.array(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_industry", ["industry"])
+    .index("by_categoryCode", ["categoryCode"]),
+
+  connectors: defineTable({
+    businessId: v.id("businesses"),
+    kind: v.union(
+      v.literal("hubspot"),
+      v.literal("stripe"),
+      v.literal("cloudbeds"),
+      v.literal("fhir_webhook"),
+      v.literal("shopify"),
+      v.literal("greenhouse"),
+      v.literal("workday")
+    ),
+    status: v.union(
+      v.literal("disconnected"),
+      v.literal("connecting"),
+      v.literal("connected"),
+      v.literal("error")
+    ),
+    configJson: v.string(),
+    lastSyncAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_business", ["businessId"])
+    .index("by_business_kind", ["businessId", "kind"]),
+
+  auditLog: defineTable({
+    businessId: v.id("businesses"),
+    actorClerkUserId: v.string(),
+    action: v.string(),
+    targetType: v.string(),
+    targetId: v.optional(v.string()),
+    metadata: v.optional(v.string()),
+    at: v.number(),
+  })
+    .index("by_business", ["businessId"])
+    .index("by_business_at", ["businessId", "at"]),
 
   clients: defineTable({
     categoryId: v.id("categories"),

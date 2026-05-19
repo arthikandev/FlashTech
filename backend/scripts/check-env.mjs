@@ -57,10 +57,6 @@ const checks = [
   { key: "ELEVENLABS_API_KEY", required: false, elevenLabs: true },
   { key: "BEYONDPRESENCE_API_BASE_URL", required: false },
   { key: "BP_WEBHOOK_SECRET", required: false },
-  { key: "SEYLAN_API_BASE_URL", required: false },
-  { key: "SEYLAN_API_KEY", required: false },
-  { key: "SEYLAN_CUSTOMER_LOOKUP_PATH", required: false },
-  { key: "SEYLAN_DEMO_ACCOUNT_NUMBER", required: false },
   { key: "WEBHOOK_CRM_FETCH_TRIGGER", required: false, automationWebhook: true },
   { key: "N8N_WEBHOOK_CRM_FETCH", required: false, automationWebhook: true },
   { key: "WEBHOOK_SLACK_HOT_LEAD", required: false, automationWebhook: true },
@@ -141,15 +137,9 @@ if (fullMode) {
 
 const cf = webhookCrmFetchUrl(vars);
 if (!cf || !isAutomationWebhookUrlValid(cf)) {
-  if (vars.SEYLAN_API_BASE_URL?.trim() && vars.SEYLAN_API_KEY?.trim()) {
-    console.log(
-      "  ℹ  CRM-fetch webhook unset → Seylan sandbox CRM on fingerprint (demo mock if sandbox fails)\n"
-    );
-  } else {
-    console.log(
-      "  ℹ  WEBHOOK_CRM_FETCH_TRIGGER / N8N_WEBHOOK_CRM_FETCH unset → demo CRM mock in fingerprint API\n"
-    );
-  }
+  console.log(
+    "  ℹ  WEBHOOK_CRM_FETCH_TRIGGER / N8N_WEBHOOK_CRM_FETCH unset → fingerprint API skips CRM enrichment\n"
+  );
 }
 
 if (hasRequiredMissing) {

@@ -8,7 +8,7 @@
 ## Embed
 
 ```html
-<script src="{BASE_URL}/api/embed/seylan-demo" async></script>
+<script src="{BASE_URL}/api/embed/cloudmetrics-demo" async></script>
 ```
 
 **Event** (after fingerprint):
@@ -29,7 +29,7 @@ Register or update visitor.
 
 ```json
 {
-  "embedKey": "seylan-demo",
+  "embedKey": "cloudmetrics-demo",
   "fingerprint": "abc123",
   "path": "/pricing",
   "title": "Gold vs Platinum",
@@ -100,7 +100,7 @@ Score visitor intent (GPT-4o). Requires `OPENAI_API_KEY` or returns demo fallbac
   "data": {
     "intelligence": { "intentScore": 96, "personalisedOpener": "...", "recommendedAction": "...", "signals": [], "computedAt": 0 },
     "visitor": { "name": "Sarangan", "language": "en", "crmId": "CRM-001" },
-    "business": { "name": "Seylan Bank", "industry": "bank", "personaTone": "formal" },
+    "business": { "name": "CloudMetrics", "industry": "bank", "personaTone": "formal" },
     "bpAgentId": "agent_abc123",
     "beyondPresence": { "synced": true },
     "pipelineMs": 450
@@ -123,7 +123,7 @@ Verify Beyond Presence API key (server-side). No auth header required.
   "configured": true,
   "verified": true,
   "agentCount": 1,
-  "agents": [{ "id": "agent_...", "name": "Seylan Assistant" }]
+  "agents": [{ "id": "agent_...", "name": "CloudMetrics Assistant" }]
 }
 ```
 
@@ -221,7 +221,7 @@ Fires hot-lead Slack trigger when latest `intentScore > 80`.
 
 ---
 
-## Seylan sandbox (CRM test)
+## CloudMetrics sandbox (CRM test)
 
 Server-side proxy to hackathon sandbox. Requires `SEYLAN_API_BASE_URL` + `SEYLAN_API_KEY` in `backend/.env.local`.
 
@@ -233,7 +233,7 @@ Server-side proxy to hackathon sandbox. Requires `SEYLAN_API_BASE_URL` + `SEYLAN
 { "accountNumber": "064000012548001" }
 ```
 
-Fingerprint CRM order: outbound CRM-fetch webhook → Seylan sandbox → built-in demo mock.
+Fingerprint CRM order: outbound CRM-fetch webhook → CloudMetrics sandbox → built-in demo mock.
 
 **Automation (server-side):**
 - `POST /api/pipeline` — if `intentScore >= 80`, fires `WEBHOOK_SLACK_HOT_LEAD` (legacy: `N8N_WEBHOOK_SLACK`)
@@ -280,6 +280,6 @@ Create a new tenant and return embed snippet (PDF onboarding wizard).
 
 | Site | embedKey |
 |------|----------|
-| Seylan Bank | `seylan-demo` |
+| CloudMetrics | `cloudmetrics-demo` |
 | CloudMetrics SaaS | `cloudmetrics-demo` |
 | Coral Resort | `coral-demo` |

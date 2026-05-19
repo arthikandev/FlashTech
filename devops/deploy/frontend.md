@@ -37,7 +37,7 @@ Each site should include:
 
 ```html
 <div id="presenceiq-avatar"></div>
-<script src="https://YOUR_BACKEND/api/embed/seylan-demo" async></script>
+<script src="https://YOUR_BACKEND/api/embed/cloudmetrics-demo" async></script>
 <script src="/presenceiq-avatar.js"></script>
 ```
 

@@ -12,18 +12,14 @@ export function AnalyticsPage() {
     business,
     dashboardStats,
     detail,
-    embedKey,
     businessId,
     canLoadMoreSessions,
-    hasMembershipForEmbed,
     category: dashboardCategory,
   } = useDashboardContext();
   const category = useBusinessCategory();
 
   const { sessions: analyticsSessions, loading: analyticsLoading } = useAnalyticsSessions({
-    embedKey,
     businessId,
-    useAuthQueries: hasMembershipForEmbed,
   });
 
   const chartSessions = analyticsLoading ? undefined : analyticsSessions;

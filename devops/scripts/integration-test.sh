@@ -37,7 +37,7 @@ test_health() {
 
 test_embed() {
   local len
-  len=$(curl -sf "$BACKEND_URL/api/embed/seylan-demo" | wc -c)
+  len=$(curl -sf "$BACKEND_URL/api/embed/cloudmetrics-demo" | wc -c)
   [[ "$len" -gt 50 ]]
 }
 
@@ -45,7 +45,7 @@ test_fingerprint() {
   local resp
   resp=$(curl -sf -X POST "$BACKEND_URL/api/fingerprint" \
     -H "Content-Type: application/json" \
-    -d '{"embedKey":"seylan-demo","fingerprint":"demo-sarangan-fp","path":"/pricing","title":"Gold","language":"en"}')
+    -d '{"embedKey":"cloudmetrics-demo","fingerprint":"demo-sarangan-fp","path":"/pricing","title":"Gold","language":"en"}')
   VISITOR_ID=$(echo "$resp" | sed -n 's/.*"visitorId":"\([^"]*\)".*/\1/p')
   BUSINESS_ID=$(echo "$resp" | sed -n 's/.*"businessId":"\([^"]*\)".*/\1/p')
   [[ -n "$VISITOR_ID" && -n "$BUSINESS_ID" ]]
@@ -76,7 +76,7 @@ test_bp_session() {
 }
 
 run_test "1. GET /api/health" test_health
-run_test "2. GET /api/embed/seylan-demo" test_embed
+run_test "2. GET /api/embed/cloudmetrics-demo" test_embed
 run_test "3. POST /api/fingerprint" test_fingerprint
 run_test "4. POST /api/pipeline" test_pipeline
 

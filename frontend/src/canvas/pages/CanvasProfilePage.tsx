@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CanvasSubpageHeader } from "./shell/CanvasSubpageHeader";
-import { t } from "./i18n/canvas.en";
+import { CanvasSubpageHeader } from "../shell/CanvasSubpageHeader";
+import { t } from "../i18n/canvas.en";
 
 export function CanvasProfilePage() {
   const { embedKey, embedOptions, onEmbedKeyChange, signedIn, business } = useTenant();

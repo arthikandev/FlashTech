@@ -36,8 +36,8 @@ PRESENCEIQ_BACKEND_URL=https://backend-blond-theta-13.vercel.app bash devops/scr
 
 Local:
 
-- [ ] `curl http://localhost:3001/api/embed/seylan-demo` returns JavaScript
-- [ ] POST `/api/fingerprint` with `embedKey: seylan-demo`, `fingerprint: demo-sarangan-fp` returns visitorId
+- [ ] `curl http://localhost:3001/api/embed/cloudmetrics-demo` returns JavaScript
+- [ ] POST `/api/fingerprint` with `embedKey: cloudmetrics-demo`, `fingerprint: demo-sarangan-fp` returns visitorId
 - [ ] POST `/api/pipeline` returns personalised opener for Sarangan
 - [ ] Beyond Presence status: `curl http://localhost:3001/api/beyondpresence/status`
 - [ ] n8n workflows imported and `N8N_WEBHOOK_*` set in `backend/.env.local`

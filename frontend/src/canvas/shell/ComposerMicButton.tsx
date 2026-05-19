@@ -11,10 +11,23 @@ type Props = {
   disabled?: boolean;
   onTranscript: (text: string, isFinal: boolean) => void;
   onListenStart?: () => void;
+  /** Controlled language code. When provided, the dropdown reflects this and
+   *  changes are propagated via `onLanguageChange`. */
+  language?: SpeechLangCode;
+  onLanguageChange?: (next: SpeechLangCode) => void;
 };
 
-export function ComposerMicButton({ disabled, onTranscript, onListenStart }: Props) {
-  const speech = useSpeechInput(onTranscript);
+export function ComposerMicButton({
+  disabled,
+  onTranscript,
+  onListenStart,
+  language,
+  onLanguageChange,
+}: Props) {
+  const speech = useSpeechInput(onTranscript, {
+    language,
+    onLanguageChange,
+  });
 
   function handleToggle() {
     if (!speech.listening) {

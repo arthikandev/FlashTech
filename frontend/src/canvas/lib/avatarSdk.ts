@@ -102,3 +102,61 @@ export function preloadCanvasAvatarSdk(): void {
     /* surfaced when user sends */
   });
 }
+
+/**
+ * Speak text via OpenAI TTS as a fallback when the BeyondPresence avatar
+ * hasn't started speaking yet. Plays through a single hidden <audio> element
+ * so subsequent calls cancel the previous one.
+ */
+let ttsAudioEl: HTMLAudioElement | null = null;
+let ttsAbort: AbortController | null = null;
+
+export async function speakViaTts(
+  text: string,
+  businessId: string,
+  language?: "en" | "ta" | "si"
+): Promise<void> {
+  if (!text.trim() || !businessId) return;
+
+  // Cancel any in-flight TTS request + stop the previous clip.
+  ttsAbort?.abort();
+  if (ttsAudioEl) {
+    ttsAudioEl.pause();
+    ttsAudioEl.src = "";
+  }
+
+  const controller = new AbortController();
+  ttsAbort = controller;
+
+  const base = await resolveBackendBaseUrl();
+  const res = await fetch(`${base}/api/canvas/tts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, businessId, language }),
+    signal: controller.signal,
+  });
+  if (!res.ok) {
+    throw new Error(`TTS failed (HTTP ${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+
+  if (!ttsAudioEl) {
+    ttsAudioEl = document.createElement("audio");
+    ttsAudioEl.dataset.presenceiqTts = "1";
+    ttsAudioEl.style.display = "none";
+    document.body.appendChild(ttsAudioEl);
+  }
+  ttsAudioEl.src = url;
+  await ttsAudioEl.play().catch(() => {
+    /* autoplay may be blocked; user gesture should be present from the send button */
+  });
+}
+
+export function cancelTts(): void {
+  ttsAbort?.abort();
+  if (ttsAudioEl) {
+    ttsAudioEl.pause();
+    ttsAudioEl.src = "";
+  }
+}

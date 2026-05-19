@@ -34,7 +34,6 @@ export function IndustriesSection() {
                   stat={ind.stat}
                   description={ind.description}
                   icon={Icon}
-                  demoTo={ind.demoTo}
                 />
               </motion.div>
             );

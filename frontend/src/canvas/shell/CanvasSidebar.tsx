@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Radio,
   Settings,
+  Shield,
   User,
   Webhook,
   Workflow,
@@ -32,9 +33,10 @@ type NavItem = {
 };
 
 export function CanvasSidebar({ collapsed, onToggleCollapse }: Props) {
-  const { embedKey } = useTenant();
+  const { embedKey, role } = useTenant();
   const location = useLocation();
   const qs = `?embedKey=${encodeURIComponent(embedKey)}`;
+  const isAdmin = role === "admin";
 
   const mainItems: NavItem[] = [
     { to: `/canvas${qs}`, labelKey: "sidebar.advisor", icon: MessageSquare, end: true },
@@ -50,6 +52,15 @@ export function CanvasSidebar({ collapsed, onToggleCollapse }: Props) {
 
   const accountItems: NavItem[] = [
     { to: `/canvas/categories${qs}`, labelKey: "sidebar.categories", icon: Layers },
+    ...(isAdmin
+      ? [
+          {
+            to: `/canvas/admin${qs}`,
+            labelKey: "sidebar.admin" as const,
+            icon: Shield,
+          },
+        ]
+      : []),
     { to: `/canvas/help${qs}`, labelKey: "sidebar.help", icon: CircleHelp },
     { to: `/canvas/profile${qs}`, labelKey: "sidebar.profile", icon: User },
     { to: `/canvas/settings${qs}`, labelKey: "sidebar.settings", icon: Settings },

@@ -13,7 +13,6 @@
     "lint": "next lint",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
-    "seed": "convex run seed:seedDemo",
     "check:env": "node scripts/check-env.mjs",
     "check:env:full": "node scripts/check-env.mjs --full",
     "verify:all": "node scripts/verify-all.mjs",

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Writes frontend/public/runtime-config.json when PRESENCEIQ_BACKEND_URL or
- * VITE_BACKEND_URL is set (CI / deploy). Skips if unset so local file is kept.
+ * Writes public/runtime-config.json when PRESENCEIQ_BACKEND_URL or
+ * VITE_* URL env is set (CI / deploy). Skips if unset so local file is kept.
+ * Lives under frontend/ so `vercel deploy` from frontend/ includes this file.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -19,8 +20,8 @@ if (!backendUrl && !convexUrl) {
   process.exit(0);
 }
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const out = join(root, "frontend/public/runtime-config.json");
+const frontendRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const out = join(frontendRoot, "public/runtime-config.json");
 const existing = existsSync(out)
   ? JSON.parse(readFileSync(out, "utf8"))
   : { backendUrl: "http://localhost:3001", convexUrl: "https://adamant-puffin-769.convex.cloud" };

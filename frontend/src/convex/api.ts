@@ -21,30 +21,17 @@ export const api = {
       { businessId: string; paginationOpts: PaginationOptions },
       PaginationResult<unknown>
     >("intelligence:listLiveSessions"),
-    listLiveSessionsDemo: queryRef<
-      { embedKey: string; paginationOpts: PaginationOptions },
-      PaginationResult<unknown>
-    >("intelligence:listLiveSessionsDemo"),
     listAnalyticsSessions: queryRef<{ businessId: string }, import("./types").LiveSession[]>(
       "intelligence:listAnalyticsSessions"
     ),
-    listAnalyticsSessionsDemo: queryRef<{ embedKey: string }, import("./types").LiveSession[]>(
-      "intelligence:listAnalyticsSessionsDemo"
-    ),
     getSessionDetail: queryRef<{ visitorId: string }, unknown>(
       "intelligence:getSessionDetail"
-    ),
-    getSessionDetailDemo: queryRef<{ embedKey: string; visitorId: string }, unknown>(
-      "intelligence:getSessionDetailDemo"
     ),
     listByBusiness: queryRef<{ businessId: string }, unknown>(
       "intelligence:listByBusiness"
     ),
     dashboardStats: queryRef<{ businessId: string }, import("./types").DashboardStats>(
       "intelligence:dashboardStats"
-    ),
-    dashboardStatsDemo: queryRef<{ embedKey: string }, import("./types").DashboardStats>(
-      "intelligence:dashboardStatsDemo"
     ),
   },
   conversations: {
@@ -55,9 +42,6 @@ export const api = {
   triggers: {
     listByBusiness: queryRef<{ businessId: string }, unknown>(
       "triggers:listByBusiness"
-    ),
-    listByBusinessDemo: queryRef<{ embedKey: string }, unknown>(
-      "triggers:listByBusinessDemo"
     ),
     upsertTrigger: mutationRef<
       {
@@ -135,12 +119,56 @@ export const api = {
       { businessId: string; role?: "admin" | "viewer" },
       unknown
     >("businessMembers:linkCurrentUser"),
+    listByBusiness: queryRef<
+      { businessId: string },
+      Array<{
+        _id: string;
+        clerkUserId: string;
+        businessId: string;
+        role: "admin" | "viewer";
+        invitedEmail?: string;
+        createdAt: number;
+      }>
+    >("businessMembers:listByBusiness"),
+    listPendingInvites: queryRef<
+      { businessId: string },
+      Array<{
+        _id: string;
+        businessId: string;
+        email: string;
+        role: "admin" | "viewer";
+        invitedByClerkUserId: string;
+        status: string;
+        createdAt: number;
+      }>
+    >("businessMembers:listPendingInvites"),
+    inviteMember: mutationRef<
+      { businessId: string; email: string; role: "admin" | "viewer" },
+      { inviteId: string; created: boolean }
+    >("businessMembers:inviteMember"),
+    revokeInvite: mutationRef<
+      { businessId: string; inviteId: string },
+      { revoked: boolean }
+    >("businessMembers:revokeInvite"),
+    updateRole: mutationRef<
+      {
+        businessId: string;
+        membershipId: string;
+        role: "admin" | "viewer";
+      },
+      { updated: boolean }
+    >("businessMembers:updateRole"),
+    removeMember: mutationRef<
+      { businessId: string; membershipId: string },
+      { removed: boolean }
+    >("businessMembers:removeMember"),
+    acceptPendingInvites: mutationRef<
+      Record<string, never>,
+      { accepted: number }
+    >("businessMembers:acceptPendingInvites"),
   },
   usage: {
     getBalance: queryRef<{ businessId: string }, unknown>("usage:getBalance"),
-    getBalanceByEmbedKey: queryRef<{ embedKey: string }, unknown>(
-      "usage:getBalanceByEmbedKey"
-    ),
   },
   clients: {
     createAccount: mutationRef<
@@ -179,6 +207,179 @@ export const api = {
     backfillFromBusinesses: mutationRef<Record<string, never>, unknown>(
       "clients:backfillFromBusinesses"
     ),
+  },
+  categoryStats: {
+    getTopIntents: queryRef<
+      { businessId: string; code: string; limit?: number },
+      Array<{ label: string; count: number }>
+    >("categoryStats:getTopIntents"),
+    getConversionFunnel: queryRef<
+      { businessId: string },
+      { visitors: number; conversations: number; escalated: number; converted: number }
+    >("categoryStats:getConversionFunnel"),
+    getRecentSignals: queryRef<
+      { businessId: string; limit?: number },
+      Array<{
+        visitorId: string;
+        intentScore: number;
+        recommendedAction: string;
+        signals: string[];
+        computedAt: number;
+      }>
+    >("categoryStats:getRecentSignals"),
+    bankingLoanFunnel: queryRef<
+      { businessId: string },
+      { inquiries: number; eligibility: number; application: number }
+    >("categoryStats:bankingLoanFunnel"),
+    saasTrialCohort: queryRef<
+      { businessId: string },
+      Array<{ label: string; visitors: number; pricingViews: number }>
+    >("categoryStats:saasTrialCohort"),
+    hotelsReturningGuests: queryRef<
+      { businessId: string; limit?: number },
+      Array<{
+        visitorId: string;
+        name: string;
+        returnCount: number;
+        lastSeenAt: number;
+        language: string;
+        lastPurchase?: string;
+        notes?: string;
+      }>
+    >("categoryStats:hotelsReturningGuests"),
+    healthcareIntakeMatrix: queryRef<
+      { businessId: string },
+      Array<{ language: string; specialty: string; count: number }>
+    >("categoryStats:healthcareIntakeMatrix"),
+    ecommerceCartStream: queryRef<
+      { businessId: string; limit?: number },
+      Array<{
+        conversationId: string;
+        visitorId: string;
+        outcome: string;
+        endedAt: number;
+        snippet: string;
+      }>
+    >("categoryStats:ecommerceCartStream"),
+    hrPipelineByStage: queryRef<
+      { businessId: string },
+      Array<{ label: string; count: number }>
+    >("categoryStats:hrPipelineByStage"),
+  },
+  connectors: {
+    listByBusiness: queryRef<
+      { businessId: string },
+      Array<{
+        _id: string;
+        kind: string;
+        status: "disconnected" | "connecting" | "connected" | "error";
+        configJson: string;
+        lastSyncAt?: number;
+        lastError?: string;
+      }>
+    >("connectors:listByBusiness"),
+    upsertConnector: mutationRef<
+      { businessId: string; kind: string; configJson: string },
+      { connectorId: string; created: boolean }
+    >("connectors:upsertConnector"),
+    disconnect: mutationRef<
+      { businessId: string; kind: string },
+      { disconnected: boolean }
+    >("connectors:disconnect"),
+    markSynced: mutationRef<
+      { businessId: string; kind: string; error?: string },
+      { synced: boolean }
+    >("connectors:markSynced"),
+  },
+  industryDefaults: {
+    seedIndustryTemplates: mutationRef<Record<string, never>, { created: number; updated: number }>(
+      "industryDefaults:seedIndustryTemplates"
+    ),
+    getTemplateForBusiness: queryRef<
+      { businessId: string },
+      {
+        industry: string;
+        categoryCode: string;
+        personaTone: string;
+        defaultLanguage: string;
+        systemPrompt: string;
+        openerExamples: string[];
+        knowledgeSections: string[];
+        suggestedConnectors: string[];
+      } | null
+    >("industryDefaults:getTemplateForBusiness"),
+    applyIndustryDefaults: mutationRef<
+      { businessId: string; overwrite?: boolean },
+      { industry: string; personaApplied: boolean; triggersCreated: number }
+    >("industryDefaults:applyIndustryDefaults"),
+  },
+  embed: {
+    rotateEmbedKey: mutationRef<
+      { businessId: string },
+      { previous: string; next: string }
+    >("embed:rotateEmbedKey"),
+    updateAvatarConfig: mutationRef<
+      {
+        businessId: string;
+        personaTone?: string;
+        defaultLanguage?: string;
+        bpAgentId?: string;
+        useNativeBpAgent?: boolean;
+      },
+      { ok: boolean }
+    >("embed:updateAvatarConfig"),
+  },
+  billing: {
+    getPlanCatalog: queryRef<
+      Record<string, never>,
+      Array<{ tier: string; intelligenceCallsLimit: number; monthlyUsd: number }>
+    >("billing:getPlanCatalog"),
+    getBillingState: queryRef<
+      { businessId: string },
+      {
+        planTier: "starter" | "growth" | "enterprise";
+        credits: {
+          intelligenceCallsRemaining: number;
+          intelligenceCallsLimit: number;
+          periodStart: number;
+          periodEnd: number;
+        };
+        usageThisPeriod: {
+          intelligenceCalls: number;
+          postCallAnalyses: number;
+          connectorSyncs: number;
+          totalEvents: number;
+        };
+      } | null
+    >("billing:getBillingState"),
+    setPlan: mutationRef<
+      { businessId: string; planTier: "starter" | "growth" | "enterprise" },
+      { planTier: string; intelligenceCallsLimit: number }
+    >("billing:setPlan"),
+  },
+  audit: {
+    listForBusiness: queryRef<
+      { businessId: string; limit?: number },
+      Array<{
+        _id: string;
+        actorClerkUserId: string;
+        action: string;
+        targetType: string;
+        targetId?: string;
+        metadata?: string;
+        at: number;
+      }>
+    >("audit:listForBusiness"),
+    recordEvent: mutationRef<
+      {
+        businessId: string;
+        action: string;
+        targetType: string;
+        targetId?: string;
+        metadataJson?: string;
+      },
+      { recorded: boolean }
+    >("audit:recordEvent"),
   },
   categories: {
     list: queryRef<Record<string, never>, unknown>("categories:list"),

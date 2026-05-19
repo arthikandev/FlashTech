@@ -1,14 +1,11 @@
 import { z } from "zod";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { api, getConvexClient } from "@/lib/convex";
-import { applyDemoCrmIfNeeded } from "@/lib/demoCrm";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
-import { isSeylanApiConfigured } from "@/lib/env";
 import {
   resolveAutomationCrmFetchUrl,
   triggerCrmFetchAutomation,
 } from "@/lib/pipeline";
-import { applySeylanCrmIfNeeded } from "@/lib/seylanCrm";
 
 const bodySchema = z.object({
   embedKey: z.string(),
@@ -37,33 +34,17 @@ export async function POST(request: Request) {
       resolveAutomationCrmFetchUrl(business?.webhookUrls)
     );
 
-    if (result.returnCount > 1 || result.crmId) {
-      if (automationCrmFetchReachable) {
-        void triggerCrmFetchAutomation(
-          {
-            visitorId: result.visitorId,
-            businessId: result.businessId,
-            fingerprint: body.fingerprint,
-            crmId: result.crmId,
-            returnCount: result.returnCount,
-          },
-          business?.webhookUrls
-        );
-      } else if (isSeylanApiConfigured()) {
-        await applySeylanCrmIfNeeded({
-          visitorId: result.visitorId as Id<"visitors">,
-          crmId: result.crmId,
+    if ((result.returnCount > 1 || result.crmId) && automationCrmFetchReachable) {
+      void triggerCrmFetchAutomation(
+        {
+          visitorId: result.visitorId,
+          businessId: result.businessId,
           fingerprint: body.fingerprint,
-          returnCount: result.returnCount,
-        });
-      } else {
-        await applyDemoCrmIfNeeded({
-          visitorId: result.visitorId as Id<"visitors">,
           crmId: result.crmId,
-          fingerprint: body.fingerprint,
           returnCount: result.returnCount,
-        });
-      }
+        },
+        business?.webhookUrls
+      );
     }
 
     return jsonSuccess(result);

@@ -67,10 +67,7 @@ export async function POST(request: Request) {
       embedKey,
       embedSnippet,
       embedUrl: `${base}/api/embed/${embedKey}`,
-      dashboardHint:
-        "Link your Clerk user: npx convex run seed:seedDemo '{\"clerkUserId\":\"user_...\",\"embedKey\":\"" +
-        embedKey +
-        "\"}'",
+      dashboardHint: `Open the workspace at ${appBaseUrl().replace(/\/api\/?$/, "")}/canvas?embedKey=${embedKey}`,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {

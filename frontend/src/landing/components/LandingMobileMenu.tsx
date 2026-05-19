@@ -28,11 +28,11 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/sites/seylan/index.html"
+          to="/register"
           onClick={onNavigate}
           className="flex items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/40"
         >
-          {t("auth.seeLiveDemo")}
+          {t("auth.getStarted")}
         </Link>
       </div>
     );
@@ -45,11 +45,11 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/sites/seylan/index.html"
+          to="/register"
           onClick={onNavigate}
           className="flex items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/40"
         >
-          {t("auth.seeLiveDemo")}
+          {t("auth.getStarted")}
         </Link>
       </SignedOut>
       <SignedIn>

@@ -1,5 +1,6 @@
+import { useEffect, useRef } from "react";
 import { useAuth } from "@clerk/clerk-react";
-import { useConvexAuth, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { api, clerkEnabled } from "@/convex/api";
@@ -13,6 +14,14 @@ export function PostAuthRedirect() {
 
   const authReady = !clerkEnabled || (clerkLoaded && !convexLoading);
   const signedIn = clerkEnabled && Boolean(isSignedIn && isAuthenticated);
+
+  const acceptInvites = useMutation(api.businessMembers.acceptPendingInvites);
+  const acceptedRef = useRef(false);
+  useEffect(() => {
+    if (!signedIn || acceptedRef.current) return;
+    acceptedRef.current = true;
+    void acceptInvites({});
+  }, [signedIn, acceptInvites]);
 
   const memberships = useQuery(
     api.businessMembers.listForCurrentUser,

@@ -41,7 +41,7 @@ export function BeyondPresenceLiveSection() {
           </ul>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              to="/sites/seylan/index.html"
+              to="/register"
               className="shimmer-btn inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-black hover:bg-primary/90 transition-colors"
             >
               {t("beyond.ctaDemo")}
@@ -66,6 +66,7 @@ export function BeyondPresenceLiveSection() {
               </span>
             </div>
             <BeyondPresenceFrame
+              agentId=""
               height={560}
               className="rounded-lg"
               videoSrc={BEYOND_PRESENCE_VIDEO_SRC}

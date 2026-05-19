@@ -11,7 +11,7 @@ import { WorkflowPage } from "./pages/WorkflowPage";
 /** Operator workspace (canvas UI) — shared by `/canvas/*` and `/dashboard/*`. */
 export function ClientDashboardRoute() {
   return (
-    <ProtectedRoute allowDemoPreview={false}>
+    <ProtectedRoute>
       <Routes>
         <Route element={<DashboardPage />}>
           <Route index element={<OverviewPage />} />

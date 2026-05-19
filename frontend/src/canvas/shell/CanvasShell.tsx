@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useTenant } from "@/tenant/TenantContext";
-import { IntegrationHealthProvider, useCanvasIntegrationHealth } from "./context/IntegrationHealthContext";
-import { useUsageBalance } from "./hooks/useUsageBalance";
-import { CanvasHeader } from "./shell/CanvasHeader";
-import { CanvasSidebar } from "./shell/CanvasSidebar";
-import { IntegrationStatusBar } from "./shell/IntegrationStatusBar";
+import { IntegrationHealthProvider, useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
+import { useUsageBalance } from "../hooks/useUsageBalance";
+import { CanvasHeader } from "./CanvasHeader";
+import { CanvasSidebar } from "./CanvasSidebar";
+import { IntegrationStatusBar } from "./IntegrationStatusBar";
 
 function CanvasShellIntegrationStrip() {
   const health = useCanvasIntegrationHealth();

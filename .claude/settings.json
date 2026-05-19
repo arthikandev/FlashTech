@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c 'import json,sys;d=json.load\\(sys.stdin\\);print\\(d[\"scripts\"][\"typecheck\"], \"/\", d[\"scripts\"][\"build:app\"]\\)')",
+      "Bash(git rm *)",
+      "Bash(curl -s http://localhost:3001/api/beyondpresence/status)",
+      "Bash(python3 -m json.tool)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(xargs cat)"
+    ]
+  }
+}

@@ -40,7 +40,7 @@ export function SlackAlertCard({ detail }: Props) {
           </div>
         ) : (
           <p className="text-xs text-muted-foreground">
-            Hot lead alerts appear when intent ≥ 80. Run the Seylan demo and reload pricing.
+            Hot lead alerts appear when intent ≥ 80. Run the CloudMetrics demo and reload pricing.
           </p>
         )}
       </CardContent>

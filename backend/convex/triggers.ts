@@ -1,18 +1,6 @@
 import { mutation, query } from "./_generated/server";
-import type { QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireBusinessMember } from "./lib/auth";
-
-async function businessForPreviewEmbed(ctx: QueryCtx, embedKey: string) {
-  const business = await ctx.db
-    .query("businesses")
-    .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
-    .unique();
-  if (!business) {
-    throw new Error("Unknown embedKey");
-  }
-  return business;
-}
 
 export const listByBusiness = query({
   args: { businessId: v.id("businesses") },
@@ -21,17 +9,6 @@ export const listByBusiness = query({
     return await ctx.db
       .query("triggers")
       .withIndex("by_business", (q) => q.eq("businessId", businessId))
-      .collect();
-  },
-});
-
-export const listByBusinessDemo = query({
-  args: { embedKey: v.string() },
-  handler: async (ctx, { embedKey }) => {
-    const business = await businessForPreviewEmbed(ctx, embedKey);
-    return await ctx.db
-      .query("triggers")
-      .withIndex("by_business", (q) => q.eq("businessId", business._id))
       .collect();
   },
 });

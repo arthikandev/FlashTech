@@ -6,7 +6,6 @@ import {
   type IndustryKey,
 } from "./lib/categoriesData";
 import { ensurePlatformCategoriesSeeded } from "./lib/ensureCategoriesSeeded";
-import { CANONICAL_BP_AGENT_ID } from "./lib/bpAgentDefaults";
 import { businessWebhookUrls } from "./lib/webhookUrls";
 
 const industry = v.union(
@@ -229,10 +228,6 @@ export const finalizeOnboarding = mutation({
     }
     if (args.useNativeBpAgent !== undefined) {
       avatarConfig.useNativeBpAgent = args.useNativeBpAgent;
-    }
-
-    if (!avatarConfig.bpAgentId?.trim()) {
-      avatarConfig.bpAgentId = CANONICAL_BP_AGENT_ID;
     }
 
     await ctx.db.patch(args.businessId, {

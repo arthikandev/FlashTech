@@ -12,11 +12,11 @@ export function WorkflowPage() {
     businessId,
     business,
     signedIn,
-    needsMembership,
+    hasMembershipForEmbed,
     embedKey,
   } = useDashboardContext();
 
-  const canEdit = signedIn && !needsMembership;
+  const canEdit = signedIn && hasMembershipForEmbed;
 
   return (
     <div className="flex flex-col gap-6">

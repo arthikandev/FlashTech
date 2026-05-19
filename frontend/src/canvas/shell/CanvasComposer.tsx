@@ -4,29 +4,36 @@ import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { cn } from "@/lib/utils";
 import { t } from "../i18n/canvas.en";
 import { ComposerMicButton } from "./ComposerMicButton";
+import type { SpeechLangCode } from "../hooks/useSpeechInput";
 
 type Props = {
   value: string;
   onChange: (v: string) => void;
   onSend: () => void;
+  onPrewarm?: () => void;
   sending: boolean;
   disabled: boolean;
   creditsExhausted: boolean;
   onToggleAvatar: () => void;
   avatarOpen: boolean;
   showAvatarToggle?: boolean;
+  language?: SpeechLangCode;
+  onLanguageChange?: (lang: SpeechLangCode) => void;
 };
 
 export function CanvasComposer({
   value,
   onChange,
   onSend,
+  onPrewarm,
   sending,
   disabled,
   creditsExhausted,
   onToggleAvatar,
   avatarOpen,
   showAvatarToggle = false,
+  language,
+  onLanguageChange,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prefixRef = useRef("");
@@ -78,7 +85,10 @@ export function CanvasComposer({
             onChange(e.target.value);
             handleInput();
           }}
-          onFocus={() => setFocused(true)}
+          onFocus={() => {
+            setFocused(true);
+            onPrewarm?.();
+          }}
           onBlur={() => setFocused(false)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -98,6 +108,8 @@ export function CanvasComposer({
             disabled={inputDisabled}
             onTranscript={handleVoiceTranscript}
             onListenStart={handleListenStart}
+            language={language}
+            onLanguageChange={onLanguageChange}
           />
           {showAvatarToggle ? (
             <button
@@ -129,7 +141,7 @@ export function CanvasComposer({
             shimmerDuration="2.5s"
             aria-label={t("composer.send")}
           >
-            <ArrowUp className="size-5 text-[var(--primary-foreground)]" />
+            <ArrowUp className="size-5 text-primary-foreground" />
           </ShimmerButton>
         </div>
       </div>

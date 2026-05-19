@@ -90,7 +90,7 @@ echo -e "\n"
 echo "2. Fingerprint (may trigger CRM-fetch webhook if WEBHOOK_CRM_FETCH_TRIGGER is set)"
 FP=$(curl_ok "$BASE/api/fingerprint" -X POST \
   -H "Content-Type: application/json" \
-  -d '{"embedKey":"seylan-demo","fingerprint":"demo-sarangan-fp","path":"/pricing","language":"en"}') \
+  -d '{"embedKey":"cloudmetrics-demo","fingerprint":"demo-sarangan-fp","path":"/pricing","language":"en"}') \
   || fail "Fingerprint failed"
 echo "$FP" | head -c 500
 echo ""
@@ -133,7 +133,7 @@ echo -e "\n"
 
 echo "Done."
 if [[ ! -f "$ENV_FILE" ]] || (! grep -qE '^(WEBHOOK_CRM_FETCH_TRIGGER|N8N_WEBHOOK_CRM_FETCH)=.+' "$ENV_FILE" 2>/dev/null); then
-  echo "Note: CRM-fetch webhook unset — Seylan/demo mock used. Configure WEBHOOK_CRM_FETCH_TRIGGER when ready."
+  echo "Note: CRM-fetch webhook unset — demo mock used. Configure WEBHOOK_CRM_FETCH_TRIGGER when ready."
 else
   echo "Check your automation runner for executions after fingerprint/pipeline calls."
 fi

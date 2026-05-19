@@ -1,13 +1,59 @@
+import { createHash } from "node:crypto";
 import OpenAI from "openai";
 import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
 import { api, getConvexClient } from "./convex";
-import type { IntelligenceResult, PostCallAnalysis, SessionOutcome } from "./types";
+import type {
+  IntelligenceResult,
+  IntelligenceSignal,
+  PostCallAnalysis,
+} from "./types";
 
 const INTENT_MODEL = "gpt-4o-mini";
 const INTENT_MAX_TOKENS = 300;
-const OPENAI_TIMEOUT_MS = 1200;
+const OPENAI_TIMEOUT_MS = 4_000;
 const SCORE_CACHE_TTL_MS = 60_000;
+
+function operatorHash(operatorMessage?: string): string {
+  const trimmed = operatorMessage?.trim() ?? "";
+  if (!trimmed) return "none";
+  return createHash("sha1").update(trimmed).digest("hex").slice(0, 12);
+}
+
+type OperatorCacheEntry = { result: IntelligenceResult; expiresAt: number };
+const operatorScoreCache = new Map<string, OperatorCacheEntry>();
+
+function operatorCacheKey(visitorId: Id<"visitors">, hash: string): string {
+  return `${visitorId}::${hash}`;
+}
+
+function readOperatorCache(
+  visitorId: Id<"visitors">,
+  hash: string
+): IntelligenceResult | null {
+  const key = operatorCacheKey(visitorId, hash);
+  const entry = operatorScoreCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    operatorScoreCache.delete(key);
+    return null;
+  }
+  return {
+    ...entry.result,
+    signals: [...entry.result.signals, "cached"],
+  };
+}
+
+function writeOperatorCache(
+  visitorId: Id<"visitors">,
+  hash: string,
+  result: IntelligenceResult
+): void {
+  operatorScoreCache.set(operatorCacheKey(visitorId, hash), {
+    result,
+    expiresAt: Date.now() + SCORE_CACHE_TTL_MS,
+  });
+}
 
 const intentSchema = z.object({
   intentScore: z.number().min(0).max(100),
@@ -26,18 +72,15 @@ Given a visitor's behaviour and CRM data, output a JSON object ONLY:
 }
 Rules:
 - Opener must be specific to pages visited and CRM notes, never generic.
+- The "personalisedOpener" MUST be written in the language code given by the "Language" field of the user prompt:
+  • "en" → English.
+  • "ta" → Tamil (write in Tamil script — தமிழ்).
+  • "si" → Sinhala (write in Sinhala script — සිංහල).
+  Any other code → English.
+- "recommendedAction" and "signals" stay in English regardless.
 - For bank industry: formal, trustworthy tone.
 - If pricing page visited 3+ times: mention plan comparison explicitly.
 - intentScore > 80 means hot lead.`;
-
-export const DEMO_SARANGAN_INTELLIGENCE: IntelligenceResult = {
-  intentScore: 96,
-  personalisedOpener:
-    "Welcome back Sarangan — I see you have been comparing our Gold and Platinum plans. Shall I walk you through the key difference?",
-  recommendedAction: "Offer account opening walkthrough",
-  signals: ["return_visitor", "pricing_page_x3", "high_engagement"],
-  computedAt: Date.now(),
-};
 
 function buildUserPrompt(context: {
   industry: string;
@@ -82,34 +125,181 @@ function summarizePages(
     .join(", ");
 }
 
+function countPricingHits(
+  pageHistory?: Array<{ path: string; title?: string }>
+): number {
+  if (!pageHistory?.length) return 0;
+  let n = 0;
+  for (const p of pageHistory) {
+    if (p.path?.toLowerCase().includes("pricing")) n += 1;
+  }
+  return n;
+}
+
+type HeuristicTopic = {
+  signal: IntelligenceSignal;
+  keywords: string[];
+  opener: (name: string | undefined, formal: boolean) => string;
+  action: string;
+  boost: number;
+};
+
+const HEURISTIC_TOPICS: HeuristicTopic[] = [
+  {
+    signal: "pricing_interest",
+    keywords: ["pricing", "price", "plan", "tier", "cost", "compare"],
+    opener: (name) =>
+      name
+        ? `Welcome back ${name} — I noticed you've been comparing plans. Want me to walk you through the differences?`
+        : "I see you've been comparing plans — happy to walk you through what fits your team best.",
+    action: "Compare plan options with visitor",
+    boost: 10,
+  },
+  {
+    signal: "trial_interest",
+    keywords: ["trial", "free", "evaluate", "demo"],
+    opener: (name) =>
+      name
+        ? `${name}, on day six of your trial — most teams start their first report around now. Should I help you set that up?`
+        : "Looks like you're mid-trial — most teams start their first report around day six. Want me to help you set that up?",
+    action: "Offer trial-to-paid onboarding",
+    boost: 8,
+  },
+  {
+    signal: "booking_interest",
+    keywords: ["book", "booking", "reservation", "stay", "room"],
+    opener: (name) =>
+      name
+        ? `Welcome back ${name} — same suite as last time, or shall I show you our new packages?`
+        : "Looking at a booking? I can check live availability and pull together the best package for your dates.",
+    action: "Offer booking assistance and upsell",
+    boost: 10,
+  },
+  {
+    signal: "appointment_interest",
+    keywords: ["appointment", "doctor", "consult", "schedule"],
+    opener: (name) =>
+      name
+        ? `Welcome back ${name} — are you booking for yourself or a family member? I'll route you to the right specialist.`
+        : "Welcome — are you booking for yourself or a family member? I can route you to the right specialist.",
+    action: "Capture appointment intent (specialty + language)",
+    boost: 10,
+  },
+  {
+    signal: "cart_interest",
+    keywords: ["cart", "checkout", "abandon", "buy"],
+    opener: (name) =>
+      name
+        ? `Hi ${name} — your cart from earlier is still saved. Want me to check stock or apply a returning-customer code?`
+        : "Your cart is still saved — want me to check stock or apply a returning-customer code?",
+    action: "Recover cart and offer time-limited incentive",
+    boost: 12,
+  },
+  {
+    signal: "loan_interest",
+    keywords: ["loan", "mortgage", "emi", "lending", "borrow"],
+    opener: (name) =>
+      name
+        ? `Welcome back ${name} — I can pre-check eligibility before you speak with our loan officer. Shall we start?`
+        : "Looking at our loan options? I can pre-check eligibility before you speak with our officer.",
+    action: "Pre-qualify loan inquiry and route to officer",
+    boost: 10,
+  },
+  {
+    signal: "candidate_interest",
+    keywords: ["role", "job", "interview", "cv", "resume", "candidate"],
+    opener: (name) =>
+      name
+        ? `Welcome back ${name} — I've shortlisted two roles that match your background. Want a quick walk-through?`
+        : "I can match your background to our open roles — would you like a quick walk-through?",
+    action: "Surface matching roles and offer screening slot",
+    boost: 8,
+  },
+  {
+    signal: "churn_interest",
+    keywords: ["cancel", "leave", "close", "downgrade", "complaint"],
+    opener: (name) =>
+      name
+        ? `${name}, thanks for staying with us — I'd like to understand what's not working before we make any changes.`
+        : "Thanks for being a customer — I'd like to understand what's not working before we make any changes.",
+    action: "De-escalate; route to retention specialist",
+    boost: 15,
+  },
+];
+
+function matchTopic(
+  text: string | undefined
+): HeuristicTopic | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  for (const topic of HEURISTIC_TOPICS) {
+    if (topic.keywords.some((k) => lower.includes(k))) return topic;
+  }
+  return null;
+}
+
+function pageHistoryText(
+  pageHistory?: Array<{ path: string; title?: string }>
+): string {
+  if (!pageHistory?.length) return "";
+  return pageHistory.map((p) => `${p.path} ${p.title ?? ""}`).join(" ");
+}
+
 export function heuristicIntentFallback(context: {
   visitorName?: string;
   returnCount: number;
   industry?: string;
+  pageHistory?: Array<{ path: string; title?: string }>;
+  operatorMessage?: string;
 }): IntelligenceResult {
-  const score = Math.min(70 + context.returnCount * 5, 95);
-  const formal = context.industry?.toLowerCase().includes("bank");
-  const opener = context.visitorName
-    ? formal
-      ? `Welcome back ${context.visitorName} — how may I assist you today?`
-      : `Welcome back ${context.visitorName} — how can I help you today?`
-    : formal
-      ? "Welcome — how may I assist you today?"
-      : "Welcome — how can I help you today?";
+  const pricingHits = countPricingHits(context.pageHistory);
+  const formal = context.industry?.toLowerCase().includes("bank") ?? false;
+
+  const haystack = [
+    context.operatorMessage,
+    pageHistoryText(context.pageHistory),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const topic = matchTopic(haystack);
+
+  const signals: IntelligenceSignal[] = ["heuristic_fallback"];
+  let score = Math.min(70 + context.returnCount * 5 + pricingHits * 5, 95);
+  let opener: string;
+  let action: string;
+
+  if (topic) {
+    signals.push(topic.signal);
+    score = Math.min(score + topic.boost, 98);
+    opener = topic.opener(context.visitorName, formal);
+    action = topic.action;
+  } else if (context.operatorMessage?.trim()) {
+    // Generic scenario — echo it back so the user sees their input reflected.
+    const sentence = context.operatorMessage.trim().replace(/[.!?]+$/, "");
+    opener = context.visitorName
+      ? `Welcome back ${context.visitorName} — I see ${sentence.toLowerCase()}. How can I help?`
+      : `Welcome — I see ${sentence.toLowerCase()}. How can I help?`;
+    action = "Continue conversation based on operator scenario";
+  } else {
+    const mention = pricingHits > 0 ? " I can walk you through our plan options." : "";
+    const greeting = formal ? "how may I assist you today?" : "how can I help you today?";
+    opener = context.visitorName
+      ? `Welcome back ${context.visitorName} — ${greeting}${mention}`
+      : `Welcome — ${greeting}${mention}`;
+    action = pricingHits > 0
+      ? "Compare plan options with visitor"
+      : "Continue conversation";
+    if (pricingHits > 0) signals.push("pricing_interest");
+  }
 
   return {
     intentScore: score,
     personalisedOpener: opener,
-    recommendedAction: "Continue conversation",
-    signals: ["heuristic_fallback"],
+    recommendedAction: action,
+    signals,
     computedAt: Date.now(),
   };
-}
-
-function timeoutReject(ms: number, label: string): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => reject(new Error(label)), ms);
-  });
 }
 
 export async function getCachedIntelligence(
@@ -154,6 +344,8 @@ async function callOpenAIIntent(context: {
       visitorName: context.visitorName,
       returnCount: context.returnCount,
       industry: context.industry,
+      pageHistory: context.pageHistory,
+      operatorMessage: context.operatorMessage,
     });
   }
 
@@ -162,41 +354,52 @@ async function callOpenAIIntent(context: {
     context.model === "gpt-4o" || context.model === "gpt-4o-mini"
       ? context.model
       : INTENT_MODEL;
-  const completion = await openai.chat.completions.create({
-    model,
-    temperature: 0.3,
-    max_tokens: INTENT_MAX_TOKENS,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+
+  try {
+    const completion = await openai.chat.completions.create(
       {
-        role: "user",
-        content: buildUserPrompt({
-          industry: context.industry,
-          businessName: context.businessName,
-          visitorName: context.visitorName,
-          returnCount: context.returnCount,
-          language: context.language,
-          timeOnSiteSeconds: Math.round(context.timeOnSiteMs / 1000),
-          pagesSummary: summarizePages(context.pageHistory),
-          crmNotes: context.crmNotes,
-          churnRisk: context.churnRisk,
-          operatorMessage: context.operatorMessage,
-        }),
+        model,
+        temperature: 0.3,
+        max_tokens: INTENT_MAX_TOKENS,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: buildUserPrompt({
+              industry: context.industry,
+              businessName: context.businessName,
+              visitorName: context.visitorName,
+              returnCount: context.returnCount,
+              language: context.language,
+              timeOnSiteSeconds: Math.round(context.timeOnSiteMs / 1000),
+              pagesSummary: summarizePages(context.pageHistory),
+              crmNotes: context.crmNotes,
+              churnRisk: context.churnRisk,
+              operatorMessage: context.operatorMessage,
+            }),
+          },
+        ],
       },
-    ],
-  });
+      { signal: controller.signal }
+    );
 
-  const raw = completion.choices[0]?.message?.content?.trim() ?? "{}";
-  const parsed = intentSchema.safeParse(JSON.parse(raw));
-  if (!parsed.success) {
-    throw new Error("OpenAI returned invalid intent JSON");
+    const raw = completion.choices[0]?.message?.content?.trim() ?? "{}";
+    const parsed = intentSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) {
+      throw new Error("OpenAI returned invalid intent JSON");
+    }
+
+    return {
+      ...parsed.data,
+      computedAt: Date.now(),
+    };
+  } finally {
+    clearTimeout(timer);
   }
-
-  return {
-    ...parsed.data,
-    computedAt: Date.now(),
-  };
 }
 
 export async function scoreIntent(context: {
@@ -210,27 +413,26 @@ export async function scoreIntent(context: {
   pageHistory: Array<{ path: string; title?: string }>;
   crmNotes?: string;
   churnRisk?: string;
-  fingerprint?: string;
   operatorMessage?: string;
   model?: string;
 }): Promise<IntelligenceResult> {
-  if (
-    context.fingerprint === "demo-sarangan-fp" ||
-    context.visitorName?.toLowerCase() === "sarangan"
-  ) {
-    return { ...DEMO_SARANGAN_INTELLIGENCE, computedAt: Date.now() };
-  }
+  const opHash = operatorHash(context.operatorMessage);
 
-  if (context.visitorId && !context.operatorMessage?.trim()) {
-    const cached = await getCachedIntelligence(context.visitorId);
-    if (cached) return cached;
+  if (context.visitorId) {
+    if (opHash === "none") {
+      const cached = await getCachedIntelligence(context.visitorId);
+      if (cached) return cached;
+    } else {
+      const cached = readOperatorCache(context.visitorId, opHash);
+      if (cached) return cached;
+    }
   }
 
   try {
-    const result = await Promise.race([
-      callOpenAIIntent(context),
-      timeoutReject(OPENAI_TIMEOUT_MS, "OPENAI_TIMEOUT"),
-    ]);
+    const result = await callOpenAIIntent(context);
+    if (context.visitorId && opHash !== "none") {
+      writeOperatorCache(context.visitorId, opHash, result);
+    }
     return result;
   } catch (err) {
     console.warn("[openai] scoreIntent fallback", err);
@@ -238,7 +440,159 @@ export async function scoreIntent(context: {
       visitorName: context.visitorName,
       returnCount: context.returnCount,
       industry: context.industry,
+      pageHistory: context.pageHistory,
+      operatorMessage: context.operatorMessage,
     });
+  }
+}
+
+export type IntentStreamEvent =
+  | { type: "token"; text: string }
+  | { type: "final"; intelligence: IntelligenceResult }
+  | { type: "fallback"; intelligence: IntelligenceResult; reason: string };
+
+/**
+ * Stream intent scoring as token deltas, then a final structured payload.
+ * Useful for SSE endpoints that want to fill the opener bubble as text arrives.
+ * Always emits a `final` (or `fallback`) event at the end.
+ */
+export async function* streamIntent(context: {
+  visitorId?: Id<"visitors">;
+  industry: string;
+  businessName: string;
+  visitorName?: string;
+  returnCount: number;
+  language: string;
+  timeOnSiteMs: number;
+  pageHistory: Array<{ path: string; title?: string }>;
+  crmNotes?: string;
+  churnRisk?: string;
+  operatorMessage?: string;
+  model?: string;
+}): AsyncGenerator<IntentStreamEvent, void, void> {
+  const opHash = operatorHash(context.operatorMessage);
+
+  if (context.visitorId) {
+    if (opHash === "none") {
+      const cached = await getCachedIntelligence(context.visitorId);
+      if (cached) {
+        yield { type: "token", text: cached.personalisedOpener };
+        yield { type: "final", intelligence: cached };
+        return;
+      }
+    } else {
+      const cached = readOperatorCache(context.visitorId, opHash);
+      if (cached) {
+        yield { type: "token", text: cached.personalisedOpener };
+        yield { type: "final", intelligence: cached };
+        return;
+      }
+    }
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey?.trim()) {
+    const fb = heuristicIntentFallback({
+      visitorName: context.visitorName,
+      returnCount: context.returnCount,
+      industry: context.industry,
+      pageHistory: context.pageHistory,
+      operatorMessage: context.operatorMessage,
+    });
+    yield { type: "token", text: fb.personalisedOpener };
+    yield { type: "fallback", intelligence: fb, reason: "OPENAI_API_KEY unset" };
+    return;
+  }
+
+  const openai = new OpenAI({ apiKey });
+  const model =
+    context.model === "gpt-4o" || context.model === "gpt-4o-mini"
+      ? context.model
+      : INTENT_MODEL;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+
+  let buffer = "";
+  try {
+    const stream = await openai.chat.completions.create(
+      {
+        model,
+        stream: true,
+        temperature: 0.3,
+        max_tokens: INTENT_MAX_TOKENS,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: buildUserPrompt({
+              industry: context.industry,
+              businessName: context.businessName,
+              visitorName: context.visitorName,
+              returnCount: context.returnCount,
+              language: context.language,
+              timeOnSiteSeconds: Math.round(context.timeOnSiteMs / 1000),
+              pagesSummary: summarizePages(context.pageHistory),
+              crmNotes: context.crmNotes,
+              churnRisk: context.churnRisk,
+              operatorMessage: context.operatorMessage,
+            }),
+          },
+        ],
+      },
+      { signal: controller.signal }
+    );
+
+    let lastEmittedOpener = "";
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content ?? "";
+      if (!delta) continue;
+      buffer += delta;
+
+      // Best-effort progressive parse: extract the personalisedOpener field
+      // as it grows so the bubble fills before the final JSON closes.
+      const match = buffer.match(/"personalisedOpener"\s*:\s*"((?:[^"\\]|\\.)*)/);
+      if (match) {
+        const partial = match[1]
+          // Decode the small set of JSON escapes that may appear mid-stream.
+          .replace(/\\n/g, "\n")
+          .replace(/\\"/g, '"')
+          .replace(/\\\\/g, "\\");
+        if (partial.length > lastEmittedOpener.length) {
+          const diff = partial.slice(lastEmittedOpener.length);
+          lastEmittedOpener = partial;
+          yield { type: "token", text: diff };
+        }
+      }
+    }
+
+    const parsed = intentSchema.safeParse(JSON.parse(buffer || "{}"));
+    if (!parsed.success) {
+      throw new Error("OpenAI streamed invalid intent JSON");
+    }
+    const result: IntelligenceResult = { ...parsed.data, computedAt: Date.now() };
+    if (context.visitorId && opHash !== "none") {
+      writeOperatorCache(context.visitorId, opHash, result);
+    }
+    yield { type: "final", intelligence: result };
+  } catch (err) {
+    console.warn("[openai] streamIntent fallback", err);
+    const fb = heuristicIntentFallback({
+      visitorName: context.visitorName,
+      returnCount: context.returnCount,
+      industry: context.industry,
+      pageHistory: context.pageHistory,
+      operatorMessage: context.operatorMessage,
+    });
+    yield { type: "token", text: fb.personalisedOpener };
+    yield {
+      type: "fallback",
+      intelligence: fb,
+      reason: err instanceof Error ? err.message : "OpenAI stream failed",
+    };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -297,7 +651,7 @@ Pre-call intent was ${args.preIntentScore}/100. Use "converted" if they agreed t
     if (!parsed.success) return null;
 
     return {
-      outcome: parsed.data.outcome as SessionOutcome,
+      outcome: parsed.data.outcome,
       summary: parsed.data.summary,
       actionItems: parsed.data.actionItems,
       sentimentArc: parsed.data.sentimentArc,

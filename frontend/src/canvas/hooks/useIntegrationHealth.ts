@@ -5,7 +5,7 @@ import {
   resolveBackendBaseUrl,
 } from "@/lib/backendUrl";
 import { invalidateCanvasAvatarInit } from "../lib/avatarSdk";
-import { OPTIONAL_BACKEND_ENV_VARS } from "../canvasWorkflow";
+import { OPTIONAL_BACKEND_ENV_VARS } from "../lib/canvasWorkflow";
 
 const OPTIONAL_ENV_SET = new Set<string>(OPTIONAL_BACKEND_ENV_VARS);
 

@@ -39,7 +39,7 @@ See [n8n/SETUP.md](n8n/SETUP.md).
 
 Run `devops/scripts/integration-test.ps1` with `BACKEND_URL` set.
 
-- [ ] Reload Seylan site → pipeline < 2s
+- [ ] Reload CloudMetrics site → pipeline < 2s
 - [ ] Slack fires on hot lead
 - [ ] Dashboard updates without refresh
 

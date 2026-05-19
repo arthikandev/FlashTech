@@ -15,10 +15,10 @@ function Test-Step($Name, $ScriptBlock) {
   catch { Write-Host "FAIL: $Name - $_" -ForegroundColor Red; $script:failed++ }
 }
 Test-Step "1. GET /api/health" { $r = Invoke-RestMethod -Uri "$BackendUrl/api/health"; if ($r.status -ne "ok") { throw "bad" } }
-Test-Step "2. GET /api/embed/seylan-demo" { $r = Invoke-WebRequest -Uri "$BackendUrl/api/embed/seylan-demo"; if ($r.Content.Length -lt 50) { throw "empty" } }
+Test-Step "2. GET /api/embed/cloudmetrics-demo" { $r = Invoke-WebRequest -Uri "$BackendUrl/api/embed/cloudmetrics-demo"; if ($r.Content.Length -lt 50) { throw "empty" } }
 $visitorId = $null; $businessId = $null
 Test-Step "3. POST /api/fingerprint" {
-  $body = '{"embedKey":"seylan-demo","fingerprint":"demo-sarangan-fp","path":"/pricing","title":"Gold","language":"en"}'
+  $body = '{"embedKey":"cloudmetrics-demo","fingerprint":"demo-sarangan-fp","path":"/pricing","title":"Gold","language":"en"}'
   $r = Invoke-RestMethod -Uri "$BackendUrl/api/fingerprint" -Method Post -Body $body -ContentType "application/json"
   $script:visitorId = $r.data.visitorId; $script:businessId = $r.data.businessId
 }

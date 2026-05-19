@@ -10,7 +10,7 @@
 
 | Deliverable | Description |
 |-------------|-------------|
-| Demo sites | Three branded pages with embed SDK: Seylan Bank, CloudMetrics SaaS, Coral Resort |
+| Demo sites | Three branded pages with embed SDK: CloudMetrics, CloudMetrics SaaS, Coral Resort |
 | Live dashboard | Real-time operator UI via Convex (`listLiveSessions`, `getSessionDetail`) |
 | Embed integration | Load backend embed script; verify `presenceiq:ready` fires |
 | Demo leadership | Second screen for pitch; demo script steps 1–2 and 5–6 ([team plan](../docs/DEVELOPMENT_PLAN.md) — link only) |
@@ -94,7 +94,7 @@ Script pattern (use env in React; static HTML can use localhost for local dev):
 
 | Demo site | embedKey |
 |-----------|----------|
-| Seylan Bank | `seylan-demo` |
+| CloudMetrics | `cloudmetrics-demo` |
 | CloudMetrics SaaS | `cloudmetrics-demo` |
 | Coral Resort | `coral-demo` |
 
@@ -135,7 +135,7 @@ import { ConvexProvider, ConvexReactClient } from "convex/react";
 const client = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
 // useQuery(api.intelligence.listLiveSessions, { businessId })
-// useQuery(api.businesses.getByEmbedKey, { embedKey: "seylan-demo" })
+// useQuery(api.businesses.getByEmbedKey, { embedKey: "cloudmetrics-demo" })
 ```
 
 When Person 2 adds new queries, add matching entries to `src/convex/api.ts`. Keep `VITE_CONVEX_URL` in sync with their deployment.
@@ -154,7 +154,7 @@ The embed SDK does not fetch this file; backend/automation tooling uses it for t
 
 ## G. E2E verification checklist
 
-1. [ ] Seylan demo: pricing section visible; embed script present.
+1. [ ] CloudMetrics demo: pricing section visible; embed script present.
 2. [ ] First visit: `presenceiq:ready` in console with `visitorId`, `businessId`, `sessionId`.
 3. [ ] Reload same browser: `returnCount` increases; dashboard shows visitor **without** manual refresh.
 4. [ ] After P1+P2 avatar pipeline: dashboard shows `intentScore` / personalised opener for seeded Sarangan path.
@@ -169,7 +169,7 @@ The embed SDK does not fetch this file; backend/automation tooling uses it for t
 |------|------|
 | `/` | Home — links to dashboard and demos |
 | `/dashboard` | Live sessions + detail |
-| `/demos/seylan` | Seylan Bank |
+| `/demos/cloudmetrics` | CloudMetrics |
 | `/demos/cloudmetrics` | CloudMetrics SaaS |
 | `/demos/coral` | Coral Resort |
 

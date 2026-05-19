@@ -2,14 +2,14 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Workflow } from "lucide-react";
 import { useTenant } from "@/tenant/TenantContext";
 import { useBpAgentId } from "@/hooks/useBpAgentId";
-import { useCanvasIntegrationHealth } from "./context/IntegrationHealthContext";
-import { useWebhookStatus } from "./hooks/useWebhookStatus";
-import { CanvasSubpageHeader } from "./shell/CanvasSubpageHeader";
+import { useCanvasIntegrationHealth } from "../context/IntegrationHealthContext";
+import { useWebhookStatus } from "../hooks/useWebhookStatus";
+import { CanvasSubpageHeader } from "../shell/CanvasSubpageHeader";
 import {
   canvasWorkflowProgress,
   computeCanvasWorkflowSteps,
-} from "./canvasWorkflow";
-import { t } from "./i18n/canvas.en";
+} from "../lib/canvasWorkflow";
+import { t } from "../i18n/canvas.en";
 import { cn } from "@/lib/utils";
 
 export function CanvasWorkflowSoon() {

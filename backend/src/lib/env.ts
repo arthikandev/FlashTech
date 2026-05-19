@@ -13,24 +13,18 @@ export type EnvCheckResult = {
     convex: "configured" | "missing";
     openai: "configured" | "missing";
     elevenLabs: "configured" | "missing";
-    automationCrmFetch: "configured" | "demo_mock";
+    automationCrmFetch: "configured" | "missing";
     automationSlackHotLead: "configured" | "missing";
     automationCrmPush: "configured" | "missing";
     automationChurn: "configured" | "missing";
-    seylan: "configured" | "demo_fallback" | "missing";
     beyondPresence: "configured" | "missing";
     webhookSecrets: "configured" | "partial" | "missing";
   };
 };
 
 import { isBeyondPresenceConfigured } from "./beyondPresenceApi";
-import { isSeylanApiConfigured } from "./seylanApi";
 
 export { isBeyondPresenceConfigured };
-
-const DEMO_EMBED_KEYS = ["seylan-demo", "cloudmetrics-demo", "coral-demo"];
-
-export { isSeylanApiConfigured };
 
 export function checkEnv(): EnvCheckResult {
   const missing: string[] = [];
@@ -45,13 +39,11 @@ export function checkEnv(): EnvCheckResult {
   const inboundSecret = envInboundCrmWebhookSecret();
   const bpSecret = process.env.BP_WEBHOOK_SECRET;
   const bpApiConfigured = isBeyondPresenceConfigured();
-  const seylanConfigured = isSeylanApiConfigured();
   const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
 
   if (!convexUrl) missing.push("NEXT_PUBLIC_CONVEX_URL");
   if (!openaiKey?.trim()) {
     missing.push("OPENAI_API_KEY");
-    warnings.push("Intent API uses demo fallback for Sarangan without OPENAI_API_KEY");
   }
   if (!elevenLabsKey?.trim()) {
     warnings.push(
@@ -76,12 +68,6 @@ export function checkEnv(): EnvCheckResult {
         ? "partial"
         : "missing";
 
-  const seylanCheck: EnvCheckResult["checks"]["seylan"] = seylanConfigured
-    ? "configured"
-    : crmFetchTrigger
-      ? "missing"
-      : "demo_fallback";
-
   return {
     ok: missing.length === 0,
     missing,
@@ -90,19 +76,14 @@ export function checkEnv(): EnvCheckResult {
       convex: convexUrl ? "configured" : "missing",
       openai: openaiKey?.trim() ? "configured" : "missing",
       elevenLabs: elevenLabsKey?.trim() ? "configured" : "missing",
-      automationCrmFetch: crmFetchTrigger ? "configured" : "demo_mock",
+      automationCrmFetch: crmFetchTrigger ? "configured" : "missing",
       automationSlackHotLead: slackHotLead ? "configured" : "missing",
       automationCrmPush: crmPush ? "configured" : "missing",
       automationChurn: churn ? "configured" : "missing",
-      seylan: seylanCheck,
       beyondPresence: bpApiConfigured ? "configured" : "missing",
       webhookSecrets,
     },
   };
-}
-
-export function getDemoEmbedKeys(): string[] {
-  return DEMO_EMBED_KEYS;
 }
 
 export function getIntegrationsStatus() {
@@ -114,7 +95,6 @@ export function getIntegrationsStatus() {
       crmPush: env.checks.automationCrmPush === "configured",
       churnRisk: env.checks.automationChurn === "configured",
     },
-    seylan: env.checks.seylan === "configured",
     beyondPresence: env.checks.beyondPresence === "configured",
   };
 }

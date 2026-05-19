@@ -123,7 +123,13 @@ function OverviewHero({
           </span>
           <span className="text-[10px] text-primary">Beyond Presence</span>
         </div>
-        <BeyondPresenceFrame agentId={bpAgentId} height={220} className="rounded-none" />
+        {bpAgentId?.trim() ? (
+          <BeyondPresenceFrame agentId={bpAgentId} height={220} className="rounded-none" />
+        ) : (
+          <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+            Add a Beyond Presence agent ID in settings to enable the live preview.
+          </div>
+        )}
       </div>
     </div>
   );

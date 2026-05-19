@@ -5,7 +5,7 @@ import { DashboardShell } from "./shell/DashboardShell";
 import { NotificationsCenter } from "./sections/NotificationsCenter";
 import { OverviewPage } from "./pages/OverviewPage";
 
-function DashboardLayoutInner({ standalone = false }: { standalone?: boolean }) {
+function DashboardLayoutInner({ standalone = false }: { readonly standalone?: boolean }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const ctx = useDashboardContext();
 
@@ -22,42 +22,14 @@ function DashboardLayoutInner({ standalone = false }: { standalone?: boolean }) 
         <NotificationsCenter
           events={ctx.feedEvents}
           signedIn={ctx.signedIn}
-          hasMembership={!ctx.needsMembership && ctx.signedIn}
+          hasMembership={ctx.hasMembershipForEmbed}
         />
       }
     >
-      <DashboardMain
-        previewOnly={ctx.previewOnly}
-        sessionsError={ctx.sessionsError}
-        standalone={standalone}
-      />
+      <div className="mx-auto max-w-7xl space-y-6">
+        {standalone ? <OverviewPage /> : <Outlet />}
+      </div>
     </DashboardShell>
-  );
-}
-
-function DashboardMain({
-  previewOnly,
-  sessionsError,
-  standalone,
-}: {
-  previewOnly: boolean;
-  sessionsError: string | null;
-  standalone: boolean;
-}) {
-  return (
-    <div className="mx-auto max-w-[1280px] space-y-6">
-      {previewOnly && (
-        <p className="rounded-md border border-amber-500/30 bg-amber-950/20 px-4 py-3 text-sm text-amber-100/90">
-          Preview mode — link your account for full workspace access.
-        </p>
-      )}
-      {sessionsError && (
-        <p className="rounded-md border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200/90">
-          {sessionsError}
-        </p>
-      )}
-      {standalone ? <OverviewPage /> : <Outlet />}
-    </div>
   );
 }
 

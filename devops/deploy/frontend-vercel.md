@@ -77,7 +77,7 @@ Manual checks after each production deploy:
 - [ ] `/login` → Google/SSO → brief `/login/sso-callback` → `/onboard` (no blank screen)  
 - [ ] `/canvas` loads (Convex + optional Clerk — network tab shows Convex websocket)    
 - [ ] **`/canvas` hard refresh** (reload) still serves app (SPA rewrite)  
-- [ ] `/sites/seylan/index.html` (and other static `/sites/*` demos)  
+- [ ] `/sites/cloudmetrics/index.html` (and other static `/sites/*` demos)  
 - [ ] `/deck`, `/present` if using pitch flows  
 - [ ] `/presenceiq-avatar.js` returns 200  
 
@@ -87,7 +87,7 @@ CLI from `frontend/`: [`npm run deploy`](../../frontend/package.json) (build + `
 
 ### Static demo HTML sites
 
-- Seylan: `https://<host>/sites/seylan/index.html#/pricing` — see [`frontend/vite.config.ts`](../../frontend/vite.config.ts) (multi-page `rollupOptions.input`).
+- CloudMetrics: `https://<host>/sites/cloudmetrics/index.html#/pricing` — see [`frontend/vite.config.ts`](../../frontend/vite.config.ts) (multi-page `rollupOptions.input`).
 
 ## Local frontend dev
 

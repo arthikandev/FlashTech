@@ -13,30 +13,14 @@ export type TriggerRow = {
   lastFiredAt?: number;
 };
 
-type Options = {
-  embedKey: string;
-  useAuthQueries: boolean;
-};
-
-export function useTriggers(
-  businessId: Id<"businesses"> | undefined,
-  { embedKey, useAuthQueries }: Options
-) {
+export function useTriggers(businessId: Id<"businesses"> | undefined) {
   const { isAuthenticated, isLoading: convexAuthLoading } = useConvexAuth();
   const convexReady = !clerkEnabled || (isAuthenticated && !convexAuthLoading);
-  const useAuth = useAuthQueries && convexReady;
 
-  const authTriggers = useQuery(
+  const triggers = useQuery(
     api.triggers.listByBusiness,
-    useAuth && businessId ? { businessId } : "skip"
+    convexReady && businessId ? { businessId } : "skip"
   ) as TriggerRow[] | undefined;
-
-  const previewTriggers = useQuery(
-    api.triggers.listByBusinessDemo,
-    !useAuth && embedKey ? { embedKey } : "skip"
-  ) as TriggerRow[] | undefined;
-
-  const triggers = useAuth ? authTriggers : previewTriggers;
 
   return { triggers, loading: triggers === undefined };
 }

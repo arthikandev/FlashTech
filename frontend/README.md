@@ -11,7 +11,7 @@
 
 ## What I deliver
 
-- Three embed demo sites (Seylan, CloudMetrics, Coral)
+- Three embed demo sites (CloudMetrics, CloudMetrics, Coral)
 - PresenceIQ embed on each demo page (`presenceiq:ready`)
 - Live operator dashboard (reactive Convex sessions + detail)
 - Second-screen layout for investor demo
@@ -39,7 +39,7 @@ Open http://localhost:5173 — cinematic landing at `/`; dashboard and demos on 
 |-------|------|
 | `/` | Marketing landing — Hero, About, demo selector, Features, infinite-scroll testimonials, cinematic footer |
 | `/canvas` | Live Convex operator workspace |
-| `/sites/seylan/index.html` | Seylan Bank static embed demo |
+| `/sites/cloudmetrics/index.html` | CloudMetrics static embed demo |
 | `/sites/cloudmetrics/index.html` | CloudMetrics SaaS static embed demo |
 | `/sites/coral/index.html` | Coral Resort static embed demo |
 
@@ -50,7 +50,7 @@ UI components live in `src/components/ui/` (shadcn-style: `motion-footer`, `test
 | Service | URL |
 |---------|-----|
 | Frontend dashboard | _ |
-| Seylan demo | _ |
+| CloudMetrics demo | _ |
 | CloudMetrics demo | _ |
 | Coral demo | _ |
 

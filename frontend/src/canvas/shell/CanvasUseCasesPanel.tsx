@@ -31,7 +31,6 @@ export function CanvasUseCasesPanel({ onPickPrompt }: Props) {
                 stat={ind.stat}
                 description={ind.description}
                 icon={Icon}
-                demoTo={ind.demoTo}
                 compact
                 onSelectPrompt={() => onPickPrompt(ind.samplePrompt)}
               />

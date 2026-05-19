@@ -1,19 +1,11 @@
-import {
-  CANONICAL_BP_AGENT_ID,
-  DEMO_AGENT_ID,
-} from "@/lib/bpAgentDefaults";
-
-export { CANONICAL_BP_AGENT_ID, DEMO_AGENT_ID };
-
 const BEY_CHAT_BASE = "https://bey.chat";
 
-export function beyondPresenceEmbedUrl(agentId?: string | null): string {
-  const id = agentId?.trim() || CANONICAL_BP_AGENT_ID;
-  return `${BEY_CHAT_BASE}/${encodeURIComponent(id)}`;
+export function beyondPresenceEmbedUrl(agentId: string): string {
+  return `${BEY_CHAT_BASE}/${encodeURIComponent(agentId)}`;
 }
 
 type Props = {
-  agentId?: string | null;
+  agentId: string;
   className?: string;
   height?: number;
   title?: string;

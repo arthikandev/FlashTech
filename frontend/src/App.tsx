@@ -2,31 +2,29 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { PostAuthRedirect } from "./components/PostAuthRedirect";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ClientDashboardRoute } from "./dashboard/ClientDashboardRoute";
-import { SlackMock } from "./dashboard/SlackMock";
 import { LoginPage } from "./auth/LoginPage";
 import { RegisterPage } from "./auth/RegisterPage";
 import { DevelopersPage } from "./landing/DevelopersPage";
 import { LandingPage } from "./landing/LandingPage";
 import { OnboardingRoute } from "./onboarding/OnboardingRoute";
-import { PitchDeck } from "./pitch/PitchDeck";
-import { PresentPage } from "./pages/PresentPage";
 import { ClientSignupRoute } from "./client/ClientSignupRoute";
 import { PendingVerificationPage } from "./client/PendingVerificationPage";
 import { CanvasRoute } from "./canvas/CanvasRoute";
-import { CanvasShell } from "./canvas/CanvasShell";
-import { CanvasWorkspacePage } from "./canvas/CanvasWorkspacePage";
-import { CanvasDashboardView } from "./canvas/CanvasDashboardView";
-import { CanvasProfilePage } from "./canvas/CanvasProfilePage";
-import { CanvasWorkflowSoon } from "./canvas/CanvasWorkflowSoon";
-import { CanvasWebhooksPage } from "./canvas/CanvasWebhooksPage";
-import { CanvasEmbedPage } from "./canvas/CanvasEmbedPage";
-import { CanvasHelpPage } from "./canvas/CanvasHelpPage";
+import { CanvasShell } from "./canvas/shell/CanvasShell";
+import { CanvasWorkspacePage } from "./canvas/pages/CanvasWorkspacePage";
+import { CanvasDashboardView } from "./canvas/pages/CanvasDashboardView";
+import { CanvasProfilePage } from "./canvas/pages/CanvasProfilePage";
+import { CanvasWorkflowSoon } from "./canvas/pages/CanvasWorkflowSoon";
+import { CanvasWebhooksPage } from "./canvas/pages/CanvasWebhooksPage";
+import { CanvasEmbedPage } from "./canvas/pages/CanvasEmbedPage";
+import { CanvasHelpPage } from "./canvas/pages/CanvasHelpPage";
 import { CanvasCategoriesPage } from "./canvas/pages/CanvasCategoriesPage";
-import { CategoryDashboardPage } from "./canvas/CategoryDashboardPage";
+import { CategoryDashboardPage } from "./canvas/pages/CategoryDashboardPage";
 import { ClientSetupRoute } from "./client/ClientSetupRoute";
 import { SessionsPage } from "./dashboard/pages/SessionsPage";
 import { AnalyticsPage } from "./dashboard/pages/AnalyticsPage";
 import { SettingsPage } from "./dashboard/pages/SettingsPage";
+import { AdminRoutes } from "./admin/AdminRoutes";
 
 export default function App() {
   return (
@@ -35,9 +33,6 @@ export default function App() {
         <Routes>
           <Route index element={<LandingPage />} />
           <Route path="developers" element={<DevelopersPage />} />
-          <Route path="deck" element={<PitchDeck />} />
-          <Route path="slack" element={<SlackMock />} />
-          <Route path="present" element={<PresentPage />} />
           <Route path="login/*" element={<LoginPage />} />
           <Route path="register/*" element={<RegisterPage />} />
           <Route path="auth/callback" element={<PostAuthRedirect />} />
@@ -73,6 +68,7 @@ export default function App() {
               <Route path="embed" element={<CanvasEmbedPage />} />
               <Route path="help" element={<CanvasHelpPage />} />
               <Route path="categories" element={<CanvasCategoriesPage />} />
+              <Route path="admin/*" element={<AdminRoutes />} />
               <Route
                 path="settings"
                 element={

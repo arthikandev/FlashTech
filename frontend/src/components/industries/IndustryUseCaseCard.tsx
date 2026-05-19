@@ -1,5 +1,4 @@
 import { ArrowRight, type LucideIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -8,7 +7,6 @@ type Props = {
   stat: string;
   description: string;
   icon: LucideIcon;
-  demoTo: string;
   onSelectPrompt?: () => void;
   compact?: boolean;
   className?: string;
@@ -20,7 +18,6 @@ export function IndustryUseCaseCard({
   stat,
   description,
   icon: Icon,
-  demoTo,
   onSelectPrompt,
   compact = false,
   className,
@@ -36,7 +33,7 @@ export function IndustryUseCaseCard({
         className
       )}
     >
-            <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <span
           className={cn(
             "flex shrink-0 items-center justify-center rounded-lg border border-border bg-background/60",
@@ -70,8 +67,8 @@ export function IndustryUseCaseCard({
         {description}
       </p>
 
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
-        {onSelectPrompt ? (
+      {onSelectPrompt ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={onSelectPrompt}
@@ -80,15 +77,8 @@ export function IndustryUseCaseCard({
             Try in Canvas
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </button>
-        ) : null}
-        <Link
-          to={demoTo}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
-        >
-          View demo
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-        </Link>
-      </div>
+        </div>
+      ) : null}
     </article>
   );
 }

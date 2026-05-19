@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { BeyondPresenceFrame } from "@/components/BeyondPresenceFrame";
-import { resolveBpAgentId } from "@/hooks/useBpAgentId";
+import { normalizeBpAgentId } from "@/lib/bpAgentId";
 import {
   PERSONALITY_OPTIONS,
   TONE_OPTIONS,
@@ -54,9 +54,9 @@ function SelectField({
 
 export function AvatarSetupStep({ data, update, onBack, onContinue, showBack }: Props) {
   function handleAgentIdChange(value: string) {
-    const trimmed = value.trim();
-    const patch: Partial<OnboardingData> = { bpAgentId: value };
-    if (trimmed.length >= 8 && !data.useNativeBpAgent) {
+    const normalized = normalizeBpAgentId(value);
+    const patch: Partial<OnboardingData> = { bpAgentId: normalized };
+    if (normalized.length >= 8 && !data.useNativeBpAgent) {
       patch.useNativeBpAgent = true;
     }
     update(patch);
@@ -129,14 +129,16 @@ export function AvatarSetupStep({ data, update, onBack, onContinue, showBack }: 
           onCheckedChange={(useNativeBpAgent) => update({ useNativeBpAgent })}
         />
       </div>
-      <div className="space-y-2 border-t border-border pt-2">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Live preview</p>
-        <BeyondPresenceFrame
-          agentId={data.bpAgentId.trim() || resolveBpAgentId(undefined)}
-          height={200}
-          className="w-full"
-        />
-      </div>
+      {data.bpAgentId.trim() ? (
+        <div className="space-y-2 border-t border-border pt-2">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Live preview</p>
+          <BeyondPresenceFrame
+            agentId={data.bpAgentId.trim()}
+            height={200}
+            className="w-full"
+          />
+        </div>
+      ) : null}
     </OnboardingShell>
   );
 }

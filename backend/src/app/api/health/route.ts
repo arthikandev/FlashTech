@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkEnv, getDemoEmbedKeys, getIntegrationsStatus } from "@/lib/env";
+import { checkEnv, getIntegrationsStatus } from "@/lib/env";
 import {
   probeBeyondPresence,
   probeConvex,
@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     service: "presenceiq-backend",
     checks: env.checks,
     integrations: getIntegrationsStatus(),
-    embedKeys: getDemoEmbedKeys(),
     warnings: env.warnings.length > 0 ? env.warnings : undefined,
     missing:
       env.missing.filter((k) => k !== "ELEVENLABS_API_KEY").length > 0

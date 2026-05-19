@@ -5,6 +5,7 @@ import {
   type PipelineData,
 } from "./pipeline";
 import {
+  applyPipelineToAgent,
   createBeyondPresenceClient,
   defaultSessionPayload,
   type BPSessionEndData,
@@ -194,6 +195,15 @@ async function onPresenceIQReady(event: Event): Promise<void> {
     window.dispatchEvent(
       new CustomEvent("presenceiq:pipeline-complete", { detail: data })
     );
+
+    if (isLatestReady(gen)) {
+      try {
+        await applyPipelineToAgent(client, data);
+        console.log("[PresenceIQ] Applied personalised opener to agent");
+      } catch (err) {
+        console.warn("[PresenceIQ] applyPipelineToAgent failed", err);
+      }
+    }
   } else {
     const reason = String(pipelineSettled.reason);
     console.error("[PresenceIQ] pipeline error", pipelineSettled.reason);

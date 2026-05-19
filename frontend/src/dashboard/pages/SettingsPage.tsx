@@ -25,6 +25,22 @@ import { showError, showSuccess } from "@/lib/toast";
 import { buildEmbedSnippet } from "@/canvas/lib/embedSnippet";
 import { INDUSTRIES } from "@/onboarding/constants";
 import type { Industry } from "@/onboarding/types";
+import { normalizeBpAgentId } from "@/lib/bpAgentId";
+import { getBackendBaseUrl } from "@/lib/backendUrl";
+
+type BpStatus = {
+  configured: boolean;
+  verified: boolean;
+  agents?: Array<{ id: string; name: string }>;
+  message?: string;
+};
+
+async function fetchBpStatus(): Promise<BpStatus> {
+  const base = getBackendBaseUrl().replace(/\/$/, "");
+  const res = await fetch(`${base}/api/beyondpresence/status`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as BpStatus;
+}
 
 type SettingsPageProps = {
   hidePageHeader?: boolean;
@@ -40,15 +56,7 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
     return "business";
   }, [tabParam]);
 
-  const {
-    business,
-    businessId,
-    embedKey,
-    signedIn,
-    needsMembership,
-    linkToCurrentBusiness,
-    linking,
-  } = useDashboardContext();
+  const { business, businessId, embedKey } = useDashboardContext();
   const updateBusiness = useMutation(api.businesses.updateBusiness);
 
   const [name, setName] = useState("");
@@ -62,6 +70,30 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
   const [slack, setSlack] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [bpStatus, setBpStatus] = useState<BpStatus | null>(null);
+  const [bpStatusLoading, setBpStatusLoading] = useState(false);
+  const [bpStatusError, setBpStatusError] = useState<string | null>(null);
+  const [manualBpInput, setManualBpInput] = useState(false);
+
+  async function refreshBpStatus() {
+    setBpStatusLoading(true);
+    setBpStatusError(null);
+    try {
+      const status = await fetchBpStatus();
+      setBpStatus(status);
+    } catch (e) {
+      setBpStatusError(e instanceof Error ? e.message : "Failed to fetch agents");
+    } finally {
+      setBpStatusLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab !== "avatar") return;
+    if (bpStatus !== null) return;
+    void refreshBpStatus();
+  }, [activeTab, bpStatus]);
 
   useEffect(() => {
     if (!business) return;
@@ -88,13 +120,15 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
     if (!businessId) return;
     setSaving(true);
     try {
+      const normalizedAgent = normalizeBpAgentId(bpAgentId);
+      if (normalizedAgent !== bpAgentId) setBpAgentId(normalizedAgent);
       await updateBusiness({
         businessId: businessId as Id<"businesses">,
         name,
         industry: industry as Industry,
         personaTone,
         defaultLanguage,
-        bpAgentId,
+        bpAgentId: normalizedAgent,
         useNativeBpAgent,
         webhookUrls: {
           crmFetch: crmFetch.trim() || undefined,
@@ -103,12 +137,20 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
         },
       });
       showSuccess("Settings saved");
+      if (activeTab === "avatar") void refreshBpStatus();
     } catch (e) {
       showError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
     }
   }
+
+  const savedAgentMatch =
+    bpAgentId && bpStatus?.agents?.find((a) => a.id === bpAgentId);
+  const showDropdown =
+    !manualBpInput &&
+    bpStatus?.verified === true &&
+    (bpStatus.agents?.length ?? 0) > 0;
 
   async function copyEmbed() {
     await navigator.clipboard.writeText(embedSnippet);
@@ -125,12 +167,6 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
           subtitle="Workspace configuration and embed details"
         />
       ) : null}
-
-      {signedIn && needsMembership && (
-        <Button type="button" variant="outline" onClick={linkToCurrentBusiness} disabled={linking}>
-          {linking ? "Linking…" : "Link account to this workspace"}
-        </Button>
-      )}
 
       <Tabs value={activeTab} onValueChange={setTab}>
         <TabsList>
@@ -188,28 +224,105 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
             <CardHeader>
               <CardTitle>Avatar</CardTitle>
               <CardDescription>
-                Agent ID from{" "}
+                Pick a Conversational Agent from your{" "}
                 <a
-                  href="https://app.bey.chat/settings"
+                  href="https://app.bey.chat"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
                 >
-                  Beyond Presence settings
+                  Beyond Presence workspace
                 </a>
-                . Backend sync uses your workspace API key.
+                . The list below comes from the API key set on the backend.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="bp-id">Agent ID</FieldLabel>
-                  <Input
-                    id="bp-id"
-                    value={bpAgentId}
-                    onChange={(e) => setBpAgentId(e.target.value)}
-                    className="font-mono text-xs"
-                  />
+                  <div className="flex items-center justify-between gap-2">
+                    <FieldLabel>Agent</FieldLabel>
+                    <div className="flex items-center gap-3 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => void refreshBpStatus()}
+                        className="text-muted-foreground hover:text-foreground"
+                        disabled={bpStatusLoading}
+                      >
+                        {bpStatusLoading ? "Refreshing…" : "Refresh"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setManualBpInput((v) => !v)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        {manualBpInput ? "Use dropdown" : "Paste ID manually"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {bpStatusError ? (
+                    <p className="text-xs text-destructive">{bpStatusError}. Is the backend running?</p>
+                  ) : null}
+
+                  {bpStatus && bpStatus.configured === false ? (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      Set <code>BEYONDPRESENCE_API_KEY</code> in <code>backend/.env.local</code> and restart the dev server.
+                    </p>
+                  ) : null}
+
+                  {bpStatus && bpStatus.configured && !bpStatus.verified ? (
+                    <p className="text-xs text-destructive">
+                      Beyond Presence rejected the API key. Replace it in <code>backend/.env.local</code>.
+                    </p>
+                  ) : null}
+
+                  {showDropdown ? (
+                    <Select value={bpAgentId} onValueChange={(v) => v && setBpAgentId(v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pick an agent…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {bpStatus!.agents!.map((a) => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="bp-id"
+                      value={bpAgentId}
+                      onChange={(e) => setBpAgentId(e.target.value)}
+                      onBlur={(e) => setBpAgentId(normalizeBpAgentId(e.target.value))}
+                      placeholder="Paste agent ID or full https://bey.chat/<id> URL"
+                      className="font-mono text-xs"
+                    />
+                  )}
+
+                  {bpAgentId ? (
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                      {savedAgentMatch ? (
+                        <span className="text-emerald-600 dark:text-emerald-400">
+                          ✓ Verified on this workspace ({savedAgentMatch.name})
+                        </span>
+                      ) : bpStatus?.verified ? (
+                        <span className="text-amber-600 dark:text-amber-400">
+                          ⚠ Saved ID is not on this Beyond Presence workspace
+                        </span>
+                      ) : null}
+                      <a
+                        href={`https://bey.chat/${encodeURIComponent(bpAgentId)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        Open agent page →
+                      </a>
+                    </div>
+                  ) : null}
                 </Field>
                 <Field className="flex flex-row items-center justify-between gap-4 rounded-md border border-border p-4">
                   <div className="space-y-1">
@@ -282,7 +395,7 @@ export function SettingsPage({ hidePageHeader = false }: SettingsPageProps) {
               <CardDescription>Add to your site before closing body tag</CardDescription>
             </CardHeader>
             <CardContent>
-              <Textarea readOnly value={embedSnippet} className="min-h-[100px] font-mono text-xs" />
+              <Textarea readOnly value={embedSnippet} className="min-h-25 font-mono text-xs" />
             </CardContent>
             <CardFooter>
               <Button type="button" variant="secondary" onClick={copyEmbed}>

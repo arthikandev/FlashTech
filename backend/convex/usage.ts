@@ -92,15 +92,22 @@ export const getBalance = query({
   },
 });
 
-export const getBalanceByEmbedKey = query({
-  args: { embedKey: v.string() },
-  handler: async (ctx, { embedKey }) => {
-    const business = await ctx.db
-      .query("businesses")
-      .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
-      .unique();
-    if (!business) return null;
-    return balanceFromBusiness(business);
+/** Records a Canvas TTS fallback play. No-op if the business doesn't exist. */
+export const recordTtsCall = mutation({
+  args: {
+    businessId: v.id("businesses"),
+    model: v.optional(v.string()),
+  },
+  handler: async (ctx, { businessId, model }) => {
+    const business = await ctx.db.get(businessId);
+    if (!business) return { recorded: false };
+    await ctx.db.insert("usageEvents", {
+      businessId,
+      type: "canvas_tts_call",
+      model: model ?? "tts-1",
+      createdAt: Date.now(),
+    });
+    return { recorded: true };
   },
 });
 

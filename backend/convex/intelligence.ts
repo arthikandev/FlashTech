@@ -55,18 +55,6 @@ export const getIntelligenceForAvatar = query({
   },
 });
 
-/** Resolve business for unsigned dashboard preview (any tenant with this embed key). */
-async function businessForPreviewEmbed(ctx: QueryCtx, embedKey: string) {
-  const business = await ctx.db
-    .query("businesses")
-    .withIndex("by_embedKey", (q) => q.eq("embedKey", embedKey))
-    .unique();
-  if (!business) {
-    throw new Error("Unknown embedKey");
-  }
-  return business;
-}
-
 function formatPageTrail(
   pageHistory: Array<{ path: string; title?: string }>,
   max = 4
@@ -157,17 +145,6 @@ async function resolveSessionsPage(
   };
 }
 
-export const listLiveSessionsDemo = query({
-  args: {
-    embedKey: v.string(),
-    paginationOpts: v.optional(paginationOptsValidator),
-  },
-  handler: async (ctx, { embedKey, paginationOpts }) => {
-    const business = await businessForPreviewEmbed(ctx, embedKey);
-    return resolveSessionsPage(ctx, business._id, paginationOpts);
-  },
-});
-
 export const listLiveSessions = query({
   args: {
     businessId: v.id("businesses"),
@@ -185,43 +162,6 @@ export const listAnalyticsSessions = query({
   handler: async (ctx, { businessId }) => {
     await requireBusinessMember(ctx, businessId);
     return listSessionsForBusiness(ctx, businessId);
-  },
-});
-
-export const listAnalyticsSessionsDemo = query({
-  args: { embedKey: v.string() },
-  handler: async (ctx, { embedKey }) => {
-    const business = await businessForPreviewEmbed(ctx, embedKey);
-    return listSessionsForBusiness(ctx, business._id);
-  },
-});
-
-export const getSessionDetailDemo = query({
-  args: { embedKey: v.string(), visitorId: v.id("visitors") },
-  handler: async (ctx, { embedKey, visitorId }) => {
-    const business = await businessForPreviewEmbed(ctx, embedKey);
-
-    const visitor = await ctx.db.get(visitorId);
-    if (!visitor || visitor.businessId !== business._id) return null;
-
-    const intelligence = await ctx.db
-      .query("intelligence")
-      .withIndex("by_visitor", (q) => q.eq("visitorId", visitorId))
-      .order("desc")
-      .take(1);
-
-    const conversations = await ctx.db
-      .query("conversations")
-      .withIndex("by_visitor", (q) => q.eq("visitorId", visitorId))
-      .order("desc")
-      .take(1);
-
-    return {
-      visitor,
-      business,
-      intelligence: intelligence[0] ?? null,
-      conversation: conversations[0] ?? null,
-    };
   },
 });
 
@@ -307,38 +247,3 @@ export const dashboardStats = query({
   },
 });
 
-export const dashboardStatsDemo = query({
-  args: { embedKey: v.string() },
-  handler: async (ctx, { embedKey }) => {
-    const business = await businessForPreviewEmbed(ctx, embedKey);
-    const sessions = await listSessionsForBusiness(ctx, business._id);
-
-    const withScore = sessions.filter((s) => s.intentScore != null);
-    const avgIntent =
-      withScore.length > 0
-        ? Math.round(
-            withScore.reduce((a, s) => a + (s.intentScore ?? 0), 0) / withScore.length
-          )
-        : null;
-    const conversations = sessions.filter((s) => s.hasConversation).length;
-    const hotLeadRate =
-      sessions.length > 0
-        ? Math.round(
-            (sessions.filter((s) => (s.intentScore ?? 0) >= HOT_LEAD_THRESHOLD).length /
-              sessions.length) *
-              100
-          )
-        : null;
-    const converted = sessions.filter((s) => s.conversationOutcome === "converted").length;
-    const conversionRate =
-      conversations > 0 ? Math.round((converted / conversations) * 100) : null;
-
-    return {
-      liveVisitors: sessions.length,
-      conversations,
-      hotLeadRate,
-      avgIntent,
-      conversionRate,
-    };
-  },
-});

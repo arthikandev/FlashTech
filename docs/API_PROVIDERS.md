@@ -12,7 +12,7 @@ See also: [ENV.md](ENV.md) · [API_CONTRACT.md](API_CONTRACT.md) · [backend/SET
 |----------|------|--------------|---------------------|
 | [Beyond Presence](#beyond-presence) | Live video avatar + calls | `BEYONDPRESENCE_API_KEY`, `BP_WEBHOOK_SECRET`, `bpAgentId` in Convex | `/api/pipeline`, `/api/beyondpresence/status`, session webhook |
 | [OpenAI](#openai) | Pre-call intent (GPT-4o) | `OPENAI_API_KEY` | `src/lib/openai.ts`, `/api/intent`, `/api/pipeline` |
-| [Seylan sandbox](#seylan-sandbox) | Hackathon CRM enrichment | `SEYLAN_API_*` | `src/lib/seylanApi.ts`, fingerprint, `/api/seylan/account-inquiry` |
+| [CloudMetrics sandbox](#seylan-sandbox) | Hackathon CRM enrichment | `SEYLAN_API_*` | `src/lib/seylanApi.ts`, fingerprint, `/api/seylan/account-inquiry` |
 | [n8n](#n8n) | CRM fetch, Slack, churn email | `N8N_WEBHOOK_*`, `N8N_WEBHOOK_SECRET` | fingerprint, automation, `/api/webhooks/n8n/crm` |
 | [Convex](#convex) | Database + realtime | `NEXT_PUBLIC_CONVEX_URL`, deploy keys | All API routes |
 | [Clerk](#clerk) | Dashboard sign-in | Clerk keys + `CLERK_JWT_ISSUER_DOMAIN` on Convex | middleware, Convex auth |
@@ -55,9 +55,9 @@ See also: [ENV.md](ENV.md) · [API_CONTRACT.md](API_CONTRACT.md) · [backend/SET
 
 ---
 
-## Seylan sandbox
+## CloudMetrics sandbox
 
-**Purpose:** Hackathon Team 8 bank sandbox for CRM lookup on fingerprint (not production Seylan).
+**Purpose:** Hackathon Team 8 bank sandbox for CRM lookup on fingerprint (not production CloudMetrics).
 
 | Item | Detail |
 |------|--------|
@@ -66,7 +66,7 @@ See also: [ENV.md](ENV.md) · [API_CONTRACT.md](API_CONTRACT.md) · [backend/SET
 | Default base | `http://34.21.206.87:3000` |
 | Client | [`backend/src/lib/seylanApi.ts`](../backend/src/lib/seylanApi.ts) |
 
-**Priority on fingerprint:** n8n CRM fetch → Seylan sandbox → built-in demo mock.
+**Priority on fingerprint:** n8n CRM fetch → CloudMetrics sandbox → built-in demo mock.
 
 **Routes:** `GET` / `POST /api/seylan/account-inquiry` (server-side proxy).
 
@@ -138,5 +138,5 @@ cd backend
 npm run check:env
 curl http://localhost:3000/api/health
 curl http://localhost:3000/api/beyondpresence/status
-curl http://localhost:3000/api/seylan/account-inquiry   # if Seylan configured
+curl http://localhost:3000/api/seylan/account-inquiry   # if CloudMetrics configured
 ```

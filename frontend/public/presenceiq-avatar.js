@@ -109,6 +109,12 @@
     si: voiceCatalog_default.voices.saas.si.voiceId,
     ta: voiceCatalog_default.voices.saas.ta.voiceId
   };
+  function voiceIdForLanguage(language, industry) {
+    const lang = language.toLowerCase().slice(0, 2);
+    const ind = industry && industry in voiceCatalog_default.voices ? industry : "saas";
+    const map = voiceCatalog_default.voices[ind];
+    return map?.[lang]?.voiceId ?? map?.en?.voiceId ?? VOICE_BY_LANGUAGE.en;
+  }
 
   // src/webhook.ts
   async function postSessionWebhook(backendUrl, bpWebhookSecret, payload) {
@@ -256,6 +262,21 @@
       }
     }
   };
+  function applyPipelineToAgent(client2, data) {
+    const voiceId = voiceIdForLanguage(data.visitor.language, data.business.industry);
+    const tone = data.business.personaTone ?? "professional";
+    const systemPrompt = [
+      `You are a ${tone} assistant for ${data.business.name}.`,
+      `Visitor: ${data.visitor.name ?? "guest"} (${data.visitor.language}).`,
+      `Intent: ${data.intelligence.intentScore}/100. Action: ${data.intelligence.recommendedAction}.`,
+      `Open with exactly: "${data.intelligence.personalisedOpener}"`
+    ].join("\n");
+    return client2.updateAgentContext({
+      systemPrompt,
+      firstMessage: data.intelligence.personalisedOpener,
+      voiceId
+    });
+  }
   function createBeyondPresenceClient(opts, containerId = "presenceiq-avatar") {
     if (opts.mockMode || !opts.apiKey || !opts.agentId) {
       return new MockBeyondPresenceClient(opts, containerId);
@@ -482,6 +503,14 @@
       window.dispatchEvent(
         new CustomEvent("presenceiq:pipeline-complete", { detail: data })
       );
+      if (isLatestReady(gen)) {
+        try {
+          await applyPipelineToAgent(client, data);
+          console.log("[PresenceIQ] Applied personalised opener to agent");
+        } catch (err) {
+          console.warn("[PresenceIQ] applyPipelineToAgent failed", err);
+        }
+      }
     } else {
       const reason = String(pipelineSettled.reason);
       console.error("[PresenceIQ] pipeline error", pipelineSettled.reason);

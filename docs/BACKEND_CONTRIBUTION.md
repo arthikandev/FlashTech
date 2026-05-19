@@ -12,7 +12,7 @@
 | Intelligence | `convex/intelligence.ts` — scoring storage, dashboard queries |
 | Conversations | `convex/conversations.ts` — post-call transcripts |
 | Triggers | `convex/triggers.ts` — hot-lead evaluation |
-| Seed | `convex/seed.ts` — Seylan Bank demo data |
+| Seed | `convex/seed.ts` — CloudMetrics demo data |
 | Embed SDK | `src/app/api/embed/[embedKey]/route.ts` |
 | Intent API | `src/app/api/intent/route.ts`, `src/lib/openai.ts` |
 | Pipeline | `src/app/api/pipeline/route.ts`, `src/lib/pipeline.ts` |
@@ -65,7 +65,7 @@ npm install
 npx convex dev          # terminal 1
 npm run dev             # terminal 2 — http://localhost:3000
 npx convex run seed:seedDemo
-# optional: link your Clerk user to seylan-demo
+# optional: link your Clerk user to cloudmetrics-demo
 npx convex run seed:seedDemo '{"clerkUserId":"user_..."}'
 ```
 
@@ -75,7 +75,7 @@ Configure Clerk on Convex: `npx convex env set CLERK_JWT_ISSUER_DOMAIN https://y
 
 | Field | Value |
 |-------|-------|
-| embedKey | `seylan-demo` |
+| embedKey | `cloudmetrics-demo` |
 | demo fingerprint | `demo-sarangan-fp` (set in localStorage `piq_fp`) |
 | CRM ID | `CRM-001` |
 | Expected opener | Welcome back Sarangan — Gold and Platinum plans |

@@ -66,7 +66,6 @@ fs.writeFileSync(
 
 INBOUND_WEBHOOK_SECRET=${secrets.INBOUND_WEBHOOK_SECRET ?? secrets.N8N_WEBHOOK_SECRET ?? ""}
 PRESENCEIQ_BACKEND_URL=https://backend-blond-theta-13.vercel.app
-SEYLAN_DEMO_ACCOUNT_NUMBER=064000012548001
 `,
   "utf8"
 );

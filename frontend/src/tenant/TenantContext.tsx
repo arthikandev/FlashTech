@@ -20,24 +20,7 @@ import {
   type MembershipRow,
 } from "@/lib/postAuth";
 
-/** Unsigned demo preview default only — not used for signed-in members. */
-export const DEMO_PREVIEW_EMBED_KEY = "seylan-demo";
-
-const DEMO_EMBED_OPTIONS = [
-  { key: "seylan-demo", label: "Demo workspace" },
-  { key: "cloudmetrics-demo", label: "Demo workspace B" },
-  { key: "coral-demo", label: "Demo workspace C" },
-] as const;
-
-export function demoWorkspaceLabel(embedKey: string): string {
-  return DEMO_EMBED_OPTIONS.find((o) => o.key === embedKey)?.label ?? "Demo workspace";
-}
-
-function resolveDemoEmbedKey(param: string | null): string {
-  const key = param?.trim();
-  if (key && isValidEmbedKey(key)) return key;
-  return DEMO_PREVIEW_EMBED_KEY;
-}
+export type TenantRole = "admin" | "viewer" | null;
 
 export type TenantContextValue = {
   authReady: boolean;
@@ -51,15 +34,14 @@ export type TenantContextValue = {
   workspaceLabel: string;
   memberships: MembershipRow[] | undefined;
   hasMembershipForEmbed: boolean;
+  role: TenantRole;
 };
 
 const TenantContext = createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [embedKey, setEmbedKey] = useState(() =>
-    resolveDemoEmbedKey(searchParams.get("embedKey"))
-  );
+  const [embedKey, setEmbedKey] = useState("");
 
   const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
   const { isLoading: convexAuthLoading, isAuthenticated } = useConvexAuth();
@@ -78,58 +60,50 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const urlKey = searchParams.get("embedKey");
+    if (!signedIn || memberships === undefined) return;
 
-    if (signedIn && memberships !== undefined) {
-      if (memberEmbedKey) {
-        const useUrlKey =
-          isValidEmbedKey(urlKey) &&
-          hasMembershipForEmbedKey(memberships, urlKey!);
-        const resolved = useUrlKey ? urlKey!.trim() : memberEmbedKey;
-        setEmbedKey((prev) => (prev === resolved ? prev : resolved));
-        if (!useUrlKey || urlKey !== resolved) {
-          const next = new URLSearchParams(searchParams);
-          next.set("embedKey", resolved);
-          setSearchParams(next, { replace: true });
-        }
-        setLastEmbedKey(resolved);
-        return;
-      }
+    const urlKey = searchParams.get("embedKey");
+    if (!memberEmbedKey) {
+      if (embedKey !== "") setEmbedKey("");
+      return;
     }
 
-    const fromUrl = resolveDemoEmbedKey(urlKey);
-    setEmbedKey((prev) => (prev === fromUrl ? prev : fromUrl));
-  }, [searchParams, signedIn, memberships, memberEmbedKey, setSearchParams]);
+    const useUrlKey =
+      isValidEmbedKey(urlKey) &&
+      hasMembershipForEmbedKey(memberships, urlKey!);
+    const resolved = useUrlKey ? urlKey!.trim() : memberEmbedKey;
+    setEmbedKey((prev) => (prev === resolved ? prev : resolved));
+    if (!useUrlKey || urlKey !== resolved) {
+      const next = new URLSearchParams(searchParams);
+      next.set("embedKey", resolved);
+      setSearchParams(next, { replace: true });
+    }
+    setLastEmbedKey(resolved);
+  }, [searchParams, signedIn, memberships, memberEmbedKey, embedKey, setSearchParams]);
 
-  const business = useQuery(api.businesses.getByEmbedKey, { embedKey }) as
-    | Business
-    | null
-    | undefined;
+  const business = useQuery(
+    api.businesses.getByEmbedKey,
+    embedKey ? { embedKey } : "skip"
+  ) as Business | null | undefined;
 
   const embedOptions = useMemo((): Array<{ key: string; label: string }> => {
-    const fromMembers =
+    return (
       memberships
         ?.filter((m) => m.business?.embedKey)
         .map((m) => ({
           key: m.business!.embedKey,
           label: m.business!.name,
-        })) ?? [];
-    if (fromMembers.length > 0) return fromMembers;
-    if (signedIn) {
-      if (business?.embedKey) {
-        return [{ key: business.embedKey, label: business.name }];
-      }
-      if (isValidEmbedKey(embedKey)) {
-        return [{ key: embedKey, label: demoWorkspaceLabel(embedKey) }];
-      }
-      return [];
-    }
-    return DEMO_EMBED_OPTIONS.map((o) => ({ key: o.key, label: o.label }));
-  }, [memberships, signedIn, business?.embedKey, business?.name, embedKey]);
+        })) ?? []
+    );
+  }, [memberships]);
 
-  const memberBusinessId = memberships?.find(
+  const matchingMembership = memberships?.find(
     (m) => m.business?.embedKey === embedKey
-  )?.business?._id as Id<"businesses"> | undefined;
+  );
+  const memberBusinessId = matchingMembership?.business?._id as
+    | Id<"businesses">
+    | undefined;
+  const role: TenantRole = matchingMembership?.membership?.role ?? null;
 
   const resolvedBusinessId = (memberBusinessId ?? business?._id) as
     | Id<"businesses">
@@ -163,6 +137,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     workspaceLabel,
     memberships,
     hasMembershipForEmbed,
+    role,
   };
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;

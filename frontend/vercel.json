@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!assets/|sites/|presenceiq-avatar\\.js|fake-crm\\.json).*)",
+      "source": "/((?!assets/|presenceiq-avatar\\.js).*)",
       "destination": "/index.html"
     }
   ]

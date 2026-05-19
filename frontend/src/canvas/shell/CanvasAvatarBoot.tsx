@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useBpAgentId } from "@/hooks/useBpAgentId";
-import { ensureCanvasAvatarInitialized } from "./lib/avatarSdk";
-import { t } from "./i18n/canvas.en";
+import { ensureCanvasAvatarInitialized } from "../lib/avatarSdk";
+import { t } from "../i18n/canvas.en";
 
 type Props = {
   embedKey: string;
@@ -46,7 +46,7 @@ export function CanvasAvatarBoot({ embedKey }: Props) {
       </div>
       <div
         id="presenceiq-avatar-canvas"
-        className="min-h-[280px] w-full rounded-md border border-dashed border-border bg-background/50"
+        className="min-h-70 w-full rounded-md border border-dashed border-border bg-background/50"
         aria-live="polite"
       />
     </div>

@@ -12,7 +12,7 @@ Catalog of product requirements inferred from implemented surfaces, API contract
 
 | ID | Requirement |
 |----|-------------|
-| **FR-E1** | Host sites load an async embed script that boots the PresenceIQ client for a tenant-specific **`embedKey`** (e.g. `seylan-demo`). See [API_CONTRACT.md](API_CONTRACT.md) (Embed). |
+| **FR-E1** | Host sites load an async embed script that boots the PresenceIQ client for a tenant-specific **`embedKey`** (e.g. `cloudmetrics-demo`). See [API_CONTRACT.md](API_CONTRACT.md) (Embed). |
 | **FR-E2** | After fingerprinting, the embed raises a DOM event **`presenceiq:ready`** with `{ visitorId, businessId, sessionId }` so the avatar layer can proceed. |
 | **FR-E3** | **`POST /api/fingerprint`** registers or updates a visitor from `{ embedKey, fingerprint, path, title, language, referrer }` and returns visitor/business linkage and CRM hints (`crmId`, return counts). |
 
@@ -29,7 +29,7 @@ Catalog of product requirements inferred from implemented surfaces, API contract
 | ID | Requirement |
 |----|-------------|
 | **FR-C1** | **`POST /api/webhooks/crm-ingest`** (alias `POST /api/webhooks/n8n/crm`) accepts CRM payloads keyed by `visitorId` and updates `crmId` and structured `crmData`. Secured via **`X-Webhook-Secret`**. |
-| **FR-C2** | **Seylan sandbox** probes: `GET|POST /api/seylan/account-inquiry` when `SEYLAN_API_*` env is set. |
+| **FR-C2** | **CloudMetrics sandbox** probes: `GET|POST /api/seylan/account-inquiry` when `SEYLAN_API_*` env is set. |
 | **FR-C3** | **Fake/demo CRM** data path exists when live automation is not configured. |
 
 ### Beyond Presence (avatar) orchestration

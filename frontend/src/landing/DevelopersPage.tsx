@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LandingFooter } from "./components/LandingFooter";
 import { LandingLocaleProvider, useLandingLocale } from "./i18n/LandingLocaleProvider";
 
-const DEVELOPERS_HERO_SRC = "/developers-hero.jpg";
 const API_DOCS_URL = "https://docs.presenceiq.ai";
 
 const SOCIAL_LINKS = [
@@ -11,9 +9,14 @@ const SOCIAL_LINKS = [
   { key: "developers.github" as const, href: "https://github.com" },
 ] as const;
 
+const TEAM_MEMBERS = [
+  { name: "Sarangna Raviraj", photo: "/developers/sarangna-raviraj.png" },
+  { name: "Arthikan Vettivel", photo: "/developers/arthikan-vettivel.png" },
+  { name: "Sriranganathan Thebikan", photo: "/developers/sriranganathan-thebikan.png" },
+] as const;
+
 function DevelopersContent() {
   const { t } = useLandingLocale();
-  const [heroFailed, setHeroFailed] = useState(false);
 
   return (
     <div className="landing-theme brand-theme flex min-h-screen flex-col bg-black text-[#E1E0CC]">
@@ -49,17 +52,7 @@ function DevelopersContent() {
             aria-hidden
           />
 
-          {!heroFailed ? (
-            <img
-              src={DEVELOPERS_HERO_SRC}
-              alt={t("developers.heroAlt")}
-              className="absolute inset-0 h-full w-full object-cover opacity-40"
-              loading="lazy"
-              onError={() => setHeroFailed(true)}
-            />
-          ) : null}
-
-          <div className="relative z-10 mx-auto max-w-6xl px-4 py-16 md:py-24">
+          <div className="relative z-10 mx-auto max-w-6xl px-4 py-16 md:py-20">
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-gray-500">
               {t("developers.eyebrow")}
             </p>
@@ -94,6 +87,40 @@ function DevelopersContent() {
                 {t("developers.apiDocs")}
               </a>
             </p>
+          </div>
+        </section>
+
+        <section className="border-b border-[#212121] bg-black">
+          <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-gray-500">
+              {t("developers.teamEyebrow")}
+            </p>
+            <h2 className="mt-3 font-serif text-2xl font-bold tracking-tight text-[#fdfcf8] md:text-3xl">
+              {t("developers.teamTitle")}
+            </h2>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-gray-500 md:text-base">
+              {t("developers.teamSubtitle")}
+            </p>
+
+            <ul className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {TEAM_MEMBERS.map((member) => (
+                <li key={member.name} className="group">
+                  <div className="overflow-hidden rounded-2xl border border-[#212121] bg-[#101010]">
+                    <div className="aspect-[3/4] overflow-hidden bg-[#0a0a0a]">
+                      <img
+                        src={member.photo}
+                        alt={member.name}
+                        className="h-full w-full object-cover object-center grayscale transition duration-500 group-hover:grayscale-0"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-4 text-center font-serif text-lg font-semibold tracking-tight text-[#E1E0CC]">
+                    {member.name}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>

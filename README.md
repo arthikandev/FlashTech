@@ -37,7 +37,7 @@ cd backend && cp .env.example .env.local && npm install && npm run dev
 
 # Terminal 3 — Product UI ← open this in the browser
 cd frontend && npm install && npm run dev
-# → http://localhost:5173  (dashboard: /dashboard, Seylan demo: /demos/seylan)
+# → http://localhost:5173  (dashboard: /dashboard, CloudMetrics demo: /demos/cloudmetrics)
 ```
 
 See **[backend/SETUP.md](backend/SETUP.md)** for API keys. Root `/` on the API server redirects to the frontend in the browser; use `/?api=1` to stay on the API index.
@@ -45,7 +45,7 @@ See **[backend/SETUP.md](backend/SETUP.md)** for API keys. Root `/` on the API s
 ## Embed (demo sites)
 
 ```html
-<script src="http://localhost:3000/api/embed/seylan-demo" async></script>
+<script src="http://localhost:3000/api/embed/cloudmetrics-demo" async></script>
 ```
 
 Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
@@ -55,7 +55,7 @@ Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 - [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) — functional and non-functional requirements
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md)
 - [docs/BEYOND_PRESENCE.md](docs/BEYOND_PRESENCE.md) — Beyond Presence setup
-- [docs/API_PROVIDERS.md](docs/API_PROVIDERS.md) — OpenAI, BP, Seylan, n8n, Convex, Clerk
+- [docs/API_PROVIDERS.md](docs/API_PROVIDERS.md) — OpenAI, BP, CloudMetrics, n8n, Convex, Clerk
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/BACKEND_CONTRIBUTION.md](docs/BACKEND_CONTRIBUTION.md)
 
@@ -64,6 +64,6 @@ Listen for `presenceiq:ready`, then call `POST /api/pipeline`.
 - Backend (Vercel): https://backend-blond-theta-13.vercel.app
 - Convex: https://adamant-puffin-769.convex.cloud
 - Frontend (Vercel): https://frontend-nu-neon-44.vercel.app
-- Seylan demo: https://frontend-nu-neon-44.vercel.app/sites/seylan/index.html#/pricing
+- CloudMetrics demo: https://frontend-nu-neon-44.vercel.app/sites/cloudmetrics/index.html#/pricing
 - Avatar SDK: https://frontend-nu-neon-44.vercel.app/presenceiq-avatar.js
 - n8n setup: [devops/n8n/PRODUCTION.md](devops/n8n/PRODUCTION.md) (paste workflow webhook URLs into backend Vercel env)

@@ -39,6 +39,7 @@ export function isValidEmbedKey(key: string | null | undefined): boolean {
 
 export function pickEmbedKey(memberships: MembershipRow[]): string {
   const withEmbed = memberships.filter((m) => m.business?.embedKey);
+  if (withEmbed.length === 0) return "";
   const last = getLastEmbedKey();
   const match =
     withEmbed.find((m) => m.business!.embedKey === last) ?? withEmbed[0];
@@ -79,7 +80,6 @@ export type ClientAuthRow = {
   business: { embedKey: string } | null;
 };
 
-/** Signed-in operator workspace (not marketing demo sites). */
 export const CANVAS_PATH = "/canvas";
 
 /** Where to send a signed-in user after login or SSO. */

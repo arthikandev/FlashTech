@@ -11,7 +11,7 @@ Aligned with [docs/DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md).
 
 | Hour | Checkpoint | Done |
 |------|------------|------|
-| 4 | Embed + visitor on Seylan demo | [x] |
+| 4 | Embed + visitor on CloudMetrics demo | [x] |
 | 10 | Reload shows visitor in dashboard (Sarangan E2E) | [x] |
 | 15 | Live dashboard with intent scores (reactive) | [x] |
 | 20 | Full demo script ready | [ ] |
@@ -58,7 +58,7 @@ npm run dev
 | `npm run dev:deployed` | Production Vercel API (UI dev only) |
 | `npm run deploy` | Build + push to Vercel |
 
-Routes: `/demos/seylan` (React) · `/sites/seylan/index.html#/pricing` (static)  
+Routes: `/demos/cloudmetrics` (React) · `/sites/cloudmetrics/index.html#/pricing` (static)  
 Dashboard: http://localhost:5173/dashboard
 
 **Production:** https://frontend-nu-neon-44.vercel.app

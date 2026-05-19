@@ -3,19 +3,14 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { clerkEnabled } from "@/convex/api";
 
-const DEMO_EMBED_KEYS = new Set(["seylan-demo", "cloudmetrics-demo", "coral-demo"]);
-
 type Props = {
   children: ReactNode;
-  allowDemoPreview?: boolean;
 };
 
-export function ProtectedRoute({ children, allowDemoPreview = true }: Props) {
+export function ProtectedRoute({ children }: Props) {
   const location = useLocation();
-  const embedKey = new URLSearchParams(location.search).get("embedKey")?.trim() ?? "";
-  const isDemoPreview = allowDemoPreview && DEMO_EMBED_KEYS.has(embedKey);
 
-  if (!clerkEnabled || isDemoPreview) {
+  if (!clerkEnabled) {
     return <>{children}</>;
   }
 

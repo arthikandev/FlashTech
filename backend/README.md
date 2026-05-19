@@ -2,7 +2,7 @@
 
 Next.js API + Convex + OpenAI intent scoring.
 
-**Full setup:** [SETUP.md](SETUP.md) — API keys, Convex, seed, test commands.
+**Full setup:** [SETUP.md](SETUP.md) — API keys, Convex, test commands.
 
 ## Quick start
 
@@ -11,7 +11,6 @@ cp .env.example .env.local   # add OPENAI_API_KEY in .env.local only
 npm install
 npm run check:env
 npx convex dev               # terminal 1
-npx convex run seed:seedDemo # terminal 2
 npm run dev                  # terminal 2 — http://localhost:3000
 # If port 3000 is another app: npm run dev:3001
 ```
@@ -25,10 +24,9 @@ npm run dev                  # terminal 2 — http://localhost:3000
 | `NEXT_PUBLIC_APP_URL` | Yes |
 | `BEYONDPRESENCE_API_KEY` | Recommended (avatar agent sync) |
 | `INBOUND_WEBHOOK_SECRET` / `BP_WEBHOOK_SECRET` | Recommended (webhook verification) |
-| `SEYLAN_API_*` | Recommended (hackathon sandbox CRM) |
-| `WEBHOOK_*` outbound URLs | Optional (else Seylan → demo mock); legacy `N8N_WEBHOOK_*` still supported |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Dashboard (`/dashboard`) |
-| `CLERK_SECRET_KEY` | Dashboard |
+| `WEBHOOK_*` outbound URLs | Optional (CRM fetch / Slack / churn webhooks); legacy `N8N_WEBHOOK_*` still supported |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Canvas workspace auth |
+| `CLERK_SECRET_KEY` | Canvas workspace auth |
 
 Convex deployment: `dev:adamant-puffin-769` · `https://adamant-puffin-769.convex.cloud`
 
@@ -49,13 +47,11 @@ Open `/dashboard` after sign-in. See [SETUP.md](SETUP.md).
 
 | Route | Description |
 |-------|-------------|
-| `/dashboard` | Live sessions (Clerk + Convex; sign-in required) |
 | `GET /api/health` | Config status + automation integration flags |
 | `GET /api/beyondpresence/status` | Verify BP API key + list agents |
-| `GET /api/embed/seylan-demo` | Embed SDK for demo sites |
+| `GET /api/embed/<embedKey>` | Embed SDK for a business |
 | `POST /api/fingerprint` | Visitor fingerprint upsert |
 | `POST /api/pipeline` | Full pre-conversation pipeline |
-| `GET/POST /api/seylan/account-inquiry` | Test Seylan sandbox CRM lookup |
 | `POST /api/intent` | Intent score only |
 
 See [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md) · [../docs/BEYOND_PRESENCE.md](../docs/BEYOND_PRESENCE.md) · [../docs/API_PROVIDERS.md](../docs/API_PROVIDERS.md).
@@ -75,5 +71,4 @@ See [../docs/API_CONTRACT.md](../docs/API_CONTRACT.md) · [../docs/BEYOND_PRESEN
 | `npm run test:webhooks` | E2E integration test (dev server required) |
 | `npm run validate:n8n` | Alias → `validate:webhooks` |
 | `npm run test:n8n` | Alias → `test:webhooks` |
-| `npm run seed` | Seed Seylan Bank demo data |
 | `npm run convex:dev` | Start Convex sync |

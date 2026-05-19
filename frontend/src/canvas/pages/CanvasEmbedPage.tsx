@@ -5,9 +5,9 @@ import { useTenant } from "@/tenant/TenantContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/Button";
 import { showSuccess } from "@/lib/toast";
-import { buildEmbedSnippet } from "./lib/embedSnippet";
-import { CanvasSubpageHeader } from "./shell/CanvasSubpageHeader";
-import { t } from "./i18n/canvas.en";
+import { buildEmbedSnippet } from "../lib/embedSnippet";
+import { CanvasSubpageHeader } from "../shell/CanvasSubpageHeader";
+import { t } from "../i18n/canvas.en";
 
 export function CanvasEmbedPage() {
   const { embedKey } = useTenant();
