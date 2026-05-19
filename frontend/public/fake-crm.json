@@ -1,9 +1,0 @@
-{
-  "CRM-001": {
-    "name": "Sarangan",
-    "email": "sarangan@example.com",
-    "accountType": "prospect",
-    "churnRisk": "low",
-    "notes": "Compared Gold and Platinum plans 3 times this week"
-  }
-}
