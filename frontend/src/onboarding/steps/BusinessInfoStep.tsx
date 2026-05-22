@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { INDUSTRIES } from "../constants";
+import { getCategoryByIndustry } from "@/lib/categories";
 import { onboardingInputClass, onboardingSelectClass } from "../inputStyles";
 import { OnboardingShell } from "../components/OnboardingShell";
 import type { OnboardingData } from "../types";
@@ -10,18 +11,32 @@ type Props = {
   onBack: () => void;
   onContinue: () => void;
   showBack: boolean;
+  readOnly?: boolean;
 };
 
-export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }: Props) {
+export function BusinessInfoStep({
+  data,
+  update,
+  onBack,
+  onContinue,
+  showBack,
+  readOnly = false,
+}: Props) {
+  const category = getCategoryByIndustry(data.industry);
+
   const canContinue =
     data.companyName.trim().length > 0 &&
-    data.website.trim().length > 0 &&
+    (readOnly || data.website.trim().length > 0) &&
     data.industry !== "";
 
   return (
     <OnboardingShell
       title="Business info"
-      description="Tell us about your company so we can tailor the avatar and embed."
+      description={
+        readOnly
+          ? "Your client account is set up. Review details, then continue to avatar and embed."
+          : "Tell us about your company so we can tailor the avatar and embed."
+      }
       onBack={onBack}
       onContinue={onContinue}
       continueDisabled={!canContinue}
@@ -36,6 +51,8 @@ export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }:
           onChange={(e) => update({ companyName: e.target.value })}
           placeholder="Acme Corp"
           className={onboardingInputClass}
+          readOnly={readOnly}
+          disabled={readOnly}
         />
       </div>
       <div className="space-y-2">
@@ -47,23 +64,35 @@ export function BusinessInfoStep({ data, update, onBack, onContinue, showBack }:
           onChange={(e) => update({ website: e.target.value })}
           placeholder="https://example.com"
           className={onboardingInputClass}
+          readOnly={readOnly}
+          disabled={readOnly}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="industry">Industry</Label>
-        <select
-          id="industry"
-          value={data.industry}
-          onChange={(e) => update({ industry: e.target.value as OnboardingData["industry"] })}
-          className={onboardingSelectClass}
-        >
-          <option value="">Select industry</option>
-          {INDUSTRIES.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <Label htmlFor="industry">Industry category</Label>
+        {category ? (
+          <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+            <p className="text-sm font-medium text-foreground">{category.name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {category.tag} · {category.coreMetric}
+            </p>
+          </div>
+        ) : (
+          <select
+            id="industry"
+            value={data.industry}
+            onChange={(e) => update({ industry: e.target.value as OnboardingData["industry"] })}
+            className={onboardingSelectClass}
+            disabled={readOnly}
+          >
+            <option value="">Select industry</option>
+            {INDUSTRIES.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
     </OnboardingShell>
   );

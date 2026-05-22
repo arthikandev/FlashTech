@@ -341,14 +341,14 @@ export function CinematicFooter() {
               <div className="flex flex-wrap justify-center gap-4 w-full">
                 <MagneticButton
                   as={Link}
-                  to="/demos/seylan"
+                  to="/sites/cloudmetrics/index.html"
                   className="footer-glass-pill w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-full text-foreground font-bold text-sm md:text-base text-center"
                 >
                   See live demo
                 </MagneticButton>
                 <MagneticButton
-                  as="a"
-                  href={getDashboardHref()}
+                  as={Link}
+                  to={getDashboardHref()}
                   className="footer-glass-pill w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-full text-foreground font-bold text-sm md:text-base text-center"
                 >
                   Open dashboard

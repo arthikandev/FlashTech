@@ -50,4 +50,4 @@ curl -s http://localhost:3001/api/beyondpresence/status | jq .
 bash ../devops/scripts/test-n8n-flow.sh   # after N8N_WEBHOOK_* set
 ```
 
-Demo site (Person 3 frontend, frozen): `http://localhost:5173/sites/seylan/index.html#/pricing`
+Demo site (Person 3 frontend, frozen): `http://localhost:5173/sites/cloudmetrics/index.html#/pricing`

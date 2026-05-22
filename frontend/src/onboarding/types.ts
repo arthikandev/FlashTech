@@ -26,6 +26,10 @@ export type OnboardingData = {
   greetingStyle: string;
   escalationRules: string;
   languages: string[];
+  /** Beyond Presence managed agent id (from app.bey.chat). */
+  bpAgentId: string;
+  /** When true, do not overwrite BP agent system prompt on each session. */
+  useNativeBpAgent: boolean;
 };
 
 export const ONBOARDING_STEPS: { id: OnboardingStepId; label: string }[] = [
@@ -47,4 +51,6 @@ export const defaultOnboardingData = (): OnboardingData => ({
   greetingStyle: "personalised",
   escalationRules: "",
   languages: ["English"],
+  bpAgentId: "",
+  useNativeBpAgent: false,
 });

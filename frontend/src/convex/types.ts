@@ -9,17 +9,48 @@ export type CrmData = {
   notes?: string;
 };
 
+export type CategoryCode =
+  | "BANKING_FINANCIAL"
+  | "SAAS_SOFTWARE"
+  | "HOTELS_TOURISM"
+  | "HEALTHCARE"
+  | "ECOMMERCE_RETAIL"
+  | "HR_RECRUITMENT";
+
+export type CategoryRecord = {
+  _id: string;
+  code: CategoryCode;
+  industryKey: string;
+  name: string;
+  tag: string;
+  coreMetric: string;
+  dashboardFocus: string;
+  exampleClients: string[];
+  sortOrder: number;
+  updatedAt: number;
+};
+
+export type CategoryWithClients = CategoryRecord & {
+  clientCount: number;
+  clients: Array<{ _id: string; name: string; embedKey: string }>;
+};
+
 export type Business = {
   _id: Id<"businesses">;
   name: string;
   embedKey: string;
   industry?: string;
+  categoryCode?: CategoryCode;
   avatarConfig?: {
     bpAgentId?: string;
     personaTone?: string;
     defaultLanguage?: string;
+    useNativeBpAgent?: boolean;
   };
   webhookUrls?: {
+    crmFetch?: string;
+    crmPush?: string;
+    slackHotLead?: string;
     n8nCrmFetch?: string;
     n8nCrmPush?: string;
     n8nSlack?: string;

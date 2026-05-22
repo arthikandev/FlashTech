@@ -2,12 +2,49 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { api, getConvexClient } from "./convex";
 import { scoreIntent } from "./openai";
 import type { IntelligenceResult } from "./types";
+import type { BusinessWebhookUrls } from "./webhookUrlsResolve";
+import {
+  pickChurnRiskWebhookUrl,
+  pickTenantCrmFetchUrl,
+  pickTenantCrmPushUrl,
+  pickTenantSlackHotLeadUrl,
+} from "./webhookUrlsResolve";
 
 export type PipelineContext = {
   intelligence: IntelligenceResult;
   visitor: Doc<"visitors">;
   business: Doc<"businesses">;
 };
+
+const WEBHOOK_TIMEOUT_MS = 2_000;
+
+async function postWebhook(
+  url: string,
+  payload: Record<string, unknown> | unknown,
+  label: string
+): Promise<void> {
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
+    });
+  } catch (err) {
+    const aborted =
+      (err instanceof Error && err.name === "AbortError") ||
+      (err instanceof DOMException && err.name === "TimeoutError");
+    console.error(
+      JSON.stringify({
+        event: aborted ? "webhook_timeout" : "webhook_failed",
+        label,
+        url,
+        timeoutMs: WEBHOOK_TIMEOUT_MS,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    );
+  }
+}
 
 export function saveIntelligenceAsync(
   visitorId: Id<"visitors">,
@@ -38,7 +75,8 @@ export function saveIntelligenceAsync(
 
 export async function runIntentPipeline(
   visitorId: Id<"visitors">,
-  businessId: Id<"businesses">
+  businessId: Id<"businesses">,
+  options?: { operatorMessage?: string; model?: string }
 ): Promise<PipelineContext> {
   const convex = getConvexClient();
 
@@ -60,7 +98,8 @@ export async function runIntentPipeline(
     pageHistory: visitor.pageHistory,
     crmNotes: visitor.crmData?.notes,
     churnRisk: visitor.crmData?.churnRisk,
-    fingerprint: visitor.fingerprint,
+    operatorMessage: options?.operatorMessage,
+    model: options?.model,
   });
 
   saveIntelligenceAsync(visitorId, businessId, intelligence);
@@ -83,72 +122,67 @@ export async function waitForCrmData(
   }
 }
 
-export async function triggerN8nCrmFetch(payload: {
-  visitorId: string;
-  businessId: string;
-  fingerprint: string;
-  crmId?: string;
-  returnCount: number;
-}): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_CRM_FETCH;
-  if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[n8n] CRM fetch trigger failed", err);
-  }
+export function resolveAutomationCrmFetchUrl(
+  tenant?: BusinessWebhookUrls | null
+): string | undefined {
+  return pickTenantCrmFetchUrl(tenant ?? undefined);
 }
 
-export async function fireSlackWebhook(payload: Record<string, unknown>): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_SLACK;
-  if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[n8n] Slack webhook failed", err);
-  }
+export function resolveAutomationSlackHotLeadUrl(
+  tenant?: BusinessWebhookUrls | null
+): string | undefined {
+  return pickTenantSlackHotLeadUrl(tenant ?? undefined);
 }
 
-export async function forwardCrmPush(payload: Record<string, unknown>): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_CRM_PUSH;
-  if (!url) return;
+export function resolveAutomationCrmPushUrl(
+  tenant?: BusinessWebhookUrls | null
+): string | undefined {
+  return pickTenantCrmPushUrl(tenant ?? undefined);
+}
 
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[n8n] CRM push failed", err);
-  }
+export function resolveAutomationChurnUrl(): string | undefined {
+  return pickChurnRiskWebhookUrl();
+}
+
+export async function triggerCrmFetchAutomation(
+  payload: {
+    visitorId: string;
+    businessId: string;
+    fingerprint: string;
+    crmId?: string;
+    returnCount: number;
+  },
+  tenantUrls?: BusinessWebhookUrls | null
+): Promise<void> {
+  const url = resolveAutomationCrmFetchUrl(tenantUrls);
+  if (!url) return;
+  await postWebhook(url, payload, "crm_fetch");
+}
+
+export async function fireSlackWebhook(
+  payload: Record<string, unknown>,
+  tenantUrls?: BusinessWebhookUrls | null
+): Promise<void> {
+  const url = resolveAutomationSlackHotLeadUrl(tenantUrls);
+  if (!url) return;
+  await postWebhook(url, payload, "slack_hot_lead");
+}
+
+export async function forwardCrmPush(
+  payload: Record<string, unknown>,
+  tenantUrls?: BusinessWebhookUrls | null
+): Promise<void> {
+  const url = resolveAutomationCrmPushUrl(tenantUrls);
+  if (!url) return;
+  await postWebhook(url, payload, "crm_push");
 }
 
 export async function fireChurnWebhook(
   payload: Record<string, unknown>
 ): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_CHURN;
+  const url = resolveAutomationChurnUrl();
   if (!url) return;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[n8n] Churn webhook failed", err);
-  }
+  await postWebhook(url, payload, "churn_workflow");
 }
 
 export async function fireTriggerWebhook(
@@ -156,14 +190,5 @@ export async function fireTriggerWebhook(
   payload: Record<string, unknown>
 ): Promise<void> {
   if (!webhookUrl?.trim()) return;
-
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("[automation] Trigger webhook failed", webhookUrl, err);
-  }
+  await postWebhook(webhookUrl, payload, "trigger");
 }

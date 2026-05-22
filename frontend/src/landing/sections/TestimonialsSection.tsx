@@ -14,7 +14,7 @@ type Review = {
 const reviews: Review[] = [
   {
     name: "Priya Mendis",
-    username: "@seylan_bank",
+    username: "@northwind_bank",
     body: "PresenceIQ surfaced return visits and plan comparisons before our avatar spoke — the opener felt genuinely personal.",
     img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop",
   },
@@ -45,7 +45,7 @@ const reviews: Review[] = [
   {
     name: "David Park",
     username: "@customer_success",
-    body: "CRM context arrived before the call via n8n — the avatar greeted our prospect by name on the first line.",
+    body: "CRM context arrived before the call through our webhook automation — the avatar greeted our prospect by name on the first line.",
     img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop",
   },
 ];

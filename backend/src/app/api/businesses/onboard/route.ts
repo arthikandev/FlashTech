@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { envSlackHotLeadUrl } from "@/lib/automationEnv";
 import { api, getConvexClient } from "@/lib/convex";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
 
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       }
     );
 
-    const slackWebhook = process.env.N8N_WEBHOOK_SLACK?.trim();
+    const slackWebhook = envSlackHotLeadUrl();
     if (slackWebhook) {
       try {
         await convex.mutation(api.triggers.seedTriggers, {
@@ -66,10 +67,7 @@ export async function POST(request: Request) {
       embedKey,
       embedSnippet,
       embedUrl: `${base}/api/embed/${embedKey}`,
-      dashboardHint:
-        "Link your Clerk user: npx convex run seed:seedDemo '{\"clerkUserId\":\"user_...\",\"embedKey\":\"" +
-        embedKey +
-        "\"}'",
+      dashboardHint: `Open the workspace at ${appBaseUrl().replace(/\/api\/?$/, "")}/canvas?embedKey=${embedKey}`,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {

@@ -16,7 +16,7 @@ import { TestimonialsSection } from "./sections/TestimonialsSection";
 export function LandingPage() {
   return (
     <LandingLocaleProvider>
-      <div className="landing-theme brand-theme min-h-screen bg-black">
+      <div className="landing-theme brand-theme min-h-screen bg-black [&_section[id]]:scroll-mt-[5.75rem]">
         <HeroSection />
         <BeyondPresenceLiveSection />
         <MetricsBar />

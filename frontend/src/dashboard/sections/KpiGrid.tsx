@@ -8,11 +8,13 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { computeKpiSnapshot, type KpiSnapshot } from "@/lib/dashboard/metrics";
+import type { CategoryDefinition } from "@/lib/categories";
 import type { DashboardStats, LiveSession } from "@/convex/types";
 
 type Props = {
   sessions: LiveSession[] | undefined;
   stats?: DashboardStats | undefined;
+  category?: CategoryDefinition;
 };
 
 const KPI_META: Array<{
@@ -62,13 +64,23 @@ function resolveSnapshot(
   return computeKpiSnapshot(sessions);
 }
 
-export function KpiGrid({ sessions, stats }: Props) {
+function resolveKpiMeta(category?: CategoryDefinition) {
+  if (!category?.mockKpis.length) return KPI_META;
+  return KPI_META.map((meta, i) => {
+    const override = category.mockKpis[i];
+    if (!override) return meta;
+    return { ...meta, label: override.label };
+  });
+}
+
+export function KpiGrid({ sessions, stats, category }: Props) {
   const snapshot = resolveSnapshot(stats, sessions);
+  const kpiMeta = resolveKpiMeta(category);
 
   if (snapshot === undefined) {
     return (
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {KPI_META.map((m) => (
+        {kpiMeta.map((m) => (
           <Card key={m.key}>
             <CardHeader className="pb-2">
               <Skeleton className="h-4 w-24" />
@@ -97,10 +109,11 @@ export function KpiGrid({ sessions, stats }: Props) {
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-      {KPI_META.map((m) => {
+      {kpiMeta.map((m, i) => {
         const Icon = m.icon;
         const raw = snapshot[m.key];
         const display = m.format(raw);
+        const hint = category?.mockKpis[i]?.hint;
         return (
           <Card key={m.key}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -109,6 +122,7 @@ export function KpiGrid({ sessions, stats }: Props) {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-semibold tabular-nums">{display}</p>
+              {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
             </CardContent>
           </Card>
         );

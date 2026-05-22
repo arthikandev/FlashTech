@@ -11,7 +11,7 @@
 
 ## What I deliver
 
-- Three embed demo sites (Seylan, CloudMetrics, Coral)
+- Three embed demo sites (CloudMetrics, CloudMetrics, Coral)
 - PresenceIQ embed on each demo page (`presenceiq:ready`)
 - Live operator dashboard (reactive Convex sessions + detail)
 - Second-screen layout for investor demo
@@ -38,10 +38,10 @@ Open http://localhost:5173 — cinematic landing at `/`; dashboard and demos on 
 | Route | Page |
 |-------|------|
 | `/` | Marketing landing — Hero, About, demo selector, Features, infinite-scroll testimonials, cinematic footer |
-| `/dashboard` | Live Convex sessions dashboard |
-| `/demos/seylan` | Seylan Bank embed demo |
-| `/demos/cloudmetrics` | CloudMetrics SaaS embed demo |
-| `/demos/coral` | Coral Resort embed demo |
+| `/canvas` | Live Convex operator workspace |
+| `/sites/cloudmetrics/index.html` | CloudMetrics static embed demo |
+| `/sites/cloudmetrics/index.html` | CloudMetrics SaaS static embed demo |
+| `/sites/coral/index.html` | Coral Resort static embed demo |
 
 UI components live in `src/components/ui/` (shadcn-style: `motion-footer`, `testimonials-columns-1`).
 
@@ -50,7 +50,7 @@ UI components live in `src/components/ui/` (shadcn-style: `motion-footer`, `test
 | Service | URL |
 |---------|-----|
 | Frontend dashboard | _ |
-| Seylan demo | _ |
+| CloudMetrics demo | _ |
 | CloudMetrics demo | _ |
 | Coral demo | _ |
 
@@ -60,5 +60,5 @@ Backend and Convex URLs are owned by Person 2; use their values in `.env.local` 
 
 - `backend/` — APIs, Convex schema, embed SDK source
 - `avatar/` — BeyondPresence
-- `devops/` — deploy scripts, n8n
+- `devops/` — deploy scripts, automation webhook notes
 - `docs/` — shared team docs (read and link only)

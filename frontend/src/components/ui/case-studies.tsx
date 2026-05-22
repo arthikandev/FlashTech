@@ -108,7 +108,7 @@ const defaultStudies: CaseStudy[] = [
     quote:
       "PresenceIQ surfaced Sarangan's return visits and plan comparisons before our avatar spoke — the opener felt genuinely personal.",
     name: "Priya Mendis",
-    role: "Head of Digital, Seylan Bank",
+    role: "Head of Digital, Northwind Bank",
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=750&fit=crop",
     icon: Monitor,

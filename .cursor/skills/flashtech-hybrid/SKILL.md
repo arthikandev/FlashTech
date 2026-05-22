@@ -16,7 +16,7 @@ description: >-
 | Landing + login | Person 3 (you) | `frontend/src/landing/`, `frontend/src/auth/` | `main` |
 | API, Clerk dashboard, embed | Person 2 (friend) | `backend/`, friend may use `setup-clerk` | friend workflow unchanged |
 | Avatar embed SDK | Person 1 | `avatar/` | — |
-| n8n / deploy docs | Person 1 | `devops/` | — |
+| Automation / deploy docs | Person 1 | `devops/` | — |
 
 **Hard rule:** Do not replace or redesign the cinematic landing on `main` unless the user explicitly asks. Friend must not edit `frontend/src/landing/**` on `main` without review.
 

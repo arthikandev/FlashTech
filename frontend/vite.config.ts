@@ -22,9 +22,6 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, "index.html"),
-          seylan: path.resolve(__dirname, "sites/seylan/index.html"),
-          cloudmetrics: path.resolve(__dirname, "sites/cloudmetrics/index.html"),
-          coral: path.resolve(__dirname, "sites/coral/index.html"),
         },
       },
     },

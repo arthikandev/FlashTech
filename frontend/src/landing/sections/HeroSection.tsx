@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { clerkEnabled } from "@/convex/api";
+import { CANVAS_PATH } from "@/lib/postAuth";
 import { PREVIEW_VIDEO_SRC } from "@/lib/previewVideo";
 import { KeywordTicker } from "../components/KeywordTicker";
 import { LandingMobileMenu } from "../components/LandingMobileMenu";
@@ -11,7 +13,8 @@ import { LandingNavLinks } from "../components/LandingNavLinks";
 import { WordsPullUp } from "../components/WordsPullUp";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 import { useLandingLocale } from "../i18n/LandingLocaleProvider";
-import { NAV_LINK_CLASS } from "../nav";
+import { useClerkUserButtonAppearance } from "@/auth/useClerkUserButtonAppearance";
+import { LANDING_NAV_PILL_CLASS, NAV_LINK_CLASS } from "../nav";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -19,15 +22,16 @@ const navLinkClass = NAV_LINK_CLASS;
 
 function HeroNavAuth({ className = "" }: { className?: string }) {
   const { t } = useLandingLocale();
+  const userButtonAppearance = useClerkUserButtonAppearance();
 
   if (!clerkEnabled) {
     return (
       <div className={`flex items-center gap-3 ${className}`}>
-        <Link to="/onboard" className={navLinkClass}>
+        <Link to="/login" className={navLinkClass}>
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/onboard"
+          to="/register"
           className="shimmer-btn rounded-full bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary/90"
         >
           {t("auth.getStarted")}
@@ -50,12 +54,7 @@ function HeroNavAuth({ className = "" }: { className?: string }) {
         </Link>
       </SignedOut>
       <SignedIn>
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: { avatarBox: "w-9 h-9 ring-2 ring-primary/30" },
-          }}
-        />
+        <UserButton afterSignOutUrl="/" appearance={userButtonAppearance} />
       </SignedIn>
     </div>
   );
@@ -97,8 +96,15 @@ export function HeroSection() {
             PresenceIQ
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 rounded-full border border-white/10 bg-black/40 backdrop-blur-xl px-6 py-2.5">
-            <LandingNavLinks />
+          <nav
+            data-nav-pill
+            className={cn(
+              "hidden lg:flex min-w-0 max-w-[min(920px,calc(100vw-20rem))] items-center overflow-visible",
+              LANDING_NAV_PILL_CLASS
+            )}
+            aria-label="Main"
+          >
+            <LandingNavLinks className="flex h-8 items-center gap-4 xl:gap-5 flex-nowrap" />
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
@@ -142,12 +148,33 @@ export function HeroSection() {
                   {t("hero.tagline")}
                 </p>
                 <div className="mt-6">
-                  <Link
-                    to="/demos/seylan"
-                    className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
-                  >
-                    {t("auth.seeLiveDemo")}
-                  </Link>
+                  {clerkEnabled ? (
+                    <>
+                      <SignedOut>
+                        <Link
+                          to="/register"
+                          className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
+                        >
+                          {t("auth.getStarted")}
+                        </Link>
+                      </SignedOut>
+                      <SignedIn>
+                        <Link
+                          to={CANVAS_PATH}
+                          className="flex w-full sm:w-auto items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/60 hover-lift transition-colors"
+                        >
+                          {t("auth.openWorkspace")}
+                        </Link>
+                      </SignedIn>
+                    </>
+                  ) : (
+                    <Link
+                      to="/register"
+                      className="flex w-full sm:w-auto items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] hover:border-primary/40 hover-lift transition-colors"
+                    >
+                      {t("auth.getStarted")}
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             </div>

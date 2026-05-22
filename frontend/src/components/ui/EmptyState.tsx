@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Inbox, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 type Preset = "no-data" | "no-results" | "error";
 
@@ -11,6 +12,7 @@ type Props = {
   icon?: LucideIcon;
   actionLabel?: string;
   onAction?: () => void;
+  variant?: "dark" | "light";
 };
 
 const PRESETS: Record<
@@ -41,24 +43,44 @@ export function EmptyState({
   icon,
   actionLabel,
   onAction,
+  variant = "dark",
 }: Props) {
   const presetConfig = PRESETS[preset];
   const Icon = icon ?? presetConfig.icon;
+  const isLight = variant === "light";
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-12 px-4 text-center rounded-xl border border-dashed border-[#212121] bg-[#0a0a0a]/50">
-      <Icon className="h-8 w-8 text-gray-600" strokeWidth={1.25} />
-      <h3 className="text-sm font-medium text-[#E1E0CC]">
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-12 px-4 text-center",
+        isLight ? "border-border bg-muted/40" : "border-[#212121] bg-[#0a0a0a]/50"
+      )}
+    >
+      <Icon
+        className={cn("h-8 w-8", isLight ? "text-muted-foreground" : "text-gray-600")}
+        strokeWidth={1.25}
+      />
+      <h3
+        className={cn(
+          "text-sm font-medium",
+          isLight ? "text-foreground" : "text-[#E1E0CC]"
+        )}
+      >
         {title ?? presetConfig.title}
       </h3>
-      <p className="max-w-sm text-xs text-gray-500">
+      <p
+        className={cn(
+          "max-w-sm text-xs",
+          isLight ? "text-muted-foreground" : "text-gray-500"
+        )}
+      >
         {description ?? presetConfig.description}
       </p>
-      {actionLabel && onAction && (
-        <Button variant="outline" className="text-xs mt-1" onClick={onAction}>
+      {actionLabel && onAction ? (
+        <Button variant="outline" className="mt-1 text-xs" onClick={onAction}>
           {actionLabel}
         </Button>
-      )}
+      ) : null}
     </div>
   );
 }

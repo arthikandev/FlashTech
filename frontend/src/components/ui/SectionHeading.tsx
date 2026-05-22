@@ -5,6 +5,8 @@ type Props = {
   align?: "left" | "center";
   compact?: boolean;
   badge?: string;
+  /** Use on brand-theme light canvas/dashboard shells */
+  variant?: "marketing" | "product";
 };
 
 export function SectionHeading({
@@ -14,10 +16,12 @@ export function SectionHeading({
   align = "center",
   compact = false,
   badge,
+  variant = "marketing",
 }: Props) {
   const alignClass = align === "center" ? "text-center mx-auto" : "text-left";
   const spacing = compact ? "mb-4" : "mb-12 md:mb-16 lg:mb-20";
   const subtitleAlign = align === "center" ? "mx-auto" : "";
+  const isProduct = variant === "product";
 
   return (
     <div className={`max-w-4xl ${spacing} ${alignClass}`}>
@@ -31,12 +35,20 @@ export function SectionHeading({
           {eyebrow}
         </p>
       )}
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[#E1E0CC] leading-[1.1] tracking-tight">
+      <h2
+        className={
+          isProduct
+            ? "text-2xl sm:text-3xl font-serif text-foreground leading-tight tracking-tight"
+            : "text-3xl sm:text-4xl md:text-5xl font-serif text-[#E1E0CC] leading-[1.1] tracking-tight"
+        }
+      >
         {title}
       </h2>
       {subtitle && (
         <p
-          className={`mt-4 md:mt-6 text-sm sm:text-base text-gray-500 leading-relaxed max-w-2xl ${subtitleAlign}`}
+          className={`mt-4 md:mt-6 text-sm sm:text-base leading-relaxed max-w-2xl ${subtitleAlign} ${
+            isProduct ? "text-muted-foreground" : "text-gray-500"
+          }`}
         >
           {subtitle}
         </p>

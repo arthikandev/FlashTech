@@ -4,21 +4,24 @@
   "private": true,
   "scripts": {
     "setup": "node ../scripts/setup-local-env.mjs",
-    "dev": "next dev",
-    "dev:3001": "next dev -p 3001",
+    "dev": "next dev -p 3001",
+    "dev:clean": "rm -rf .next && next dev -p 3001",
+    "dev:3000": "next dev",
+    "sync:elevenlabs": "node scripts/sync-elevenlabs-voices.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
-    "seed": "convex run seed:seedDemo",
     "check:env": "node scripts/check-env.mjs",
     "check:env:full": "node scripts/check-env.mjs --full",
     "verify:all": "node scripts/verify-all.mjs",
     "verify:full": "node scripts/verify-all.mjs --full",
-    "validate:n8n": "node scripts/validate-n8n-webhooks.mjs",
+    "validate:webhooks": "node scripts/validate-automation-webhooks.mjs",
+    "validate:n8n": "npm run validate:webhooks",
     "status": "node scripts/status.mjs",
-    "test:n8n": "bash ../devops/scripts/test-n8n-flow.sh",
+    "test:webhooks": "bash ../devops/scripts/test-automation-flow.sh",
+    "test:n8n": "npm run test:webhooks",
     "clean": "rm -rf .next"
   },
   "dependencies": {
@@ -31,9 +34,12 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.15.0",
+    "eslint-config-next": "^15.5.0",
     "typescript": "^5.7.0"
   }
 }

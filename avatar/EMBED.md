@@ -7,7 +7,7 @@ Load the backend fingerprint embed first, then the avatar SDK. The SDK listens f
 ```html
 <div id="presenceiq-avatar"></div>
 
-<script src="{BACKEND_URL}/api/embed/seylan-demo" async></script>
+<script src="{BACKEND_URL}/api/embed/cloudmetrics-demo" async></script>
 <script
   id="presenceiq-avatar-sdk"
   src="{AVATAR_SDK_URL}/presenceiq-avatar.js"
@@ -28,7 +28,7 @@ If `data-backend-url` is omitted, the build defaults to `http://localhost:3000` 
 
 | Site | embedKey |
 |------|----------|
-| Seylan Bank | `seylan-demo` |
+| CloudMetrics | `cloudmetrics-demo` |
 | CloudMetrics | `cloudmetrics-demo` |
 | Coral Resort | `coral-demo` |
 

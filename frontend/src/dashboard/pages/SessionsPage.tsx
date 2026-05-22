@@ -1,11 +1,13 @@
 import { X } from "lucide-react";
+import { CategoryDashboardHeader } from "@/components/categories/CategoryDashboardHeader";
+import { useBusinessCategory } from "@/hooks/useBusinessCategory";
 import { useDashboardContext } from "../context/DashboardContext";
-import { DashboardPageHeader } from "../components/DashboardPageHeader";
 import { LiveSessionsTable } from "../sections/LiveSessionsTable";
 import { SessionDetail } from "../SessionDetail";
 
 export function SessionsPage() {
   const {
+    business,
     filteredSessions: sessions,
     businessId,
     signedIn,
@@ -18,14 +20,16 @@ export function SessionsPage() {
     sessionsLoadingMore,
     loadMoreSessions,
   } = useDashboardContext();
+  const category = useBusinessCategory();
 
   return (
     <div className="flex h-[calc(100vh-8rem)] min-h-[480px] flex-col lg:flex-row gap-4">
       <div className={`flex min-h-0 flex-1 flex-col ${selectedVisitorId ? "lg:max-w-[58%]" : ""}`}>
         <div className="mb-3">
-          <DashboardPageHeader
+          <CategoryDashboardHeader
             title="Live Sessions"
-            subtitle="Select a visitor to inspect intelligence, transcript, and CRM data"
+            category={category}
+            clientName={business?.name}
           />
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
@@ -39,6 +43,7 @@ export function SessionsPage() {
             canLoadMore={canLoadMoreSessions}
             loadingMore={sessionsLoadingMore}
             onLoadMore={() => loadMoreSessions(25)}
+            compact
           />
         </div>
       </div>

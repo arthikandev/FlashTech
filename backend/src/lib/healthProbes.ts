@@ -20,7 +20,7 @@ export async function probeConvex(): Promise<ProbeResult> {
   try {
     await Promise.race([
       getConvexClient().query(api.businesses.getByEmbedKey, {
-        embedKey: "seylan-demo",
+        embedKey: "__health-probe__",
       }),
       rejectAfter(PROBE_TIMEOUT_MS),
     ]);
@@ -45,6 +45,35 @@ export async function probeOpenAI(): Promise<ProbeResult> {
     const res = await Promise.race([
       fetch("https://api.openai.com/v1/models", {
         headers: { Authorization: `Bearer ${apiKey}` },
+      }),
+      rejectAfter(PROBE_TIMEOUT_MS),
+    ]);
+    const ok = res.ok;
+    return {
+      ok,
+      latencyMs: Date.now() - start,
+      detail: ok ? undefined : `HTTP ${res.status}`,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      detail: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+export async function probeElevenLabs(): Promise<ProbeResult> {
+  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  if (!apiKey) {
+    return { ok: false, latencyMs: 0, detail: "ELEVENLABS_API_KEY not set" };
+  }
+
+  const start = Date.now();
+  try {
+    const res = await Promise.race([
+      fetch("https://api.elevenlabs.io/v1/user", {
+        headers: { "xi-api-key": apiKey },
       }),
       rejectAfter(PROBE_TIMEOUT_MS),
     ]);

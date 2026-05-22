@@ -1,11 +1,11 @@
 import { z } from "zod";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { api, getConvexClient } from "@/lib/convex";
-import { applyDemoCrmIfNeeded } from "@/lib/demoCrm";
 import { jsonError, jsonSuccess, corsOptions } from "@/lib/apiResponse";
-import { isN8nCrmConfigured, isSeylanApiConfigured } from "@/lib/env";
-import { triggerN8nCrmFetch } from "@/lib/pipeline";
-import { applySeylanCrmIfNeeded } from "@/lib/seylanCrm";
+import {
+  resolveAutomationCrmFetchUrl,
+  triggerCrmFetchAutomation,
+} from "@/lib/pipeline";
 
 const bodySchema = z.object({
   embedKey: z.string(),
@@ -27,30 +27,24 @@ export async function POST(request: Request) {
 
     const result = await convex.mutation(api.visitors.upsertFingerprint, body);
 
-    if (result.returnCount > 1 || result.crmId) {
-      if (isN8nCrmConfigured()) {
-        void triggerN8nCrmFetch({
+    const business = await convex.query(api.businesses.getById, {
+      businessId: result.businessId as Id<"businesses">,
+    });
+    const automationCrmFetchReachable = Boolean(
+      resolveAutomationCrmFetchUrl(business?.webhookUrls)
+    );
+
+    if ((result.returnCount > 1 || result.crmId) && automationCrmFetchReachable) {
+      void triggerCrmFetchAutomation(
+        {
           visitorId: result.visitorId,
           businessId: result.businessId,
           fingerprint: body.fingerprint,
           crmId: result.crmId,
           returnCount: result.returnCount,
-        });
-      } else if (isSeylanApiConfigured()) {
-        await applySeylanCrmIfNeeded({
-          visitorId: result.visitorId as Id<"visitors">,
-          crmId: result.crmId,
-          fingerprint: body.fingerprint,
-          returnCount: result.returnCount,
-        });
-      } else {
-        await applyDemoCrmIfNeeded({
-          visitorId: result.visitorId as Id<"visitors">,
-          crmId: result.crmId,
-          fingerprint: body.fingerprint,
-          returnCount: result.returnCount,
-        });
-      }
+        },
+        business?.webhookUrls
+      );
     }
 
     return jsonSuccess(result);

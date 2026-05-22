@@ -102,6 +102,7 @@ export async function listAgents(): Promise<BpAgentSummary[]> {
 export function buildAgentSystemPrompt(args: {
   businessName: string;
   personaTone: string;
+  voiceToneHint?: string;
   visitorName?: string | null;
   language?: string | null;
   intentScore: number;
@@ -111,9 +112,12 @@ export function buildAgentSystemPrompt(args: {
 }): string {
   const visitorLabel = args.visitorName ?? "guest";
   const language = args.language ?? "en";
+  const delivery = args.voiceToneHint
+    ? `${args.personaTone}, ${args.voiceToneHint}`
+    : args.personaTone;
 
   const lines = [
-    `You are a ${args.personaTone} assistant for ${args.businessName}.`,
+    `You are a ${delivery} assistant for ${args.businessName}.`,
     `Visitor: ${visitorLabel} (${language}).`,
     `Intent: ${args.intentScore}/100. Action: ${args.recommendedAction}.`,
     `Open with exactly: "${args.personalisedOpener}"`,
@@ -128,32 +132,36 @@ export function buildAgentSystemPrompt(args: {
 
 export async function updateAgentContext(
   agentId: string,
-  args: { systemPrompt: string; greeting: string }
+  args: { systemPrompt?: string; greeting: string }
 ): Promise<{ ok: boolean; status: number }> {
+  const payload: Record<string, string> = { greeting: args.greeting };
+  if (args.systemPrompt) {
+    payload.system_prompt = args.systemPrompt;
+  }
   const { ok, status } = await bpFetch(`/v1/agents/${encodeURIComponent(agentId)}`, {
     method: "PATCH",
-    body: JSON.stringify({
-      system_prompt: args.systemPrompt,
-      greeting: args.greeting,
-    }),
+    body: JSON.stringify(payload),
   });
   return { ok, status };
 }
 
 export type SyncAgentContextResult =
-  | { synced: true }
+  | { synced: true; partial?: boolean }
   | { synced: false; reason: string };
 
 export async function syncAgentFromIntelligence(args: {
   bpAgentId?: string | null;
   businessName: string;
   personaTone: string;
+  voiceToneHint?: string;
   visitorName?: string | null;
   language?: string | null;
   intentScore: number;
   recommendedAction: string;
   personalisedOpener: string;
   knowledgeContext?: string;
+  /** When true, only the greeting (firstMessage) is PATCHed — bey.chat keeps its dashboard system prompt. */
+  greetingOnly?: boolean;
 }): Promise<SyncAgentContextResult> {
   if (!isBeyondPresenceConfigured()) {
     return { synced: false, reason: "BEYONDPRESENCE_API_KEY not configured" };
@@ -164,18 +172,35 @@ export async function syncAgentFromIntelligence(args: {
     return { synced: false, reason: "bpAgentId not set on business" };
   }
 
-  const systemPrompt = buildAgentSystemPrompt(args);
+  const systemPrompt = args.greetingOnly
+    ? undefined
+    : buildAgentSystemPrompt(args);
   const { ok, status } = await updateAgentContext(agentId, {
     systemPrompt,
     greeting: args.personalisedOpener,
   });
 
   if (ok || status === 204) {
-    return { synced: true };
+    return { synced: true, partial: args.greetingOnly === true };
   }
 
   return {
     synced: false,
     reason: `Beyond Presence agent update failed (HTTP ${status})`,
   };
+}
+
+export type BpSyncStatus = "complete" | "pending" | "failed";
+
+export function resolveSyncStatus(args: {
+  result: SyncAgentContextResult;
+  bpAgentId?: string | null;
+}): BpSyncStatus {
+  if (args.result.synced) return "complete";
+
+  const reason = args.result.reason ?? "";
+  if (reason.includes("native BP agent")) return "complete";
+  if (!args.bpAgentId?.trim()) return "pending";
+  if (reason.includes("deferred") || reason.includes("skipped")) return "pending";
+  return "failed";
 }

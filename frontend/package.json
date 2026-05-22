@@ -1,6 +1,6 @@
 {
   "name": "presenceiq-frontend",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,10 @@
     "dev": "vite --mode development",
     "dev:deployed": "vite --mode production",
     "build:avatar": "bash scripts/avatar-bundle-or-skip.sh",
-    "build:app": "tsc --noEmit && vite build --mode production",
+    "build:config": "node scripts/write-runtime-config.mjs",
+    "typecheck": "tsc --noEmit",
+    "check:i18n": "node scripts/check-i18n-parity.mjs",
+    "build:app": "npm run build:config && tsc --noEmit && vite build --mode production",
     "build": "npm run build:avatar && npm run build:app",
     "preview": "vite preview",
     "deploy": "npm run build && vercel deploy --prod --yes --scope sarangans-projects-55d6b0e1"

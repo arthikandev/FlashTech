@@ -105,14 +105,14 @@ In the [Beyond Presence dashboard](https://app.bey.chat):
 1. Create a managed agent (or use an existing one).
 2. Copy the **agent ID** from the agent settings or from `GET /api/beyondpresence/status`.
 
-### 4. Link agent to Seylan demo business
+### 4. Link agent to CloudMetrics demo business
 
 ```bash
 cd backend
 npx convex run seed:seedDemo '{"bpAgentId":"YOUR_AGENT_ID"}'
 ```
 
-Or patch via Convex dashboard on the `seylan-demo` business `avatarConfig.bpAgentId`.
+Or patch via Convex dashboard on the `cloudmetrics-demo` business `avatarConfig.bpAgentId`.
 
 ### 5. Test pipeline sync
 

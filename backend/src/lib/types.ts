@@ -1,8 +1,17 @@
+export type KnownIntelligenceSignal =
+  | "cached"
+  | "heuristic_fallback"
+  | "pricing_interest"
+  | "return_visitor"
+  | "high_engagement";
+
+export type IntelligenceSignal = KnownIntelligenceSignal | (string & {});
+
 export interface IntelligenceResult {
   intentScore: number;
   personalisedOpener: string;
   recommendedAction: string;
-  signals: string[];
+  signals: IntelligenceSignal[];
   computedAt: number;
 }
 

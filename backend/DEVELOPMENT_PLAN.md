@@ -16,7 +16,7 @@
 - [x] Scaffold Next.js 15 + TypeScript in `backend/`
 - [x] `npx convex init` + deploy empty project
 - [x] Implement `convex/schema.ts` (5 tables + indexes)
-- [x] Run `convex/seed.ts` — Seylan Bank + Sarangan visitor
+- [x] Run `convex/seed.ts` — CloudMetrics + Sarangan visitor
 - [x] `GET /api/embed/[embedKey]` returns fingerprint SDK
 - [x] `POST /api/fingerprint` upserts visitor
 - [x] Embed dispatches `presenceiq:ready` event

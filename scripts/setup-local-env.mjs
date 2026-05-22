@@ -11,6 +11,22 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const CONVEX_URL = "https://adamant-puffin-769.convex.cloud";
 const CONVEX_DEPLOYMENT = "dev:adamant-puffin-769";
+const CLERK_ISSUER = "https://integral-lamprey-56.clerk.accounts.dev";
+
+function readEnvValue(filePath, key) {
+  if (!existsSync(filePath)) return "";
+  const text = readFileSync(filePath, "utf8");
+  const match = text.match(new RegExp(`^${key}=(.+)$`, "m"));
+  return match?.[1]?.trim() ?? "";
+}
+
+function upsertEnvLine(text, key, value) {
+  const line = `${key}=${value}`;
+  if (new RegExp(`^${key}=`, "m").test(text)) {
+    return text.replace(new RegExp(`^${key}=.*$`, "m"), line);
+  }
+  return `${text.trimEnd()}\n${line}\n`;
+}
 
 function ensureFile(relPath, content) {
   const path = join(root, relPath);
@@ -40,20 +56,28 @@ function copyExample(relExample, relLocal) {
 copyExample("frontend/.env.example", "frontend/.env.local");
 copyExample("backend/.env.example", "backend/.env.local");
 
-// Ensure Convex URL is set in frontend .env.local even if file was empty
+// Ensure Convex + Clerk keys in frontend .env.local
 const fePath = join(root, "frontend/.env.local");
+const feDevPath = join(root, "frontend/.env.development");
+const bePathEarly = join(root, "backend/.env.local");
+const clerkFromDev = readEnvValue(feDevPath, "VITE_CLERK_PUBLISHABLE_KEY");
+const clerkFromBackend = readEnvValue(bePathEarly, "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
+const clerkPk = clerkFromDev || clerkFromBackend;
+
 if (existsSync(fePath)) {
   let text = readFileSync(fePath, "utf8");
+  let changed = false;
   if (!/^VITE_CONVEX_URL=.+/m.test(text)) {
-    text = text.replace(
-      /^VITE_CONVEX_URL=.*$/m,
-      `VITE_CONVEX_URL=${CONVEX_URL}`
-    );
-    if (!text.includes("VITE_CONVEX_URL=")) {
-      text += `\nVITE_CONVEX_URL=${CONVEX_URL}\n`;
-    }
+    text = upsertEnvLine(text, "VITE_CONVEX_URL", CONVEX_URL);
+    changed = true;
+  }
+  if (clerkPk && !/^VITE_CLERK_PUBLISHABLE_KEY=.+/m.test(text)) {
+    text = upsertEnvLine(text, "VITE_CLERK_PUBLISHABLE_KEY", clerkPk);
+    changed = true;
+  }
+  if (changed) {
     writeFileSync(fePath, text, "utf8");
-    console.log("updated: frontend/.env.local (VITE_CONVEX_URL)");
+    console.log("updated: frontend/.env.local (VITE_CONVEX_URL / VITE_CLERK_PUBLISHABLE_KEY)");
   }
 }
 
@@ -74,9 +98,19 @@ if (existsSync(bePath)) {
   if (!/^NEXT_PUBLIC_CONVEX_URL=.+/m.test(text)) {
     text += `NEXT_PUBLIC_CONVEX_URL=${CONVEX_URL}\n`;
   }
+  const backendPk = readEnvValue(bePath, "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
+  const backendPkPlaceholder =
+    !backendPk || backendPk.includes("your-publishable-key");
+  if (clerkPk && (!/^NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=.+/m.test(text) || backendPkPlaceholder)) {
+    text = upsertEnvLine(text, "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", clerkPk);
+  }
   writeFileSync(bePath, text, "utf8");
   console.log("verified: backend/.env.local (Convex + app URL)");
 }
+
+console.log(
+  `\nClerk Convex issuer (run from backend/ if not set):\n  npx convex env set CLERK_JWT_ISSUER_DOMAIN ${CLERK_ISSUER}\n`
+);
 
 const runtimePath = join(root, "frontend/public/runtime-config.json");
 let runtime = { backendUrl: "http://localhost:3001", convexUrl: CONVEX_URL };

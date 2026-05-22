@@ -5,7 +5,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { useLandingLocale } from "@/landing/i18n/LandingLocaleProvider";
-import { LANDING_NAV_ITEMS, type LandingNavItem } from "@/landing/nav";
+import { LandingNavDropdown } from "@/landing/components/LandingNavDropdown";
+import {
+  LANDING_NAV_ENTRIES,
+  LANDING_NAV_PILL_CLASS,
+  NAV_LINK_CLASS,
+  navLinkEmphasisClass,
+  type NavLinkItem,
+} from "@/landing/nav";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -18,13 +25,14 @@ function NavLink({
   className,
   onNavigate,
 }: {
-  item: LandingNavItem;
+  item: NavLinkItem;
   className?: string;
   onNavigate?: () => void;
 }) {
   const { t } = useLandingLocale();
   const base = cn(
-    "text-foreground/80 hover:text-foreground transition-colors",
+    NAV_LINK_CLASS,
+    navLinkEmphasisClass(item.emphasize),
     className
   );
 
@@ -98,14 +106,28 @@ export function LandingHeader({ embedded = false }: Props) {
             </Link>
           </div>
 
-          <nav className="hidden lg:flex justify-self-center" aria-label="Main">
-            <ul className="flex items-center gap-5 xl:gap-7 bg-[var(--nav-pill)] border border-border rounded-b-2xl md:rounded-b-3xl px-4 py-2.5 md:px-5 shadow-lg backdrop-blur-md">
-              {LANDING_NAV_ITEMS.map((item) => (
-                <li key={item.key}>
-                  <NavLink item={item} className="text-xs md:text-sm whitespace-nowrap" />
-                </li>
-              ))}
-              <li className="pl-2 border-l border-border ml-1">
+          <nav className="hidden lg:flex justify-self-center min-w-0 max-w-[min(920px,calc(100vw-22rem))]" aria-label="Main">
+            <ul
+              data-nav-pill
+              className={cn(
+                "flex min-w-0 items-center gap-4 xl:gap-5 overflow-visible",
+                LANDING_NAV_PILL_CLASS
+              )}
+            >
+              {LANDING_NAV_ENTRIES.map((entry) =>
+                entry.type === "dropdown" ? (
+                  <LandingNavDropdown
+                    key={entry.key}
+                    item={entry}
+                    linkClassName={cn(NAV_LINK_CLASS, navLinkEmphasisClass(entry.emphasize))}
+                  />
+                ) : (
+                  <li key={entry.key} className="shrink-0">
+                    <NavLink item={entry} />
+                  </li>
+                )
+              )}
+              <li className="shrink-0 pl-2 ml-1 border-l border-white/14 flex items-center">
                 <AnimatedThemeToggler variant="circle" duration={450} />
               </li>
             </ul>
@@ -162,20 +184,36 @@ export function LandingHeader({ embedded = false }: Props) {
                 </button>
               </div>
               <ul className="flex flex-col gap-1">
-                {LANDING_NAV_ITEMS.map((item, i) => (
-                  <motion.li
-                    key={item.key}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 + i * 0.04 }}
-                  >
-                    <NavLink
-                      item={item}
-                      className="block py-3.5 text-base font-medium border-b border-border/60 last:border-0"
-                      onNavigate={closeMenu}
-                    />
-                  </motion.li>
-                ))}
+                {LANDING_NAV_ENTRIES.map((entry, i) =>
+                  entry.type === "dropdown" ? (
+                    <motion.div
+                      key={entry.key}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 + i * 0.04 }}
+                    >
+                      <LandingNavDropdown
+                        item={entry}
+                        variant="mobile"
+                        wrapper="div"
+                        onNavigate={closeMenu}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.li
+                      key={entry.key}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 + i * 0.04 }}
+                    >
+                      <NavLink
+                        item={entry}
+                        className="block py-3.5 text-base font-medium border-b border-border/60 last:border-0"
+                        onNavigate={closeMenu}
+                      />
+                    </motion.li>
+                  )
+                )}
               </ul>
               <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
                 <span className="text-xs uppercase tracking-widest text-muted-foreground">

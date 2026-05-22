@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "PresenceIQ BeyondPresence integration",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --outfile=../frontend/public/presenceiq-avatar.js --format=iife --global-name=PresenceIQAvatar --platform=browser --target=es2020 && cp ../frontend/public/presenceiq-avatar.js demo/presenceiq-avatar.js",
+    "build": "esbuild src/index.ts --bundle --outfile=../frontend/public/presenceiq-avatar.js --format=iife --platform=browser --target=es2020 && cp ../frontend/public/presenceiq-avatar.js ../backend/public/presenceiq-avatar.js",
     "dev": "npm run build -- --watch",
     "typecheck": "tsc --noEmit"
   },

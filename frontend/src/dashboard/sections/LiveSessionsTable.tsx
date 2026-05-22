@@ -93,8 +93,9 @@ export function LiveSessionsTable({
         )}
         <EmptyState
           preset="no-data"
+          variant="light"
           title="No visitors yet"
-          description="Open a demo site, reload pricing, then return here."
+          description="Run your live advisor or embed the widget — sessions appear here in real time."
         />
       </section>
     );
@@ -111,7 +112,11 @@ export function LiveSessionsTable({
             compact
           />
         )}
-        <EmptyState preset="no-results" description={`No sessions match "${searchQuery.trim()}".`} />
+        <EmptyState
+          preset="no-results"
+          variant="light"
+          description={`No sessions match "${searchQuery.trim()}".`}
+        />
       </section>
     );
   }

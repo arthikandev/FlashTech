@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "syncedAt": null,
+  "voices": {
+    "bank": {
+      "en": { "voiceId": "pNInz6obpgDQGcFmaJgB", "label": "Adam (formal EN)" },
+      "si": { "voiceId": "pNInz6obpgDQGcFmaJgB", "label": "Adam (EN fallback for SI)" },
+      "ta": { "voiceId": "pNInz6obpgDQGcFmaJgB", "label": "Adam (EN fallback for TA)" }
+    },
+    "saas": {
+      "en": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (friendly EN)" },
+      "si": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (EN fallback)" },
+      "ta": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (EN fallback)" }
+    },
+    "hotel": {
+      "en": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (warm EN)" },
+      "si": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (EN fallback)" },
+      "ta": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (EN fallback)" }
+    },
+    "hospital": {
+      "en": { "voiceId": "onwK4e9ZLuTAKqWW03F9", "label": "Daniel (calm EN)" },
+      "si": { "voiceId": "onwK4e9ZLuTAKqWW03F9", "label": "Daniel (EN fallback)" },
+      "ta": { "voiceId": "onwK4e9ZLuTAKqWW03F9", "label": "Daniel (EN fallback)" }
+    },
+    "ecommerce": {
+      "en": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (upbeat EN)" },
+      "si": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (EN fallback)" },
+      "ta": { "voiceId": "EXAVITQu4vr4xnSDxMaL", "label": "Bella (EN fallback)" }
+    },
+    "hr": {
+      "en": { "voiceId": "pNInz6obpgDQGcFmaJgB", "label": "Adam (neutral EN)" },
+      "si": { "voiceId": "pNInz6obpgDQGcFmaJgB", "label": "Adam (EN fallback)" },
+      "ta": { "voiceId": "pNInz6obpgDQGcFmaJgB", "label": "Adam (EN fallback)" }
+    }
+  },
+  "toneOverrides": {
+    "urgent": "pNInz6obpgDQGcFmaJgB",
+    "calm": "onwK4e9ZLuTAKqWW03F9",
+    "warm": "EXAVITQu4vr4xnSDxMaL",
+    "professional": "pNInz6obpgDQGcFmaJgB"
+  }
+}

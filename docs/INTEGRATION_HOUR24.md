@@ -6,7 +6,7 @@ Run before demo. All commands from `backend/` unless noted.
 
 - [ ] Backend: `npm run dev:3001` (or Vercel URL)
 - [ ] Frontend: `cd frontend && npm run dev` → dashboard at http://localhost:5173
-- [ ] Seylan: http://localhost:5173/sites/seylan/index.html#/pricing
+- [ ] CloudMetrics: http://localhost:5173/sites/cloudmetrics/index.html#/pricing
 - [ ] Reload pricing → Sarangan personalised opener &lt; 2s (`pipelineMs` in console)
 - [ ] Intent ≥ 80 → Slack (n8n) or mock at `/slack`
 - [ ] Dashboard shows session row without refresh

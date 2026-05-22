@@ -36,7 +36,8 @@ export async function fetchPipeline(
   backendUrl: string,
   visitorId: string,
   businessId: string,
-  waitForCrmMs = 200
+  waitForCrmMs = 200,
+  operatorMessage?: string
 ): Promise<PipelineData> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
@@ -45,7 +46,12 @@ export async function fetchPipeline(
     const res = await fetch(`${backendUrl}/api/pipeline`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitorId, businessId, waitForCrmMs }),
+      body: JSON.stringify({
+        visitorId,
+        businessId,
+        waitForCrmMs,
+        ...(operatorMessage?.trim() ? { operatorMessage: operatorMessage.trim() } : {}),
+      }),
       signal: controller.signal,
     });
 
@@ -55,11 +61,14 @@ export async function fetchPipeline(
         beyondPresence?: PipelineBeyondPresence;
         syncStatus?: "complete" | "pending" | "failed";
       };
+      message?: string;
       error?: string;
     };
 
     if (!res.ok || !json.success || !json.data) {
-      throw new Error(json.error ?? `Pipeline failed (${res.status})`);
+      throw new Error(
+        json.message ?? json.error ?? `Pipeline failed (${res.status})`
+      );
     }
 
     if (json.data.pipelineMs > 1800) {

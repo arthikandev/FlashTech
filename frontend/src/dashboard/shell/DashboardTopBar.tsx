@@ -1,5 +1,5 @@
 import { SignInButton, UserButton } from "@clerk/clerk-react";
-import { Bell, Search } from "lucide-react";
+import { Bell, LayoutTemplate, Search } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useDeferredValue, useMemo, useState, useEffect } from "react";
@@ -37,15 +37,7 @@ export function DashboardTopBar({
   const [localSearch, setLocalSearch] = useState(search);
   const deferredSearch = useDeferredValue(localSearch);
 
-  const {
-    embedKey,
-    embedOptions,
-    onEmbedKeyChange,
-    linking,
-    linkError,
-    linkToCurrentBusiness,
-    needsMembership,
-  } = useDashboardContext();
+  const { embedKey, embedOptions, onEmbedKeyChange } = useDashboardContext();
 
   useEffect(() => {
     const t = window.setTimeout(() => onSearchChange(deferredSearch), 300);
@@ -65,7 +57,7 @@ export function DashboardTopBar({
       </div>
 
       <Select value={embedKey} onValueChange={(v) => v && onEmbedKeyChange(v)}>
-        <SelectTrigger className="hidden h-8 w-[140px] text-xs md:flex">
+        <SelectTrigger className="hidden h-8 w-35 text-xs md:flex">
           <SelectValue placeholder="Workspace" />
         </SelectTrigger>
         <SelectContent>
@@ -96,25 +88,20 @@ export function DashboardTopBar({
           Live
         </span>
 
-        {signedIn && needsMembership && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={linkToCurrentBusiness}
-            disabled={linking}
-            className="hidden text-xs sm:inline-flex"
-          >
-            {linking ? "Linking…" : "Link workspace"}
-          </Button>
-        )}
-
         <Button type="button" variant="ghost" size="icon" onClick={onOpenNotifications} aria-label="Notifications">
           <Bell />
         </Button>
 
         <Link
-          to="/dashboard/settings"
+          to={`/canvas?embedKey=${encodeURIComponent(embedKey)}`}
+          className="hidden items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-[10px] font-semibold text-primary hover:bg-primary/20 sm:inline-flex"
+        >
+          <LayoutTemplate className="size-3.5" />
+          Open Canvas
+        </Link>
+
+        <Link
+          to={`/canvas/settings?embedKey=${encodeURIComponent(embedKey)}`}
           className="hidden rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground sm:inline"
         >
           Settings
@@ -135,11 +122,6 @@ export function DashboardTopBar({
         )}
       </div>
 
-      {linkError ? (
-        <p className="absolute top-full right-4 left-4 mt-1 text-xs text-destructive" role="alert">
-          {linkError}
-        </p>
-      ) : null}
     </header>
   );
 }

@@ -1,15 +1,11 @@
-/** Default Beyond Presence agent — single source of truth for demos and fallbacks */
-export const DEMO_AGENT_ID = "9fe4cbe8-2f99-4b8e-9dda-60f32846300a";
-
 const BEY_CHAT_BASE = "https://bey.chat";
 
-export function beyondPresenceEmbedUrl(agentId?: string | null): string {
-  const id = agentId?.trim() || DEMO_AGENT_ID;
-  return `${BEY_CHAT_BASE}/${encodeURIComponent(id)}`;
+export function beyondPresenceEmbedUrl(agentId: string): string {
+  return `${BEY_CHAT_BASE}/${encodeURIComponent(agentId)}`;
 }
 
 type Props = {
-  agentId?: string | null;
+  agentId: string;
   className?: string;
   height?: number;
   title?: string;

@@ -1,6 +1,7 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
-import { authClerkAppearance } from "@/auth/clerkAppearance";
+import { buildAuthClerkAppearance } from "@/auth/clerkAppearance";
 import { ConfettiAuthListener } from "@/components/ConfettiAuthListener";
+import { resolveConvexUrl } from "@/lib/runtimeConfig";
 import { ConvexProvider } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
@@ -8,7 +9,8 @@ import { useMemo, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const convexUrlRaw = import.meta.env.VITE_CONVEX_URL as string | undefined;
+/** Resolved after bootstrap loads runtime-config.json; falls back to VITE_* then team default. */
+const convexUrlResolved = resolveConvexUrl()?.trim() ?? "";
 const clerkKeyRaw = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
 
 function MissingConvexEnv() {
@@ -34,10 +36,9 @@ function MissingConvexEnv() {
 export function AppProviders({ children }: { children: ReactNode }) {
   const clerkKey = clerkKeyRaw?.trim() ?? "";
   const convexClient = useMemo(() => {
-    const url = convexUrlRaw?.trim() ?? "";
-    if (!url) return null;
-    return new ConvexReactClient(url);
-  }, [convexUrlRaw]);
+    if (!convexUrlResolved) return null;
+    return new ConvexReactClient(convexUrlResolved);
+  }, []);
 
   if (!convexClient) {
     return <MissingConvexEnv />;
@@ -65,7 +66,15 @@ export function AppProviders({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkKey} appearance={authClerkAppearance}>
+    <ClerkProvider
+      publishableKey={clerkKey}
+      appearance={buildAuthClerkAppearance(
+        typeof document !== "undefined" &&
+          document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light"
+      )}
+    >
       <ConfettiAuthListener />
       <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
         {content}

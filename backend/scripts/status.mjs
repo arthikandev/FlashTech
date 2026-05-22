@@ -7,9 +7,11 @@ import { existsSync } from "fs";
 import {
   loadEnvVars,
   envPath,
-  isN8nUrlValid,
-  N8N_REQUIRED_KEYS,
-  N8N_OPTIONAL_KEYS,
+  isAutomationWebhookUrlValid,
+  webhookCrmFetchUrl,
+  webhookSlackHotLeadUrl,
+  webhookCrmPushUrl,
+  webhookChurnRiskUrl,
 } from "./lib/env-parse.mjs";
 
 function yn(set) {
@@ -25,41 +27,61 @@ if (!existsSync(envPath)) {
 
 const v = loadEnvVars();
 
+const inboundOk = Boolean(
+  v.INBOUND_WEBHOOK_SECRET?.trim() || v.N8N_WEBHOOK_SECRET?.trim()
+);
+
 const rows = [
   ["Convex", Boolean(v.NEXT_PUBLIC_CONVEX_URL?.trim())],
   ["OpenAI", Boolean(v.OPENAI_API_KEY?.trim())],
-  ["Clerk", Boolean(v.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() && v.CLERK_SECRET_KEY?.trim())],
-  ["Seylan API", Boolean(v.SEYLAN_API_BASE_URL?.trim() && v.SEYLAN_API_KEY?.trim())],
+  [
+    "Clerk",
+    Boolean(
+      v.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() && v.CLERK_SECRET_KEY?.trim()
+    ),
+  ],
   ["Beyond Presence", Boolean(v.BEYONDPRESENCE_API_KEY?.trim())],
-  ["Webhook secrets", Boolean(v.N8N_WEBHOOK_SECRET?.trim() && v.BP_WEBHOOK_SECRET?.trim())],
+  [
+    "Webhook secrets",
+    Boolean(inboundOk && v.BP_WEBHOOK_SECRET?.trim()),
+  ],
 ];
 
 for (const [name, ok] of rows) {
   console.log(`  ${ok ? "✓" : "○"}  ${name.padEnd(20)} ${yn(ok)}`);
 }
 
-console.log("\n  n8n webhooks:");
-for (const key of N8N_REQUIRED_KEYS) {
-  const ok = isN8nUrlValid(v[key]);
-  console.log(`  ${ok ? "✓" : "✗"}  ${key.padEnd(28)} ${ok ? "configured" : "missing/invalid"}`);
-}
-for (const key of N8N_OPTIONAL_KEYS) {
-  const url = v[key]?.trim();
-  const ok = url ? isN8nUrlValid(url) : false;
-  const label = !url ? "not set" : ok ? "configured" : "invalid";
-  console.log(`  ${ok ? "✓" : url ? "✗" : "○"}  ${key.padEnd(28)} ${label}`);
-}
+const cf = webhookCrmFetchUrl(v);
+const slack = webhookSlackHotLeadUrl(v);
+const push = webhookCrmPushUrl(v);
+const churn = webhookChurnRiskUrl(v);
+
+console.log("\n  Outbound HTTPS webhooks (automation/Zapier/Make/etc.):");
+console.log(
+  `  ${isAutomationWebhookUrlValid(cf) ? "✓" : "✗"}  CRM fetch trigger        ${cf ? "set" : "missing"}`
+);
+console.log(
+  `  ${isAutomationWebhookUrlValid(slack) ? "✓" : "✗"}  Slack hot-lead          ${slack ? "set" : "missing"}`
+);
+console.log(
+  `  ${isAutomationWebhookUrlValid(push) ? "✓" : "✗"}  CRM push                ${push ? "set" : "missing"}`
+);
+console.log(
+  `  ${churn ? (isAutomationWebhookUrlValid(churn) ? "✓" : "✗") : "○"}  churn workflow (optional) ${churn ? "" : "not set"}`
+);
 
 const appUrl = v.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
 console.log(`\n  App URL: ${appUrl}`);
 console.log("\n  Next steps:");
-console.log("    npm run verify:all     — env + build + Convex");
-console.log("    npm run verify:full    — includes n8n URL checks");
-console.log("    npm run validate:n8n   — ping n8n webhooks");
-console.log("    npm run test:n8n       — E2E (dev server must be running)\n");
+console.log("    npm run verify:all       — env + build + Convex");
+console.log("    npm run verify:full      — includes outbound webhook pings");
+console.log("    npm run validate:webhooks — POST ping each webhook URL");
+console.log("    npm run test:webhooks    — E2E (dev server required)\n");
 
-const allN8n = N8N_REQUIRED_KEYS.every((k) => isN8nUrlValid(v[k]));
-if (!allN8n) {
-  console.log("  Paste n8n Production Webhook URLs → backend/.env.local");
-  console.log("  Guide: devops/n8n/README.md\n");
+if (
+  !isAutomationWebhookUrlValid(cf) ||
+  !isAutomationWebhookUrlValid(slack) ||
+  !isAutomationWebhookUrlValid(push)
+) {
+  console.log("  Paste HTTPS webhook URLs → backend/.env.local (WEBHOOK_* keys)\n");
 }

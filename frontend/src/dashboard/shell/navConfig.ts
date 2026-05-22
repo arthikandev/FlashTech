@@ -6,62 +6,59 @@ export const DASHBOARD_NAV: NavSection[] = [
   {
     title: "MAIN",
     items: [
-      { label: "Overview", href: "/dashboard", end: true },
-      { label: "Live Sessions", href: "/dashboard/sessions" },
-      { label: "Analytics", href: "/dashboard/analytics" },
+      { label: "Overview", href: "/canvas", end: true },
+      { label: "Live Sessions", href: "/canvas/sessions" },
+      { label: "Analytics", href: "/canvas/analytics" },
     ],
   },
   {
     title: "AUTOMATION",
     items: [
-      { label: "Workflow", href: "/dashboard/workflow" },
+      { label: "Workflow", href: "/canvas/workflow" },
     ],
   },
   {
     title: "AVATAR",
     items: [
-      { label: "Avatar", href: "/dashboard/avatar" },
+      { label: "Avatar", href: "/canvas/settings" },
     ],
   },
   {
     title: "BUSINESS",
     items: [
-      { label: "Settings", href: "/dashboard/settings" },
+      { label: "Settings", href: "/canvas/settings" },
     ],
   },
 ];
 
 export const MOBILE_TABS: NavItem[] = [
-  { label: "Overview", href: "/dashboard", end: true },
-  { label: "Live", href: "/dashboard/sessions" },
-  { label: "Analytics", href: "/dashboard/analytics" },
-  { label: "Workflow", href: "/dashboard/workflow" },
-  { label: "Avatar", href: "/dashboard/avatar" },
-  { label: "Settings", href: "/dashboard/settings" },
+  { label: "Advisor", href: "/canvas", end: true },
+  { label: "Live", href: "/canvas/sessions" },
+  { label: "Analytics", href: "/canvas/analytics" },
+  { label: "Workflow", href: "/canvas/workflow" },
+  { label: "Settings", href: "/canvas/settings" },
 ];
 
 export const PAGE_TITLES: Record<string, string> = {
-  "/dashboard": "Overview",
-  "/dashboard/sessions": "Live Sessions",
-  "/dashboard/analytics": "Analytics",
-  "/dashboard/workflow": "Workflow",
-  "/dashboard/avatar": "Avatar",
-  "/dashboard/settings": "Settings",
+  "/canvas": "Test advisor",
+  "/canvas/sessions": "Live Sessions",
+  "/canvas/analytics": "Analytics",
+  "/canvas/workflow": "Workflow",
+  "/canvas/settings": "Settings",
 };
 
 export function getPageTitle(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
-  if (pathname.startsWith("/dashboard/sessions")) return "Live Sessions";
-  return "Dashboard";
+  if (pathname.startsWith("/canvas/sessions")) return "Live Sessions";
+  return "Workspace";
 }
 
 const ROUTE_TO_SECTION: Record<string, string> = {
-  "/dashboard": "overview",
-  "/dashboard/sessions": "live-sessions",
-  "/dashboard/analytics": "heatmap",
-  "/dashboard/workflow": "workflow",
-  "/dashboard/avatar": "avatar",
-  "/dashboard/settings": "overview",
+  "/canvas": "overview",
+  "/canvas/sessions": "live-sessions",
+  "/canvas/analytics": "heatmap",
+  "/canvas/workflow": "workflow",
+  "/canvas/settings": "overview",
 };
 
 export function scrollToSection(href: string) {

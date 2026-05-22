@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { OnboardingStepId } from "../types";
 
@@ -7,8 +8,22 @@ type Props = {
 };
 
 export function StepProgress({ steps, currentIndex }: Props) {
+  const progress = steps.length > 1 ? currentIndex / (steps.length - 1) : 1;
+
   return (
-    <ol className="flex items-center justify-between gap-1 sm:gap-2 w-full">
+    <div className="space-y-3">
+      <motion.div
+        className="h-1 w-full overflow-hidden rounded-full bg-muted"
+        initial={false}
+      >
+        <motion.div
+          className="h-full bg-primary"
+          initial={false}
+          animate={{ width: `${Math.max(progress * 100, 8)}%` }}
+          transition={{ type: "spring", stiffness: 120, damping: 20 }}
+        />
+      </motion.div>
+      <ol className="flex w-full items-center justify-between gap-1 sm:gap-2">
       {steps.map((s, i) => {
         const done = i < currentIndex;
         const active = i === currentIndex;
@@ -35,6 +50,7 @@ export function StepProgress({ steps, currentIndex }: Props) {
           </li>
         );
       })}
-    </ol>
+      </ol>
+    </div>
   );
 }

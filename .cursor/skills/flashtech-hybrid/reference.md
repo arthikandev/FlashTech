@@ -7,7 +7,7 @@
 | `frontend/src/App.tsx` | Routes; `/dashboard` → BackendRedirect |
 | `frontend/src/lib/runtimeConfig.ts` | Convex URL resolution |
 | `scripts/setup-local-env.mjs` | Creates `.env.local` files |
-| `scripts/write-runtime-config.mjs` | CI: writes runtime-config from secrets |
+| `frontend/scripts/write-runtime-config.mjs` | CI / build: writes runtime-config from secrets |
 | `docs/ENV.md` | Env var index |
 | `docs/ARCHITECTURE.md` | Pipeline sequence |
 | `devops/deploy/frontend.md` | Vercel frontend |

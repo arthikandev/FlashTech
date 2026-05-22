@@ -29,8 +29,12 @@ Edit `demo/config.js`:
 ## Build
 
 ```bash
-npm run build   # → demo/presenceiq-avatar.js
+npm run build   # → demo/, frontend/public/, backend/public/presenceiq-avatar.js
 ```
+
+Session-end webhooks resolve visitor/business from module state at flush time (not the first
+`presenceiq:ready` closure). Run one visible avatar call per embed instance at a time; a new
+`presenceiq:ready` clears the prior visible call context.
 
 ## Embed on Person 3 site
 
@@ -45,7 +49,7 @@ npm run build   # → demo/presenceiq-avatar.js
     mockMode: false,
   };
 </script>
-<script src="https://YOUR_VERCEL_APP.vercel.app/api/embed/seylan-demo" async></script>
+<script src="https://YOUR_VERCEL_APP.vercel.app/api/embed/cloudmetrics-demo" async></script>
 <script src="/path/to/presenceiq-avatar.js"></script>
 ```
 

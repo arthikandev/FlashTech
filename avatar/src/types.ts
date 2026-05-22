@@ -2,6 +2,7 @@ export type PresenceIQReadyDetail = {
   visitorId: string;
   businessId: string;
   sessionId?: string;
+  operatorMessage?: string;
   returnCount?: number;
   isKnownVisitor?: boolean;
 };
@@ -72,21 +73,36 @@ export type AvatarConfig = {
 };
 
 export type InitOptions = {
-  /** Mount target for the BP iframe */
-  container?: HTMLElement;
+  /** Mount target for the BP iframe (element or DOM id) */
+  container?: string | HTMLElement;
   /** Alias used by demo sites (frontend frozen — do not require boot.ts changes) */
-  avatarContainer?: HTMLElement;
+  avatarContainer?: string | HTMLElement;
   backendUrl?: string;
   webhookSecret?: string;
   waitForCrmMs?: number;
   autoInit?: boolean;
 };
 
+function resolveContainerRef(
+  ref: string | HTMLElement | undefined
+): HTMLElement | null {
+  if (ref == null) return null;
+  if (typeof ref === "string") {
+    const id = ref.trim();
+    return id ? document.getElementById(id) : null;
+  }
+  return ref;
+}
+
 /** Resolve container from InitOptions (supports legacy demo `avatarContainer`). */
 export function resolveAvatarContainer(
   options: InitOptions
 ): HTMLElement | null {
-  return options.container ?? options.avatarContainer ?? null;
+  return (
+    resolveContainerRef(options.container) ??
+    resolveContainerRef(options.avatarContainer) ??
+    null
+  );
 }
 
 declare global {
@@ -96,6 +112,7 @@ declare global {
       visitorId?: string;
       businessId?: string;
       sessionId?: string;
+      operatorMessage?: string;
       returnCount?: number;
       isKnownVisitor?: boolean;
     };

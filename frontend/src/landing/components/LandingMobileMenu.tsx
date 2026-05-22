@@ -3,8 +3,10 @@ import { X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Sheet } from "@/components/ui/Sheet";
 import { clerkEnabled } from "@/convex/api";
+import { CANVAS_PATH } from "@/lib/postAuth";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 import { useLandingLocale } from "../i18n/LandingLocaleProvider";
+import { useClerkUserButtonAppearance } from "@/auth/useClerkUserButtonAppearance";
 import { NAV_LINK_CLASS } from "../nav";
 import { LandingNavLinks } from "./LandingNavLinks";
 
@@ -17,19 +19,20 @@ const navLinkClass = `${NAV_LINK_CLASS} block py-3.5`;
 
 function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useLandingLocale();
+  const userButtonAppearance = useClerkUserButtonAppearance();
 
   if (!clerkEnabled) {
     return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link to="/onboard" className={NAV_LINK_CLASS} onClick={onNavigate}>
+        <Link to="/register" className={NAV_LINK_CLASS} onClick={onNavigate}>
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/demos/seylan"
+          to="/register"
           onClick={onNavigate}
           className="flex items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/40"
         >
-          {t("auth.seeLiveDemo")}
+          {t("auth.getStarted")}
         </Link>
       </div>
     );
@@ -42,20 +45,22 @@ function MobileMenuAuth({ onNavigate }: { onNavigate: () => void }) {
           {t("auth.signIn")}
         </Link>
         <Link
-          to="/demos/seylan"
+          to="/register"
           onClick={onNavigate}
           className="flex items-center justify-center rounded-full border border-[#E1E0CC]/25 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/40"
         >
-          {t("auth.seeLiveDemo")}
+          {t("auth.getStarted")}
         </Link>
       </SignedOut>
       <SignedIn>
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: { avatarBox: "w-9 h-9 ring-2 ring-primary/30" },
-          }}
-        />
+        <Link
+          to={CANVAS_PATH}
+          onClick={onNavigate}
+          className="flex items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm text-[#E1E0CC] transition-colors hover:border-primary/60"
+        >
+          {t("auth.openWorkspace")}
+        </Link>
+        <UserButton afterSignOutUrl="/" appearance={userButtonAppearance} />
       </SignedIn>
     </div>
   );
@@ -89,8 +94,9 @@ export function LandingMobileMenu({ open, onClose }: Props) {
       <div className="flex min-h-full flex-col">
         <LanguageSwitcher className="mb-6" />
         <LandingNavLinks
+          variant="mobile"
           onNavigate={handleNavigate}
-          className="flex flex-col gap-1"
+          className="flex flex-col gap-0"
           itemClassName={navLinkClass}
         />
         <div className="mt-auto border-t border-[#212121] pt-4">

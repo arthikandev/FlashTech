@@ -1,8 +1,7 @@
 import type { MessageKey } from "./i18n/messages";
 
 export const FOOTER_PRODUCT = [
-  { key: "footer.dashboard" as MessageKey, to: "/dashboard" },
-  { key: "footer.demos" as MessageKey, to: "/demos/seylan" },
+  { key: "footer.dashboard" as MessageKey, to: "/canvas" },
   { key: "footer.onboard" as MessageKey, to: "/onboard" },
   { key: "footer.embedSdk" as MessageKey, href: "#features" },
   { key: "footer.pricing" as MessageKey, href: "#pricing" },
@@ -11,6 +10,7 @@ export const FOOTER_PRODUCT = [
     href: "https://docs.presenceiq.ai",
     external: true,
   },
+  { key: "footer.developers" as MessageKey, to: "/developers" },
 ] as const;
 
 export const FOOTER_COMPANY = [

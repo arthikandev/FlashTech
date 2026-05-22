@@ -48,7 +48,8 @@ function upsertEnvFile(filePath, keys) {
 
 upsertEnvFile(path.join(root, "backend", ".env.local"), {
   BP_WEBHOOK_SECRET: secrets.BP_WEBHOOK_SECRET,
-  N8N_WEBHOOK_SECRET: secrets.N8N_WEBHOOK_SECRET,
+  INBOUND_WEBHOOK_SECRET: secrets.INBOUND_WEBHOOK_SECRET ?? secrets.N8N_WEBHOOK_SECRET,
+  N8N_WEBHOOK_SECRET: secrets.N8N_WEBHOOK_SECRET ?? secrets.INBOUND_WEBHOOK_SECRET,
 });
 
 const avatarEnv = path.join(root, "avatar", ".env.local");
@@ -58,15 +59,14 @@ if (fs.existsSync(avatarEnv) || fs.existsSync(path.join(root, "avatar", ".env.ex
   });
 }
 
-// n8n variable reference (not applied to n8n Cloud — copy manually)
-const n8nRef = path.join(root, "devops", "n8n", ".variables.local");
+const referencePath = path.join(root, "devops", "automation-reference.env");
 fs.writeFileSync(
-  n8nRef,
-  `# Copy into n8n Cloud → Settings → Variables (gitignored)
-N8N_WEBHOOK_SECRET=${secrets.N8N_WEBHOOK_SECRET}
+  referencePath,
+  `# Paste into your automation tool if it needs static values (gitignored by devops/.gitignore if you add it)
+
+INBOUND_WEBHOOK_SECRET=${secrets.INBOUND_WEBHOOK_SECRET ?? secrets.N8N_WEBHOOK_SECRET ?? ""}
 PRESENCEIQ_BACKEND_URL=https://backend-blond-theta-13.vercel.app
-SEYLAN_DEMO_ACCOUNT_NUMBER=064000012548001
 `,
   "utf8"
 );
-console.log(`Wrote ${path.relative(root, n8nRef)} (paste into n8n Cloud)`);
+console.log(`Wrote ${path.relative(root, referencePath)}`);

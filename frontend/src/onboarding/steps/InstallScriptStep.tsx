@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { goToBackendDashboard } from "@/lib/backendUrl";
+import { useNavigate } from "react-router-dom";
+import { resolveCategoryDashboardPath } from "@/lib/categoryDashboardLink";
+import { setLastEmbedKey } from "@/lib/postAuth";
+import { fireConfettiFireworks } from "@/lib/confettiFireworks";
 import { markOnboardingComplete } from "../storage";
 import type { OnboardApiResult } from "../submitOnboarding";
 import { OnboardingShell } from "../components/OnboardingShell";
@@ -22,6 +25,7 @@ export function InstallScriptStep({
   onBack,
   showBack,
 }: Props) {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
 
   const embedKey = result?.embedKey ?? "";
@@ -40,8 +44,10 @@ export function InstallScriptStep({
 
   function handleFinish() {
     if (!result) return;
+    setLastEmbedKey(embedKey);
     markOnboardingComplete();
-    void goToBackendDashboard();
+    fireConfettiFireworks();
+    navigate(resolveCategoryDashboardPath(embedKey, result.categoryCode), { replace: true });
   }
 
   if (isLoading) {
@@ -81,11 +87,11 @@ export function InstallScriptStep({
 
   return (
     <OnboardingShell
-      title="Install script"
-      description="Paste this snippet before the closing </body> tag on your site."
+      title="Your avatar is ready"
+      description="Copy the embed script for your site, then open Canvas to test intelligence and video."
       onBack={onBack}
       onContinue={handleFinish}
-      continueLabel="Finish setup"
+      continueLabel="Open dashboard"
       showBack={showBack}
     >
       <div className="space-y-2">

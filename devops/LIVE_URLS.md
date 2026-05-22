@@ -5,9 +5,9 @@
 | Backend API | https://backend-blond-theta-13.vercel.app |
 | Frontend app | https://frontend-nu-neon-44.vercel.app |
 | Convex (dev deployment) | https://adamant-puffin-769.convex.cloud |
-| Seylan demo | https://frontend-nu-neon-44.vercel.app/sites/seylan/index.html#/pricing |
+| CloudMetrics demo | https://frontend-nu-neon-44.vercel.app/sites/cloudmetrics/index.html#/pricing |
 | Avatar SDK | https://frontend-nu-neon-44.vercel.app/presenceiq-avatar.js |
-| Embed script | https://backend-blond-theta-13.vercel.app/api/embed/seylan-demo |
+| Embed script | https://backend-blond-theta-13.vercel.app/api/embed/cloudmetrics-demo |
 
 ## Deploy commands
 

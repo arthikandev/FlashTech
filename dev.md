@@ -59,7 +59,7 @@ Deploy Convex + Vercel backend, configure n8n (CRM fetch, hot-lead Slack), align
 | Frontend dashboard | https://frontend-nu-neon-44.vercel.app/dashboard | [x] |
 | n8n instance | Import workflows — [devops/n8n/PRODUCTION.md](devops/n8n/PRODUCTION.md) | [ ] |
 | Avatar test page | `avatar/demo/test-page.html` (local) | [x] |
-| Seylan demo site | https://frontend-nu-neon-44.vercel.app/sites/seylan/index.html#/pricing | [x] |
+| CloudMetrics demo site | https://frontend-nu-neon-44.vercel.app/sites/cloudmetrics/index.html#/pricing | [x] |
 
 Also update [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md) and root [`README.md`](README.md).
 
@@ -91,7 +91,7 @@ Generate secrets: `node devops/scripts/generate-secrets.js` → copies to `devop
 
 Contract: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md)
 
-**Demo:** `embedKey=seylan-demo`, `localStorage.setItem('piq_fp','demo-sarangan-fp')`, expected opener mentions Sarangan.
+**Demo:** `embedKey=cloudmetrics-demo`, `localStorage.setItem('piq_fp','demo-sarangan-fp')`, expected opener mentions Sarangan.
 
 ---
 
@@ -99,7 +99,7 @@ Contract: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md)
 
 | P3 delivers | You need |
 |-------------|----------|
-| Seylan + embed script | `BACKEND_URL` after D2 |
+| CloudMetrics + embed script | `BACKEND_URL` after D2 |
 | `#presenceiq-avatar` container | You control visibility (deferred trigger) |
 | Dashboard | `VITE_CONVEX_URL` from D1 |
 
@@ -162,7 +162,7 @@ Contract: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md)
 
 ### A1 — Foundation
 - [ ] BeyondPresence account + `BEYONDPRESENCE_API_KEY` in `.env.local`
-- [ ] Create Seylan bank agent; set `bpAgentId` in `demo/config.js`
+- [ ] Create CloudMetrics bank agent; set `bpAgentId` in `demo/config.js`
 - [ ] Generic greeting on test page (or mock mode without key)
 
 ### A2 — Pipeline
@@ -217,7 +217,7 @@ Set `$env:BACKEND_URL` (PowerShell) or `BACKEND_URL` (bash), then:
 | # | Test | Pass |
 |---|------|------|
 | 1 | GET /api/health | status ok |
-| 2 | GET /api/embed/seylan-demo | JS body |
+| 2 | GET /api/embed/cloudmetrics-demo | JS body |
 | 3 | POST /api/fingerprint | visitorId |
 | 4 | POST /api/pipeline | Sarangan opener, pipelineMs &lt; 2000 |
 | 5 | POST /api/webhooks/n8n/crm | 200 |
@@ -251,7 +251,7 @@ Record results in section 16 below.
 **To P3 (after D2):**
 
 > Backend: `https://<app>.vercel.app`
-> Embed: `<script src="https://<app>.vercel.app/api/embed/seylan-demo" async></script>`
+> Embed: `<script src="https://<app>.vercel.app/api/embed/cloudmetrics-demo" async></script>`
 > Convex: `<url>` → `VITE_CONVEX_URL`
 > Add `<motion id="presenceiq-avatar"></motion>` — avatar script controls visibility.
 

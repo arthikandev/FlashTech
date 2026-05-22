@@ -26,7 +26,7 @@
 - Convex dashboard: https://dashboard.convex.dev → adamant-puffin-769
 - Frontend dashboard: http://localhost:5173 (dev) / _ (Vercel)
 - n8n instance: _ (import `devops/n8n/*.workflow.json`)
-- Seylan demo site: http://localhost:5173/sites/seylan/index.html#/pricing
+- CloudMetrics demo site: http://localhost:5173/sites/cloudmetrics/index.html#/pricing
 
 ## API contract
 
